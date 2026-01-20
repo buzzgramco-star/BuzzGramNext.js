@@ -146,6 +146,193 @@ export default function BusinessDetail() {
     }
   }, [user]);
 
+  // SEO/AEO Optimization - ONLY FOR TORONTO BUSINESSES (City ID 36)
+  useEffect(() => {
+    if (!business || business.cityId !== 36) return;
+
+    const categoryName = business.category?.name || '';
+    const subcategoryName = business.subcategory?.name || '';
+    const cityName = business.city?.name || 'Toronto';
+
+    // Calculate average rating if reviews exist
+    const avgRating = reviews && reviews.length > 0
+      ? (reviews.reduce((sum: number, r: Review) => sum + r.rating, 0) / reviews.length).toFixed(1)
+      : null;
+
+    // Generate page title
+    const pageTitle = subcategoryName
+      ? `${business.name} - ${subcategoryName} in ${cityName} | BuzzGram`
+      : categoryName
+      ? `${business.name} - ${categoryName} in ${cityName} | BuzzGram`
+      : `${business.name} - ${cityName} | BuzzGram`;
+
+    // Generate meta description
+    const metaDescription = business.description
+      ? `${business.description} Located in ${cityName}. ${subcategoryName ? `Specializing in ${subcategoryName.toLowerCase()}.` : ''} ${business.instagramHandle ? `Follow @${business.instagramHandle} on Instagram.` : ''} Request a quote instantly on BuzzGram.`
+      : `${business.name} is a ${categoryName?.toLowerCase()} business in ${cityName}. ${subcategoryName ? `Specializing in ${subcategoryName.toLowerCase()}.` : ''} Connect and request quotes on BuzzGram.`;
+
+    // Update page title
+    document.title = pageTitle;
+
+    // Add canonical URL
+    let canonicalLink = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
+    if (!canonicalLink) {
+      canonicalLink = document.createElement('link');
+      canonicalLink.setAttribute('rel', 'canonical');
+      document.head.appendChild(canonicalLink);
+    }
+    canonicalLink.setAttribute('href', `https://buzz-gram-next-js.vercel.app/business/${business.id}`);
+
+    // Update meta description
+    let metaDesc = document.querySelector('meta[name="description"]') as HTMLMetaElement | null;
+    if (!metaDesc) {
+      metaDesc = document.createElement('meta');
+      metaDesc.setAttribute('name', 'description');
+      document.head.appendChild(metaDesc);
+    }
+    metaDesc.setAttribute('content', metaDescription);
+
+    // Add keywords meta tag
+    let metaKeywords = document.querySelector('meta[name="keywords"]') as HTMLMetaElement | null;
+    if (!metaKeywords) {
+      metaKeywords = document.createElement('meta');
+      metaKeywords.setAttribute('name', 'keywords');
+      document.head.appendChild(metaKeywords);
+    }
+    const keywords = [
+      business.name,
+      subcategoryName,
+      categoryName,
+      `${subcategoryName} ${cityName}`,
+      `${categoryName} ${cityName}`,
+      `${business.instagramHandle}`,
+      'Toronto business',
+      'local business Toronto',
+    ].filter(Boolean).join(', ');
+    metaKeywords.setAttribute('content', keywords);
+
+    // Add Open Graph tags
+    const setOgTag = (property: string, content: string) => {
+      let tag = document.querySelector(`meta[property="${property}"]`) as HTMLMetaElement | null;
+      if (!tag) {
+        tag = document.createElement('meta');
+        tag.setAttribute('property', property);
+        document.head.appendChild(tag);
+      }
+      tag.setAttribute('content', content);
+    };
+
+    setOgTag('og:title', pageTitle);
+    setOgTag('og:description', metaDescription);
+    setOgTag('og:type', 'business.business');
+    setOgTag('og:url', `https://buzz-gram-next-js.vercel.app/business/${business.id}`);
+    setOgTag('og:locale', 'en_CA');
+    if (business.imageUrl) {
+      setOgTag('og:image', business.imageUrl);
+    }
+
+    // Add Twitter Card tags
+    const setTwitterTag = (name: string, content: string) => {
+      let tag = document.querySelector(`meta[name="${name}"]`) as HTMLMetaElement | null;
+      if (!tag) {
+        tag = document.createElement('meta');
+        tag.setAttribute('name', name);
+        document.head.appendChild(tag);
+      }
+      tag.setAttribute('content', content);
+    };
+
+    setTwitterTag('twitter:card', 'summary_large_image');
+    setTwitterTag('twitter:title', pageTitle);
+    setTwitterTag('twitter:description', metaDescription);
+    if (business.imageUrl) {
+      setTwitterTag('twitter:image', business.imageUrl);
+    }
+
+    // Add LocalBusiness Schema (Critical for local SEO and AEO)
+    const localBusinessSchema: any = {
+      '@context': 'https://schema.org',
+      '@type': 'LocalBusiness',
+      '@id': `https://buzz-gram-next-js.vercel.app/business/${business.id}`,
+      name: business.name,
+      description: business.description || `${business.name} - ${categoryName} business in ${cityName}`,
+      url: `https://buzz-gram-next-js.vercel.app/business/${business.id}`,
+      image: business.imageUrl || undefined,
+      address: {
+        '@type': 'PostalAddress',
+        addressLocality: cityName,
+        addressRegion: 'ON',
+        addressCountry: 'CA',
+      },
+      geo: {
+        '@type': 'GeoCoordinates',
+        addressCountry: 'CA',
+      },
+      areaServed: {
+        '@type': 'City',
+        name: cityName,
+      },
+      sameAs: business.instagramUrl ? [business.instagramUrl] : undefined,
+    };
+
+    // Add aggregate rating if reviews exist
+    if (reviews && reviews.length > 0 && avgRating) {
+      localBusinessSchema.aggregateRating = {
+        '@type': 'AggregateRating',
+        ratingValue: avgRating,
+        reviewCount: reviews.length,
+        bestRating: '5',
+        worstRating: '1',
+      };
+    }
+
+    // Add Breadcrumb Schema
+    const breadcrumbSchema = {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        {
+          '@type': 'ListItem',
+          position: 1,
+          name: 'Home',
+          item: 'https://buzz-gram-next-js.vercel.app',
+        },
+        {
+          '@type': 'ListItem',
+          position: 2,
+          name: cityName,
+          item: `https://buzz-gram-next-js.vercel.app/city/36`,
+        },
+        {
+          '@type': 'ListItem',
+          position: 3,
+          name: business.name,
+          item: `https://buzz-gram-next-js.vercel.app/business/${business.id}`,
+        },
+      ],
+    };
+
+    // Combine schemas
+    const combinedSchema = {
+      '@context': 'https://schema.org',
+      '@graph': [localBusinessSchema, breadcrumbSchema],
+    };
+
+    // Insert structured data
+    let script = document.querySelector('script[type="application/ld+json"][data-page="business"]') as HTMLScriptElement | null;
+    if (!script) {
+      script = document.createElement('script');
+      script.setAttribute('type', 'application/ld+json');
+      script.setAttribute('data-page', 'business');
+      document.head.appendChild(script);
+    }
+    script.textContent = JSON.stringify(combinedSchema);
+
+    return () => {
+      document.title = 'BuzzGram - Discover Local Businesses';
+    };
+  }, [business, reviews]);
+
   const handleQuoteSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setQuoteError('');

@@ -105,6 +105,15 @@ export default function CityPage() {
     // Update page title
     document.title = pageTitle;
 
+    // Add canonical URL
+    let canonicalLink = document.querySelector('link[rel="canonical"]');
+    if (!canonicalLink) {
+      canonicalLink = document.createElement('link');
+      canonicalLink.setAttribute('rel', 'canonical');
+      document.head.appendChild(canonicalLink);
+    }
+    canonicalLink.setAttribute('href', window.location.href.split('?')[0]);
+
     // Update or create meta description
     let metaDesc = document.querySelector('meta[name="description"]');
     if (!metaDesc) {
@@ -157,10 +166,10 @@ export default function CityPage() {
         position: index + 1,
         item: {
           '@type': 'LocalBusiness',
-          '@id': `https://buzzgram-frontend.vercel.app/business/${business.id}`,
+          '@id': `https://buzz-gram-next-js.vercel.app/business/${business.id}`,
           name: business.name,
           description: business.description || `${business.name} - a local business in ${city.name}`,
-          url: `https://buzzgram-frontend.vercel.app/business/${business.id}`,
+          url: `https://buzz-gram-next-js.vercel.app/business/${business.id}`,
           address: business.address ? {
             '@type': 'PostalAddress',
             streetAddress: business.address,
@@ -173,49 +182,105 @@ export default function CityPage() {
       }))
     };
 
-    // Add FAQ Schema
+    // Add FAQ Schema - Enhanced for SEO/AEO
     const faqData = {
       '@context': 'https://schema.org',
       '@type': 'FAQPage',
       mainEntity: [
         {
           '@type': 'Question',
-          name: `What are the best ${categoryText} businesses in ${city.name}?`,
+          name: `What are the best ${categoryText} businesses in Toronto?`,
           acceptedAnswer: {
             '@type': 'Answer',
-            text: `BuzzGram features ${businessCount} verified ${categoryText} businesses in ${city.name}. You can browse reviews, compare services, and connect with top-rated local businesses instantly.`
+            text: `Toronto features ${businessCount} verified ${categoryText} businesses on BuzzGram. Top-rated options include local businesses specializing in quality service with active Instagram presence. Browse verified listings to compare services and connect instantly through quote requests.`
           }
         },
         {
           '@type': 'Question',
-          name: `How do I find verified ${categoryText} businesses in ${city.name}?`,
+          name: `How do I find verified ${categoryText} businesses in Toronto?`,
           acceptedAnswer: {
             '@type': 'Answer',
-            text: `Use BuzzGram to discover verified local businesses in ${city.name}. Filter by category, read authentic reviews, and view business details including contact information and services offered.`
+            text: `BuzzGram makes it easy to discover verified ${categoryText} businesses in Toronto. Filter by category and subcategory, view business Instagram profiles, read descriptions, and submit quote requests directly. All businesses are verified and actively serving the Toronto area.`
           }
         },
         {
           '@type': 'Question',
-          name: `Can I contact ${categoryText} businesses directly on BuzzGram?`,
+          name: `Can I contact ${categoryText} businesses directly through BuzzGram?`,
           acceptedAnswer: {
             '@type': 'Answer',
-            text: `Yes! BuzzGram allows you to connect instantly with businesses through quote requests. Simply select a business and submit your inquiry to receive responses directly.`
+            text: `Yes! BuzzGram allows you to connect with Toronto ${categoryText} businesses through instant quote requests. Submit your service needs, and businesses respond directly. You can also visit their Instagram profiles to see their latest work and portfolio.`
           }
         },
         {
           '@type': 'Question',
-          name: `Are the businesses on BuzzGram verified?`,
+          name: `What types of ${categoryText} services are available in Toronto?`,
           acceptedAnswer: {
             '@type': 'Answer',
-            text: `BuzzGram features verified local businesses with authentic reviews from real customers. Businesses with the verified badge have been confirmed by our team.`
+            text: `Toronto offers diverse ${categoryText} services including ${selectedCategory ? 'specialized options in ' + selectedCategoryName?.toLowerCase() : 'beauty services (nails, lashes, makeup, hair), food services (bakery, catering, private chefs), and event services (decor, planning, photography)'}. BuzzGram features businesses across all service levels and specialties.`
           }
         },
         {
           '@type': 'Question',
-          name: `What types of ${categoryText} services are available in ${city.name}?`,
+          name: `How can I view portfolios of ${categoryText} businesses in Toronto?`,
           acceptedAnswer: {
             '@type': 'Answer',
-            text: `${city.name} offers a wide variety of ${categoryText} services. Browse our directory to find the perfect business that matches your needs, from budget-friendly to premium options.`
+            text: `Every ${categoryText} business on BuzzGram includes an Instagram link where you can view their latest work, customer photos, and portfolio. This helps you make informed decisions by seeing real examples of their services before contacting them.`
+          }
+        },
+        {
+          '@type': 'Question',
+          name: `Are ${categoryText} businesses on BuzzGram verified and trustworthy?`,
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: `All ${categoryText} businesses listed on BuzzGram are verified and actively serving Toronto. We ensure each business is legitimate with an active Instagram presence and genuine service offerings. Connect with confidence knowing businesses are vetted.`
+          }
+        },
+        {
+          '@type': 'Question',
+          name: `How do I request quotes from ${categoryText} businesses in Toronto?`,
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: `Requesting quotes is simple on BuzzGram. Browse ${categoryText} businesses in Toronto, select the business that matches your needs, and click the quote request button. Fill in your service requirements and receive responses directly from interested businesses.`
+          }
+        },
+        {
+          '@type': 'Question',
+          name: `What makes BuzzGram different for finding ${categoryText} businesses in Toronto?`,
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: `BuzzGram specializes in connecting Toronto residents with local ${categoryText} businesses. Unlike general directories, we focus on verified businesses with active Instagram presence, direct quote request functionality, and category-specific filtering for beauty, food, and events services.`
+          }
+        },
+        {
+          '@type': 'Question',
+          name: `Can I browse ${categoryText} businesses by specialty in Toronto?`,
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: `Yes! BuzzGram allows you to filter ${categoryText} businesses by specific subcategories. Whether you're looking for nail services, lash extensions, makeup artists, bakeries, catering, event planners, or photographers in Toronto, our category filters help you find exactly what you need.`
+          }
+        },
+        {
+          '@type': 'Question',
+          name: `How many ${categoryText} businesses are listed in Toronto on BuzzGram?`,
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: `BuzzGram currently features ${businessCount} verified ${categoryText} businesses serving Toronto. Our directory is continuously growing with new verified businesses joining regularly. Each listing includes Instagram links and direct quote request capabilities.`
+          }
+        },
+        {
+          '@type': 'Question',
+          name: `Is BuzzGram free to use for finding ${categoryText} businesses in Toronto?`,
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: `Yes! BuzzGram is completely free for customers. Browse unlimited ${categoryText} businesses in Toronto, view Instagram profiles, submit quote requests, and connect with businesses at no cost. We're committed to making local business discovery accessible to everyone.`
+          }
+        },
+        {
+          '@type': 'Question',
+          name: `What information is included in ${categoryText} business listings on BuzzGram?`,
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: `Each ${categoryText} business listing includes the business name, category and specialty, service description, Instagram handle with direct profile link, and quote request functionality. This gives you everything needed to evaluate and contact Toronto businesses.`
           }
         }
       ]
@@ -230,7 +295,7 @@ export default function CityPage() {
           '@type': 'ListItem',
           position: 1,
           name: 'Home',
-          item: 'https://buzzgram-frontend.vercel.app'
+          item: 'https://buzz-gram-next-js.vercel.app'
         },
         {
           '@type': 'ListItem',
