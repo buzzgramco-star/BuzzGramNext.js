@@ -8,7 +8,7 @@ type Props = {
 
 // Server-side metadata generation
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const businessId = params.id;
+  const { id: businessId } = await params;
 
   // Fetch business data server-side
   const businessResponse = await fetch(
@@ -82,7 +82,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function BusinessLayout({ params, children }: Props) {
-  const businessId = params.id;
+  const { id: businessId } = await params;
 
   // Fetch business and reviews server-side
   const [businessResponse, reviewsResponse] = await Promise.all([

@@ -8,7 +8,7 @@ type Props = {
 
 // Server-side metadata generation
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const cityId = params.cityId;
+  const { cityId } = await params;
 
   // Only generate SEO metadata for Toronto (city ID 36)
   if (cityId !== '36') {
@@ -75,7 +75,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function CityLayout({ params, children }: Props) {
-  const cityId = params.cityId;
+  const { cityId } = await params;
 
   // Only add structured data for Toronto (city ID 36)
   if (cityId !== '36') {
