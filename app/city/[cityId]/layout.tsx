@@ -2,7 +2,7 @@ import { Metadata } from 'next';
 import Script from 'next/script';
 
 type Props = {
-  params: { cityId: string };
+  params: Promise<{ cityId: string }>;
   children: React.ReactNode;
 };
 

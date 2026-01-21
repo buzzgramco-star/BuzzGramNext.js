@@ -2,7 +2,7 @@ import { Metadata } from 'next';
 import Script from 'next/script';
 
 type Props = {
-  params: { id: string };
+  params: Promise<{ id: string }>;
   children: React.ReactNode;
 };
 
@@ -65,7 +65,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title,
       description,
       url: `https://buzz-gram-next-js.vercel.app/business/${businessId}`,
-      type: 'business.business',
+      type: 'website',
       locale: 'en_CA',
       images: business.imageUrl ? [business.imageUrl] : undefined,
     },
