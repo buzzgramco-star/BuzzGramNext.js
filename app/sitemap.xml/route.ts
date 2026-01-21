@@ -25,6 +25,25 @@ export async function GET() {
       changefreq: 'daily',
       priority: 0.9,
     },
+    // Toronto category pages (Phase 2 SEO)
+    {
+      url: `${BASE_URL}/city/36/beauty`,
+      lastmod: new Date().toISOString(),
+      changefreq: 'daily',
+      priority: 0.85,
+    },
+    {
+      url: `${BASE_URL}/city/36/food`,
+      lastmod: new Date().toISOString(),
+      changefreq: 'daily',
+      priority: 0.85,
+    },
+    {
+      url: `${BASE_URL}/city/36/events`,
+      lastmod: new Date().toISOString(),
+      changefreq: 'daily',
+      priority: 0.85,
+    },
     {
       url: `${BASE_URL}/blog`,
       lastmod: new Date().toISOString(),
