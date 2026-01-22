@@ -49,7 +49,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const businessCount = businessData.success ? businessData.data.length : 0;
 
   const title = `${categoryName} in ${cityName} | Find Top-Rated ${categoryName} | BuzzGram`;
-  const description = `Discover ${businessCount} verified ${categoryName.toLowerCase()} businesses in ${cityName}. ${categoryConfig.subcategories.join(', ')}. Browse portfolios, read reviews, and request quotes instantly on BuzzGram.`;
+  const description = `Discover verified ${categoryName.toLowerCase()} businesses in ${cityName}. ${categoryConfig.subcategories.join(', ')}. Browse portfolios, read reviews, and request quotes instantly on BuzzGram.`;
 
   const keywords = [
     `${categoryName} ${cityName}`,
@@ -147,7 +147,7 @@ export default async function CategoryLayout({ params, children }: Props) {
         name: `What are the best ${categoryName.toLowerCase()} in ${cityName}?`,
         acceptedAnswer: {
           '@type': 'Answer',
-          text: `${cityName} features ${businessCount} verified ${categoryName.toLowerCase()} businesses on BuzzGram. Browse top-rated options including ${categoryConfig.subcategories.join(', ')}. All businesses are verified with active Instagram profiles and instant quote request functionality.`,
+          text: `${cityName} features verified ${categoryName.toLowerCase()} businesses on BuzzGram. Browse top-rated options including ${categoryConfig.subcategories.join(', ')}. All businesses are verified with active Instagram profiles and instant quote request functionality.`,
         },
       },
       {
@@ -155,7 +155,7 @@ export default async function CategoryLayout({ params, children }: Props) {
         name: `How do I find ${categoryName.toLowerCase()} near me in ${cityName}?`,
         acceptedAnswer: {
           '@type': 'Answer',
-          text: `BuzzGram makes it easy to discover ${categoryName.toLowerCase()} in ${cityName}. Browse ${businessCount} verified businesses, filter by subcategory (${categoryConfig.subcategories.join(', ')}), view Instagram portfolios, and submit quote requests directly.`,
+          text: `BuzzGram makes it easy to discover ${categoryName.toLowerCase()} in ${cityName}. Browse verified businesses, filter by subcategory (${categoryConfig.subcategories.join(', ')}), view Instagram portfolios, and submit quote requests directly.`,
         },
       },
       {
@@ -203,7 +203,7 @@ export default async function CategoryLayout({ params, children }: Props) {
         name: `How many ${categoryName.toLowerCase()} businesses are on BuzzGram?`,
         acceptedAnswer: {
           '@type': 'Answer',
-          text: `BuzzGram currently features ${businessCount} verified ${categoryName.toLowerCase()} businesses serving ${cityName}. Our directory grows regularly with new verified businesses joining to serve the community.`,
+          text: `BuzzGram features a growing directory of verified ${categoryName.toLowerCase()} businesses serving ${cityName}. Our directory grows regularly with new verified businesses joining to serve the community.`,
         },
       },
     ],

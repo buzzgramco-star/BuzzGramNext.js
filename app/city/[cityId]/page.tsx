@@ -110,25 +110,6 @@ export default function CityPage() {
           <PromotionalBanner />
         </div>
 
-      {/* SEO Content Section - ONLY FOR TORONTO */}
-      {cityId === '36' && city && (
-        <div className="w-full md:max-w-7xl md:mx-auto px-2 md:px-6 lg:px-8 py-6">
-          <div className="bg-gradient-to-br from-orange-50 to-pink-50 dark:from-orange-900/10 dark:to-pink-900/10 rounded-xl p-6 border border-orange-100 dark:border-orange-900/30">
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-3">
-              {selectedCategory
-                ? `${categories?.find(c => c.id === selectedCategory)?.name} in ${city.name}`
-                : `Discover Local Businesses in ${city.name}`
-              }
-            </h1>
-            <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-              {selectedCategory
-                ? `Find verified ${categories?.find(c => c.id === selectedCategory)?.name.toLowerCase()} businesses in ${city.name}. Browse ${filteredBusinesses.length} local businesses, read authentic reviews, and connect instantly with top-rated services.`
-                : `Welcome to ${city.name}'s premier local business directory. Discover ${filteredBusinesses.length} verified businesses across beauty, food, and events. Connect with trusted local services, compare options, and book instantly.`
-              }
-            </p>
-          </div>
-        </div>
-      )}
 
       {/* Filters */}
       <div className="bg-white dark:bg-dark-card border-b border-gray-200 dark:border-dark-border">

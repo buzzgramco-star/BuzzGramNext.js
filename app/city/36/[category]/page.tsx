@@ -112,8 +112,8 @@ export default function CategoryPage() {
             </h1>
             <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
               {selectedSubcategory
-                ? `Find verified ${subcategories?.find((s) => s.id === selectedSubcategory)?.name.toLowerCase()} businesses in Toronto. Browse ${filteredBusinesses.length} local businesses, read authentic reviews, and connect instantly with top-rated services.`
-                : `Welcome to Toronto's premier ${categoryName.toLowerCase()} directory. Discover ${filteredBusinesses.length} verified businesses. Connect with trusted local services, compare options, and book instantly.`}
+                ? `Find verified ${subcategories?.find((s) => s.id === selectedSubcategory)?.name.toLowerCase()} businesses in Toronto. Browse local businesses, read authentic reviews, and connect instantly with top-rated services.`
+                : `Welcome to Toronto's premier ${categoryName.toLowerCase()} directory. Discover verified businesses, connect with trusted local services, compare options, and book instantly.`}
             </p>
           </div>
         </div>
