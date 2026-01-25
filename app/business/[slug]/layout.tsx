@@ -2,17 +2,17 @@ import { Metadata } from 'next';
 import Script from 'next/script';
 
 type Props = {
-  params: Promise<{ id: string }>;
+  params: Promise<{ slug: string }>;
   children: React.ReactNode;
 };
 
 // Server-side metadata generation
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { id: businessId } = await params;
+  const { slug } = await params;
 
   // Fetch business data server-side
   const businessResponse = await fetch(
-    `https://backend-production-f30d.up.railway.app/api/businesses/${businessId}`,
+    `https://backend-production-f30d.up.railway.app/api/businesses/by-slug/${slug}`,
     { next: { revalidate: 300 } } // Cache for 5 minutes
   );
 
@@ -64,7 +64,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     openGraph: {
       title,
       description,
-      url: `https://buzz-gram-next-js.vercel.app/business/${businessId}`,
+      url: `https://buzz-gram-next-js.vercel.app/business/${business.slug}`,
       type: 'website',
       locale: 'en_CA',
       images: business.imageUrl ? [business.imageUrl] : undefined,
@@ -76,23 +76,19 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       images: business.imageUrl ? [business.imageUrl] : undefined,
     },
     alternates: {
-      canonical: `https://buzz-gram-next-js.vercel.app/business/${businessId}`,
+      canonical: `https://buzz-gram-next-js.vercel.app/business/${business.slug}`,
     },
   };
 }
 
 export default async function BusinessLayout({ params, children }: Props) {
-  const { id: businessId } = await params;
+  const { slug } = await params;
 
-  // Fetch business and reviews server-side
-  const [businessResponse, reviewsResponse] = await Promise.all([
-    fetch(`https://backend-production-f30d.up.railway.app/api/businesses/${businessId}`, {
-      next: { revalidate: 300 },
-    }),
-    fetch(`https://backend-production-f30d.up.railway.app/api/reviews/business/${businessId}`, {
-      next: { revalidate: 300 },
-    }).catch(() => null), // Reviews might not exist
-  ]);
+  // Fetch business first to get ID for reviews
+  const businessResponse = await fetch(
+    `https://backend-production-f30d.up.railway.app/api/businesses/by-slug/${slug}`,
+    { next: { revalidate: 300 } }
+  );
 
   if (!businessResponse.ok) {
     return <>{children}</>;
@@ -101,7 +97,17 @@ export default async function BusinessLayout({ params, children }: Props) {
   const businessData = await businessResponse.json();
   const business = businessData.success ? businessData.data : null;
 
-  if (!business || business.cityId !== 36) {
+  if (!business) {
+    return <>{children}</>;
+  }
+
+  // Fetch reviews using business ID
+  const reviewsResponse = await fetch(
+    `https://backend-production-f30d.up.railway.app/api/reviews/business/${business.id}`,
+    { next: { revalidate: 300 } }
+  ).catch(() => null);
+
+  if (business.cityId !== 36) {
     // Only add schemas for Toronto businesses
     return <>{children}</>;
   }
@@ -121,11 +127,11 @@ export default async function BusinessLayout({ params, children }: Props) {
   const localBusinessSchema: any = {
     '@context': 'https://schema.org',
     '@type': 'LocalBusiness',
-    '@id': `https://buzz-gram-next-js.vercel.app/business/${businessId}`,
+    '@id': `https://buzz-gram-next-js.vercel.app/business/${business.slug}`,
     name: business.name,
     description:
       business.description || `${business.name} - ${business.category?.name} business in ${cityName}`,
-    url: `https://buzz-gram-next-js.vercel.app/business/${businessId}`,
+    url: `https://buzz-gram-next-js.vercel.app/business/${business.slug}`,
     image: business.imageUrl || undefined,
     address: {
       '@type': 'PostalAddress',
@@ -176,7 +182,7 @@ export default async function BusinessLayout({ params, children }: Props) {
         '@type': 'ListItem',
         position: 3,
         name: business.name,
-        item: `https://buzz-gram-next-js.vercel.app/business/${businessId}`,
+        item: `https://buzz-gram-next-js.vercel.app/business/${business.slug}`,
       },
     ],
   };

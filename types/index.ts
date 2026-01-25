@@ -37,6 +37,7 @@ export interface BusinessService {
 export interface Business {
   id: number;
   name: string;
+  slug: string;
   description: string | null;
   address: string | null;
   cityId: number;

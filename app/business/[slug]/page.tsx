@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
-import { getBusiness, getCategories, getSubcategories, submitQuoteRequest, createReview, getBusinessReviews, deleteOwnReview } from '@/lib/api';
+import { getBusinessBySlug, getCategories, getSubcategories, submitQuoteRequest, createReview, getBusinessReviews, deleteOwnReview } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import VerifiedBadge from '@/components/VerifiedBadge';
@@ -15,8 +15,8 @@ import type { AvailabilitySlot, Review } from '@/types';
 type TabType = 'about' | 'services' | 'reviews' | 'quote';
 
 export default function BusinessDetail() {
-  const params = useParams<{ id: string }>();
-  const id = params?.id;
+  const params = useParams<{ slug: string }>();
+  const slug = params?.slug;
   const router = useRouter();
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -44,9 +44,9 @@ export default function BusinessDetail() {
   const [reviewSuccess, setReviewSuccess] = useState(false);
 
   const { data: business, isLoading, error } = useQuery({
-    queryKey: ['business', id],
-    queryFn: () => getBusiness(Number(id)),
-    enabled: !!id,
+    queryKey: ['business', slug],
+    queryFn: () => getBusinessBySlug(slug!),
+    enabled: !!slug,
   });
 
   const { data: categories } = useQuery({
@@ -61,9 +61,9 @@ export default function BusinessDetail() {
 
   // Fetch reviews for this business
   const { data: reviews } = useQuery({
-    queryKey: ['reviews', id],
-    queryFn: () => getBusinessReviews(Number(id)),
-    enabled: !!id,
+    queryKey: ['reviews', business?.id],
+    queryFn: () => getBusinessReviews(business!.id),
+    enabled: !!business?.id,
   });
 
   // Create review mutation
@@ -75,7 +75,7 @@ export default function BusinessDetail() {
       setReviewRating(0);
       setReviewText('');
       setReviewMediaUrl('');
-      queryClient.invalidateQueries({ queryKey: ['reviews', id] });
+      queryClient.invalidateQueries({ queryKey: ['reviews', business?.id] });
       window.scrollTo({ top: 0, behavior: 'smooth' });
     },
     onError: (error: any) => {
@@ -88,7 +88,7 @@ export default function BusinessDetail() {
   const deleteOwnReviewMutation = useMutation({
     mutationFn: deleteOwnReview,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['reviews', id] });
+      queryClient.invalidateQueries({ queryKey: ['reviews', business?.id] });
       setReviewSuccess(false);
     },
     onError: (error: any) => {

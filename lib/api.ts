@@ -47,6 +47,11 @@ export const getBusiness = async (id: number): Promise<Business> => {
   return data.data;
 };
 
+export const getBusinessBySlug = async (slug: string): Promise<Business> => {
+  const { data } = await api.get<{ success: boolean; data: Business }>(`/businesses/by-slug/${slug}`);
+  return data.data;
+};
+
 export const healthCheck = async (): Promise<{ status: string; timestamp: string }> => {
   const { data } = await api.get('/health');
   return data;

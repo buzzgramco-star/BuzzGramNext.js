@@ -122,9 +122,9 @@ export async function GET() {
     },
   ];
 
-  // Toronto business pages (ONLY Toronto - city ID 36)
+  // Toronto business pages (ONLY Toronto - city ID 36) - Use slug URLs
   const businessPages = businesses.map((business: any) => ({
-    url: `${BASE_URL}/business/${business.id}`,
+    url: `${BASE_URL}/business/${business.slug}`,
     lastmod: business.updatedAt || new Date().toISOString(),
     changefreq: 'weekly',
     priority: 0.8,

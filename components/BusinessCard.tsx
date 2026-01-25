@@ -86,7 +86,7 @@ export default function BusinessCard({ business }: BusinessCardProps) {
         </svg>
       </button>
 
-      <Link href={`/business/${business.id}`} className="block">
+      <Link href={`/business/${business.slug}`} className="block">
       {/* Business Name */}
       <h3 className="text-xl sm:text-lg font-bold text-gray-900 dark:text-white mb-3 sm:mb-3 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors tracking-tight flex items-center gap-1.5">
         {business.name}
