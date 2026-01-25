@@ -6,45 +6,51 @@ type Props = {
   children: React.ReactNode;
 };
 
-// Subcategory configurations with IDs and parent categories
-const SUBCATEGORY_CONFIG: Record<string, Record<string, { id: number; name: string; categoryId: number; categoryName: string }>> = {
-  beauty: {
-    nails: { id: 1, name: 'Nail Salons', categoryId: 1, categoryName: 'Beauty Services' },
-    lashes: { id: 2, name: 'Lash Extensions', categoryId: 1, categoryName: 'Beauty Services' },
-    makeup: { id: 3, name: 'Makeup Artists', categoryId: 1, categoryName: 'Beauty Services' },
-    hair: { id: 4, name: 'Hair Salons', categoryId: 1, categoryName: 'Beauty Services' },
-  },
-  food: {
-    bakery: { id: 5, name: 'Bakery', categoryId: 2, categoryName: 'Food Services' },
-    catering: { id: 6, name: 'Catering Services', categoryId: 2, categoryName: 'Food Services' },
-    chefs: { id: 7, name: 'Private Chefs', categoryId: 2, categoryName: 'Food Services' },
-  },
-  events: {
-    planning: { id: 8, name: 'Event Planning', categoryId: 3, categoryName: 'Event Services' },
-    decor: { id: 9, name: 'Event Decor', categoryId: 3, categoryName: 'Event Services' },
-    photography: { id: 10, name: 'Wedding Photography', categoryId: 3, categoryName: 'Event Services' },
-  },
-};
+const API_BASE = 'https://backend-production-f30d.up.railway.app/api';
 
 // Server-side metadata generation
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { category: categorySlug, subcategory: subcategorySlug } = await params;
 
-  // Validate category and subcategory
-  const subcategoryConfig = SUBCATEGORY_CONFIG[categorySlug]?.[subcategorySlug];
-  if (!subcategoryConfig) {
+  // Fetch categories from API
+  const categoriesResponse = await fetch(`${API_BASE}/categories`, {
+    next: { revalidate: 300 },
+  });
+  const categoriesData = await categoriesResponse.json();
+  const category = categoriesData.success
+    ? categoriesData.data.find((c: any) => c.slug === categorySlug)
+    : null;
+
+  if (!category) {
+    return {
+      title: 'Category Not Found | BuzzGram',
+    };
+  }
+
+  // Fetch subcategories from API
+  const subcategoriesResponse = await fetch(`${API_BASE}/subcategories`, {
+    next: { revalidate: 300 },
+  });
+  const subcategoriesData = await subcategoriesResponse.json();
+  const subcategory = subcategoriesData.success
+    ? subcategoriesData.data.find(
+        (s: any) => s.slug === subcategorySlug && s.categoryId === category.id
+      )
+    : null;
+
+  if (!subcategory) {
     return {
       title: 'Subcategory Not Found | BuzzGram',
     };
   }
 
   const cityName = 'Toronto';
-  const subcategoryName = subcategoryConfig.name;
-  const categoryName = subcategoryConfig.categoryName;
+  const subcategoryName = subcategory.name;
+  const categoryName = category.name;
 
-  // Fetch subcategory businesses
+  // Fetch subcategory businesses with REAL IDs from database
   const businessResponse = await fetch(
-    `https://backend-production-f30d.up.railway.app/api/businesses?cityId=36&categoryId=${subcategoryConfig.categoryId}&subcategoryId=${subcategoryConfig.id}`,
+    `${API_BASE}/businesses?cityId=36&categoryId=${category.id}&subcategoryId=${subcategory.id}`,
     { next: { revalidate: 300 } }
   );
   const businessData = await businessResponse.json();
@@ -90,19 +96,41 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function SubcategoryLayout({ params, children }: Props) {
   const { category: categorySlug, subcategory: subcategorySlug } = await params;
 
-  // Validate category and subcategory
-  const subcategoryConfig = SUBCATEGORY_CONFIG[categorySlug]?.[subcategorySlug];
-  if (!subcategoryConfig) {
+  // Fetch categories from API
+  const categoriesResponse = await fetch(`${API_BASE}/categories`, {
+    next: { revalidate: 300 },
+  });
+  const categoriesData = await categoriesResponse.json();
+  const category = categoriesData.success
+    ? categoriesData.data.find((c: any) => c.slug === categorySlug)
+    : null;
+
+  if (!category) {
+    return <>{children}</>;
+  }
+
+  // Fetch subcategories from API
+  const subcategoriesResponse = await fetch(`${API_BASE}/subcategories`, {
+    next: { revalidate: 300 },
+  });
+  const subcategoriesData = await subcategoriesResponse.json();
+  const subcategory = subcategoriesData.success
+    ? subcategoriesData.data.find(
+        (s: any) => s.slug === subcategorySlug && s.categoryId === category.id
+      )
+    : null;
+
+  if (!subcategory) {
     return <>{children}</>;
   }
 
   const cityName = 'Toronto';
-  const subcategoryName = subcategoryConfig.name;
-  const categoryName = subcategoryConfig.categoryName;
+  const subcategoryName = subcategory.name;
+  const categoryName = category.name;
 
-  // Fetch subcategory businesses
+  // Fetch subcategory businesses with REAL IDs from database
   const businessResponse = await fetch(
-    `https://backend-production-f30d.up.railway.app/api/businesses?cityId=36&categoryId=${subcategoryConfig.categoryId}&subcategoryId=${subcategoryConfig.id}`,
+    `${API_BASE}/businesses?cityId=36&categoryId=${category.id}&subcategoryId=${subcategory.id}`,
     { next: { revalidate: 300 } }
   );
   const businessData = await businessResponse.json();

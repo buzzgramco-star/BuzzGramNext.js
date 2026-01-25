@@ -6,57 +6,59 @@ type Props = {
   children: React.ReactNode;
 };
 
-// Category configurations with their IDs and subcategories
-const CATEGORY_CONFIG: Record<string, { id: number; name: string; subcategories: string[] }> = {
-  beauty: {
-    id: 1,
-    name: 'Beauty Services',
-    subcategories: ['Nails', 'Lash Extensions', 'Makeup Artists', 'Hair Salons'],
-  },
-  food: {
-    id: 2,
-    name: 'Food Services',
-    subcategories: ['Bakery', 'Catering Services', 'Private Chefs'],
-  },
-  events: {
-    id: 3,
-    name: 'Event Services',
-    subcategories: ['Event Planning', 'Event Decor', 'Wedding Photography'],
-  },
-};
+const API_BASE = 'https://backend-production-f30d.up.railway.app/api';
 
 // Server-side metadata generation
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { category: categorySlug } = await params;
 
-  // Validate category
-  const categoryConfig = CATEGORY_CONFIG[categorySlug];
-  if (!categoryConfig) {
+  // Fetch categories from API
+  const categoriesResponse = await fetch(`${API_BASE}/categories`, {
+    next: { revalidate: 300 },
+  });
+  const categoriesData = await categoriesResponse.json();
+  const category = categoriesData.success
+    ? categoriesData.data.find((c: any) => c.slug === categorySlug)
+    : null;
+
+  if (!category) {
     return {
       title: 'Category Not Found | BuzzGram',
     };
   }
 
-  const cityName = 'Toronto';
-  const categoryName = categoryConfig.name;
+  // Fetch subcategories for this category
+  const subcategoriesResponse = await fetch(`${API_BASE}/subcategories`, {
+    next: { revalidate: 300 },
+  });
+  const subcategoriesData = await subcategoriesResponse.json();
+  const categorySubcategories = subcategoriesData.success
+    ? subcategoriesData.data.filter((s: any) => s.categoryId === category.id)
+    : [];
 
-  // Fetch category businesses
+  const cityName = 'Toronto';
+  const categoryName = category.name;
+
+  // Fetch category businesses with REAL category ID from database
   const businessResponse = await fetch(
-    `https://backend-production-f30d.up.railway.app/api/businesses?cityId=36&categoryId=${categoryConfig.id}`,
+    `${API_BASE}/businesses?cityId=36&categoryId=${category.id}`,
     { next: { revalidate: 300 } }
   );
   const businessData = await businessResponse.json();
   const businessCount = businessData.success ? businessData.data.length : 0;
 
+  // Generate subcategory names for metadata
+  const subcategoryNames = categorySubcategories.map((s: any) => s.name);
+
   const title = `${categoryName} in ${cityName} | Find Top-Rated ${categoryName} | BuzzGram`;
-  const description = `Discover verified ${categoryName.toLowerCase()} businesses in ${cityName}. ${categoryConfig.subcategories.join(', ')}. Browse portfolios, read reviews, and request quotes instantly on BuzzGram.`;
+  const description = `Discover verified ${categoryName.toLowerCase()} businesses in ${cityName}. ${subcategoryNames.join(', ')}. Browse portfolios, read reviews, and request quotes instantly on BuzzGram.`;
 
   const keywords = [
     `${categoryName} ${cityName}`,
     `${categoryName.toLowerCase()} near me`,
     `best ${categoryName.toLowerCase()} ${cityName}`,
-    ...categoryConfig.subcategories.map((sub) => `${sub} ${cityName}`),
-    ...categoryConfig.subcategories.map((sub) => `${sub.toLowerCase()} near me`),
+    ...subcategoryNames.map((sub: string) => `${sub} ${cityName}`),
+    ...subcategoryNames.map((sub: string) => `${sub.toLowerCase()} near me`),
     `${cityName} ${categorySlug}`,
     `verified ${categoryName} ${cityName}`,
     `top rated ${categoryName} ${cityName}`,
@@ -88,23 +90,42 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function CategoryLayout({ params, children }: Props) {
   const { category: categorySlug } = await params;
 
-  // Validate category
-  const categoryConfig = CATEGORY_CONFIG[categorySlug];
-  if (!categoryConfig) {
+  // Fetch categories from API
+  const categoriesResponse = await fetch(`${API_BASE}/categories`, {
+    next: { revalidate: 300 },
+  });
+  const categoriesData = await categoriesResponse.json();
+  const category = categoriesData.success
+    ? categoriesData.data.find((c: any) => c.slug === categorySlug)
+    : null;
+
+  if (!category) {
     return <>{children}</>;
   }
 
-  const cityName = 'Toronto';
-  const categoryName = categoryConfig.name;
+  // Fetch subcategories for this category
+  const subcategoriesResponse = await fetch(`${API_BASE}/subcategories`, {
+    next: { revalidate: 300 },
+  });
+  const subcategoriesData = await subcategoriesResponse.json();
+  const categorySubcategories = subcategoriesData.success
+    ? subcategoriesData.data.filter((s: any) => s.categoryId === category.id)
+    : [];
 
-  // Fetch category businesses
+  const cityName = 'Toronto';
+  const categoryName = category.name;
+
+  // Fetch category businesses with REAL category ID from database
   const businessResponse = await fetch(
-    `https://backend-production-f30d.up.railway.app/api/businesses?cityId=36&categoryId=${categoryConfig.id}`,
+    `${API_BASE}/businesses?cityId=36&categoryId=${category.id}`,
     { next: { revalidate: 300 } }
   );
   const businessData = await businessResponse.json();
   const businesses = businessData.success ? businessData.data : [];
   const businessCount = businesses.length;
+
+  // Generate subcategory names for FAQs
+  const subcategoryNames = categorySubcategories.map((s: any) => s.name);
 
   // CollectionPage Schema
   const collectionPageSchema = {
@@ -147,7 +168,7 @@ export default async function CategoryLayout({ params, children }: Props) {
         name: `What are the best ${categoryName.toLowerCase()} in ${cityName}?`,
         acceptedAnswer: {
           '@type': 'Answer',
-          text: `${cityName} features verified ${categoryName.toLowerCase()} businesses on BuzzGram. Browse top-rated options including ${categoryConfig.subcategories.join(', ')}. All businesses are verified with active Instagram profiles and instant quote request functionality.`,
+          text: `${cityName} features verified ${categoryName.toLowerCase()} businesses on BuzzGram. Browse top-rated options including ${subcategoryNames.join(', ')}. All businesses are verified with active Instagram profiles and instant quote request functionality.`,
         },
       },
       {
@@ -155,7 +176,7 @@ export default async function CategoryLayout({ params, children }: Props) {
         name: `How do I find ${categoryName.toLowerCase()} near me in ${cityName}?`,
         acceptedAnswer: {
           '@type': 'Answer',
-          text: `BuzzGram makes it easy to discover ${categoryName.toLowerCase()} in ${cityName}. Browse verified businesses, filter by subcategory (${categoryConfig.subcategories.join(', ')}), view Instagram portfolios, and submit quote requests directly.`,
+          text: `BuzzGram makes it easy to discover ${categoryName.toLowerCase()} in ${cityName}. Browse verified businesses, filter by subcategory (${subcategoryNames.join(', ')}), view Instagram portfolios, and submit quote requests directly.`,
         },
       },
       {
@@ -179,7 +200,7 @@ export default async function CategoryLayout({ params, children }: Props) {
         name: `What types of ${categoryName.toLowerCase()} are available in ${cityName}?`,
         acceptedAnswer: {
           '@type': 'Answer',
-          text: `${cityName} offers diverse ${categoryName.toLowerCase()} including ${categoryConfig.subcategories.join(', ')}. BuzzGram features businesses across all service levels, specialties, and price points to match your needs.`,
+          text: `${cityName} offers diverse ${categoryName.toLowerCase()} including ${subcategoryNames.join(', ')}. BuzzGram features businesses across all service levels, specialties, and price points to match your needs.`,
         },
       },
       {

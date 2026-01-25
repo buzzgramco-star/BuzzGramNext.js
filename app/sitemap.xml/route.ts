@@ -84,7 +84,7 @@ export async function GET() {
       priority: 0.82,
     },
     {
-      url: `${BASE_URL}/city/36/food/chefs`,
+      url: `${BASE_URL}/city/36/food/chef`,
       lastmod: new Date().toISOString(),
       changefreq: 'daily',
       priority: 0.82,
