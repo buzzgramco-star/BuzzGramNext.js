@@ -27,6 +27,11 @@ export const getCities = async (): Promise<City[]> => {
   return data.data;
 };
 
+export const getCityById = async (id: number): Promise<City> => {
+  const { data } = await api.get<{ success: boolean; data: City }>(`/cities/${id}`);
+  return data.data;
+};
+
 export const getCityBySlug = async (slug: string): Promise<City> => {
   const { data } = await api.get<{ success: boolean; data: City }>(`/cities/by-slug/${slug}`);
   return data.data;

@@ -1,4 +1,5 @@
-import { getCityBySlug, getBusinesses, getCategories, getSubcategories } from '@/lib/api';
+import { redirect } from 'next/navigation';
+import { getCityBySlug, getCityById, getBusinesses, getCategories, getSubcategories } from '@/lib/api';
 import CityPageClient from './CityPageClient';
 
 type Props = {
@@ -12,16 +13,30 @@ export default async function CityPage({ params, searchParams }: Props) {
   const search = await searchParams;
 
   try {
-    // Fetch all data server-side in parallel
-    const [city, categories, subcategories, businesses] = await Promise.all([
-      getCityBySlug(slug),
+    let city;
+
+    // Check if slug is actually an ID (number)
+    if (/^\d+$/.test(slug)) {
+      // It's a numeric ID - fetch by ID and redirect to slug URL
+      try {
+        city = await getCityById(parseInt(slug, 10));
+        // Redirect to the proper slug URL
+        redirect(`/city/${city.slug}`);
+      } catch (error) {
+        // City ID not found
+        throw new Error('City not found');
+      }
+    } else {
+      // It's a slug - fetch normally
+      city = await getCityBySlug(slug);
+    }
+
+    // Fetch all other data server-side in parallel
+    const [categories, subcategories, cityBusinesses] = await Promise.all([
       getCategories(),
       getSubcategories(),
-      getBusinesses({ cityId: 0 }), // We'll fetch by city.id below
+      getBusinesses({ cityId: city.id }),
     ]);
-
-    // Fetch businesses for the specific city
-    const cityBusinesses = await getBusinesses({ cityId: city.id });
 
     return (
       <CityPageClient
