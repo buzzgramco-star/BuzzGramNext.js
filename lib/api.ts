@@ -1,15 +1,33 @@
 import axios from 'axios';
 import type { City, Category, Subcategory, Business, BusinessSearchParams, GeneralQuote, BlogPost, CreateBlogInput } from '@/types';
 
-// Use environment variable for API URL (fallback to production URL)
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '')
-  || 'https://backend-production-f30d.up.railway.app';
+// Determine the correct API URL based on environment
+const getApiBaseUrl = () => {
+  // If explicitly set in environment, use it (removing /api suffix if present)
+  if (process.env.NEXT_PUBLIC_API_URL) {
+    const url = process.env.NEXT_PUBLIC_API_URL.replace('/api', '');
+    // Don't use localhost in production builds
+    if (url.includes('localhost') && process.env.NODE_ENV === 'production') {
+      console.warn('[API] Localhost URL detected in production, using fallback');
+      return 'https://backend-production-f30d.up.railway.app';
+    }
+    return url;
+  }
+
+  // Default to production backend
+  return 'https://backend-production-f30d.up.railway.app';
+};
+
+const API_BASE_URL = getApiBaseUrl();
+
+console.log('[API] Using API base URL:', API_BASE_URL);
 
 export const api = axios.create({
   baseURL: `${API_BASE_URL}/api`,
   headers: {
     'Content-Type': 'application/json',
   },
+  timeout: 15000, // 15 second timeout
 });
 
 // Add response interceptor for error handling

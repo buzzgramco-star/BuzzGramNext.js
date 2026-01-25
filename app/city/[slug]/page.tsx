@@ -46,8 +46,16 @@ export default async function CityPage({ params, searchParams }: Props) {
         searchTerm={(search?.search as string) || ''}
       />
     );
-  } catch (error) {
+  } catch (error: any) {
     console.error('[City Page] Error:', error);
+    console.error('[City Page] Error message:', error?.message);
+    console.error('[City Page] Error response:', error?.response?.data);
+    console.error('[City Page] Error stack:', error?.stack);
+
+    const errorMessage = error?.response?.data?.message
+      || error?.message
+      || 'Unknown error occurred';
+
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6">
@@ -57,6 +65,11 @@ export default async function CityPage({ params, searchParams }: Props) {
           <p className="text-red-600 dark:text-red-300">
             The city you are looking for does not exist or there was an error loading the data.
           </p>
+          {process.env.NODE_ENV === 'development' && (
+            <pre className="mt-4 text-xs text-red-800 dark:text-red-200 overflow-auto">
+              {errorMessage}
+            </pre>
+          )}
         </div>
       </div>
     );
