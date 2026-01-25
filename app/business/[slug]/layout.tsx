@@ -176,7 +176,7 @@ export default async function BusinessLayout({ params, children }: Props) {
         '@type': 'ListItem',
         position: 2,
         name: cityName,
-        item: 'https://buzz-gram-next-js.vercel.app/city/36',
+        item: 'https://buzz-gram-next-js.vercel.app/city/toronto',
       },
       {
         '@type': 'ListItem',

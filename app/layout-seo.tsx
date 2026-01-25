@@ -50,7 +50,7 @@ export function HomepageStructuredData() {
       '@type': 'SearchAction',
       target: {
         '@type': 'EntryPoint',
-        urlTemplate: 'https://buzz-gram-next-js.vercel.app/city/36?search={search_term_string}',
+        urlTemplate: 'https://buzz-gram-next-js.vercel.app/city/toronto?search={search_term_string}',
       },
       'query-input': 'required name=search_term_string',
     },
