@@ -15,16 +15,16 @@ export default async function BusinessDetail({ params }: Props) {
 
     // Check if slug is actually an ID (number) - for backward compatibility
     if (/^\d+$/.test(slug)) {
-      try {
-        business = await getBusiness(parseInt(slug, 10));
-        // Redirect to the proper slug URL
-        redirect(`/business/${business.slug}`);
-      } catch (error) {
-        throw new Error('Business not found');
-      }
+      console.log('[Business Page] Fetching business by ID:', slug);
+      business = await getBusiness(parseInt(slug, 10));
+      console.log('[Business Page] Business found:', business.name, 'slug:', business.slug);
+      // Redirect to the proper slug URL (this throws NEXT_REDIRECT)
+      redirect(`/business/${business.slug}`);
     } else {
       // It's a slug - fetch normally
+      console.log('[Business Page] Fetching business by slug:', slug);
       business = await getBusinessBySlug(slug);
+      console.log('[Business Page] Business found:', business.name);
     }
 
     // Fetch all other data server-side in parallel for SEO
@@ -43,6 +43,7 @@ export default async function BusinessDetail({ params }: Props) {
       />
     );
   } catch (error) {
+    console.error('[Business Page] Error:', error);
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6">

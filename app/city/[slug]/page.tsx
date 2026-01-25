@@ -18,17 +18,16 @@ export default async function CityPage({ params, searchParams }: Props) {
     // Check if slug is actually an ID (number)
     if (/^\d+$/.test(slug)) {
       // It's a numeric ID - fetch by ID and redirect to slug URL
-      try {
-        city = await getCityById(parseInt(slug, 10));
-        // Redirect to the proper slug URL
-        redirect(`/city/${city.slug}`);
-      } catch (error) {
-        // City ID not found
-        throw new Error('City not found');
-      }
+      console.log('[City Page] Fetching city by ID:', slug);
+      city = await getCityById(parseInt(slug, 10));
+      console.log('[City Page] City found:', city.name, 'slug:', city.slug);
+      // Redirect to the proper slug URL (this throws NEXT_REDIRECT)
+      redirect(`/city/${city.slug}`);
     } else {
       // It's a slug - fetch normally
+      console.log('[City Page] Fetching city by slug:', slug);
       city = await getCityBySlug(slug);
+      console.log('[City Page] City found:', city.name);
     }
 
     // Fetch all other data server-side in parallel
@@ -48,6 +47,7 @@ export default async function CityPage({ params, searchParams }: Props) {
       />
     );
   } catch (error) {
+    console.error('[City Page] Error:', error);
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6">
