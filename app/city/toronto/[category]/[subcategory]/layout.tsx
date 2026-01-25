@@ -44,13 +44,21 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
   }
 
-  const cityName = 'Toronto';
+  // Fetch city by slug
+  const cityResponse = await fetch(`${API_BASE}/cities/by-slug/toronto`, {
+    next: { revalidate: 300 },
+  });
+  const cityData = await cityResponse.json();
+  const city = cityData.success ? cityData.data : null;
+  const cityName = city?.name || 'Toronto';
+  const cityId = city?.id || 36;
+
   const subcategoryName = subcategory.name;
   const categoryName = category.name;
 
   // Fetch subcategory businesses with REAL IDs from database
   const businessResponse = await fetch(
-    `${API_BASE}/businesses?cityId=36&categoryId=${category.id}&subcategoryId=${subcategory.id}`,
+    `${API_BASE}/businesses?cityId=${cityId}&categoryId=${category.id}&subcategoryId=${subcategory.id}`,
     { next: { revalidate: 300 } }
   );
   const businessData = await businessResponse.json();
@@ -77,7 +85,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     openGraph: {
       title,
       description,
-      url: `https://buzz-gram-next-js.vercel.app/city/36/${categorySlug}/${subcategorySlug}`,
+      url: `https://buzz-gram-next-js.vercel.app/city/toronto/${categorySlug}/${subcategorySlug}`,
       siteName: 'BuzzGram',
       locale: 'en_CA',
       type: 'website',
@@ -88,7 +96,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description,
     },
     alternates: {
-      canonical: `https://buzz-gram-next-js.vercel.app/city/36/${categorySlug}/${subcategorySlug}`,
+      canonical: `https://buzz-gram-next-js.vercel.app/city/toronto/${categorySlug}/${subcategorySlug}`,
     },
   };
 }
@@ -124,13 +132,21 @@ export default async function SubcategoryLayout({ params, children }: Props) {
     return <>{children}</>;
   }
 
-  const cityName = 'Toronto';
+  // Fetch city by slug
+  const cityResponse = await fetch(`${API_BASE}/cities/by-slug/toronto`, {
+    next: { revalidate: 300 },
+  });
+  const cityData = await cityResponse.json();
+  const city = cityData.success ? cityData.data : null;
+  const cityName = city?.name || 'Toronto';
+  const cityId = city?.id || 36;
+
   const subcategoryName = subcategory.name;
   const categoryName = category.name;
 
   // Fetch subcategory businesses with REAL IDs from database
   const businessResponse = await fetch(
-    `${API_BASE}/businesses?cityId=36&categoryId=${category.id}&subcategoryId=${subcategory.id}`,
+    `${API_BASE}/businesses?cityId=${cityId}&categoryId=${category.id}&subcategoryId=${subcategory.id}`,
     { next: { revalidate: 300 } }
   );
   const businessData = await businessResponse.json();
@@ -141,10 +157,10 @@ export default async function SubcategoryLayout({ params, children }: Props) {
   const collectionPageSchema = {
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
-    '@id': `https://buzz-gram-next-js.vercel.app/city/36/${categorySlug}/${subcategorySlug}`,
+    '@id': `https://buzz-gram-next-js.vercel.app/city/toronto/${categorySlug}/${subcategorySlug}`,
     name: `${subcategoryName} in ${cityName}`,
     description: `Discover verified ${subcategoryName.toLowerCase()} in ${cityName}`,
-    url: `https://buzz-gram-next-js.vercel.app/city/36/${categorySlug}/${subcategorySlug}`,
+    url: `https://buzz-gram-next-js.vercel.app/city/toronto/${categorySlug}/${subcategorySlug}`,
     mainEntity: {
       '@type': 'ItemList',
       numberOfItems: businessCount,
@@ -261,13 +277,13 @@ export default async function SubcategoryLayout({ params, children }: Props) {
         '@type': 'ListItem',
         position: 3,
         name: categoryName,
-        item: `https://buzz-gram-next-js.vercel.app/city/36/${categorySlug}`,
+        item: `https://buzz-gram-next-js.vercel.app/city/toronto/${categorySlug}`,
       },
       {
         '@type': 'ListItem',
         position: 4,
         name: subcategoryName,
-        item: `https://buzz-gram-next-js.vercel.app/city/36/${categorySlug}/${subcategorySlug}`,
+        item: `https://buzz-gram-next-js.vercel.app/city/toronto/${categorySlug}/${subcategorySlug}`,
       },
     ],
   };

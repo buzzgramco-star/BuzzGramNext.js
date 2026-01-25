@@ -99,7 +99,7 @@ export default function SubcategoryPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
               <Link
-                href={`/city/36/${categorySlug}`}
+                href={`/city/toronto/${categorySlug}`}
                 className="hover:text-orange-600 dark:hover:text-orange-400 transition-colors"
               >
                 {categoryName}
@@ -153,7 +153,7 @@ export default function SubcategoryPage() {
                 No {subcategoryName.toLowerCase()} are available yet. Check back soon!
               </p>
               <Link
-                href={`/city/36/${categorySlug}`}
+                href={`/city/toronto/${categorySlug}`}
                 className="inline-flex items-center px-6 py-3 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-lg transition-colors"
               >
                 <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -2,28 +2,29 @@ import { Metadata } from 'next';
 import Script from 'next/script';
 
 type Props = {
-  params: Promise<{ cityId: string }>;
+  params: Promise<{ slug: string }>;
   children: React.ReactNode;
 };
 
 // Server-side metadata generation
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { cityId } = await params;
+  const { slug } = await params;
 
-  // Only generate SEO metadata for Toronto (city ID 36)
-  if (cityId !== '36') {
+  // Only generate SEO metadata for Toronto
+  if (slug !== 'toronto') {
     return {
       title: 'BuzzGram - Local Businesses',
     };
   }
 
-  // Fetch city and businesses data server-side with caching for performance
-  const cityResponse = await fetch('https://backend-production-f30d.up.railway.app/api/cities', {
+  // Fetch city data by slug server-side with caching for performance
+  const cityResponse = await fetch(`https://backend-production-f30d.up.railway.app/api/cities/by-slug/${slug}`, {
     next: { revalidate: 300 }, // Cache for 5 minutes
   });
-  const citiesData = await cityResponse.json();
-  const city = citiesData.success ? citiesData.data.find((c: any) => c.id === Number(cityId)) : null;
+  const cityData = await cityResponse.json();
+  const city = cityData.success ? cityData.data : null;
   const cityName = city?.name || 'Toronto';
+  const cityId = city?.id;
 
   const businessResponse = await fetch(
     `https://backend-production-f30d.up.railway.app/api/businesses?cityId=${cityId}`,
@@ -58,7 +59,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     openGraph: {
       title,
       description,
-      url: `https://buzz-gram-next-js.vercel.app/city/${cityId}`,
+      url: `https://buzz-gram-next-js.vercel.app/city/${slug}`,
       siteName: 'BuzzGram',
       locale: 'en_CA',
       type: 'website',
@@ -69,25 +70,26 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description,
     },
     alternates: {
-      canonical: `https://buzz-gram-next-js.vercel.app/city/${cityId}`,
+      canonical: `https://buzz-gram-next-js.vercel.app/city/${slug}`,
     },
   };
 }
 
 export default async function CityLayout({ params, children }: Props) {
-  const { cityId } = await params;
+  const { slug } = await params;
 
-  // Only add structured data for Toronto (city ID 36)
-  if (cityId !== '36') {
+  // Only add structured data for Toronto
+  if (slug !== 'toronto') {
     return <>{children}</>;
   }
 
-  // Fetch data server-side for structured data
-  const cityResponse = await fetch('https://backend-production-f30d.up.railway.app/api/cities', {
+  // Fetch city data by slug server-side for structured data
+  const cityResponse = await fetch(`https://backend-production-f30d.up.railway.app/api/cities/by-slug/${slug}`, {
     cache: 'no-store',
   });
-  const citiesData = await cityResponse.json();
-  const city = citiesData.success ? citiesData.data.find((c: any) => c.id === Number(cityId)) : null;
+  const cityData = await cityResponse.json();
+  const city = cityData.success ? cityData.data : null;
+  const cityId = city?.id;
 
   const businessResponse = await fetch(
     `https://backend-production-f30d.up.railway.app/api/businesses?cityId=${cityId}`,
@@ -111,10 +113,10 @@ export default async function CityLayout({ params, children }: Props) {
       position: index + 1,
       item: {
         '@type': 'LocalBusiness',
-        '@id': `https://buzz-gram-next-js.vercel.app/business/${business.id}`,
+        '@id': `https://buzz-gram-next-js.vercel.app/business/${business.slug}`,
         name: business.name,
         description: business.description || `${business.name} - a local business in ${cityName}`,
-        url: `https://buzz-gram-next-js.vercel.app/business/${business.id}`,
+        url: `https://buzz-gram-next-js.vercel.app/business/${business.slug}`,
         address: {
           '@type': 'PostalAddress',
           addressLocality: cityName,
@@ -244,7 +246,7 @@ export default async function CityLayout({ params, children }: Props) {
         '@type': 'ListItem',
         position: 2,
         name: cityName,
-        item: `https://buzz-gram-next-js.vercel.app/city/${cityId}`,
+        item: `https://buzz-gram-next-js.vercel.app/city/${slug}`,
       },
     ],
   };

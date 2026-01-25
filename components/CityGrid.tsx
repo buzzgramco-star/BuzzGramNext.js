@@ -28,7 +28,7 @@ export default function CityGrid({ cities }: CityGridProps) {
       {cities.map((city) => (
         <Link
           key={city.id}
-          href={`/city/${city.id}`}
+          href={`/city/${city.slug}`}
           className="group relative overflow-hidden rounded-xl shadow-md hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border"
         >
           <div className="aspect-video relative overflow-hidden">

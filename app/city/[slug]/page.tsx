@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
-import { getBusinesses, getCategories, getCities, getSubcategories } from '@/lib/api';
+import { getBusinesses, getCategories, getCityBySlug, getSubcategories } from '@/lib/api';
 import BusinessCard from '@/components/BusinessCard';
 import CategoryFilter from '@/components/CategoryFilter';
 import SubcategoryFilter from '@/components/SubcategoryFilter';
@@ -13,8 +13,8 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 
 export default function CityPage() {
-  const params = useParams<{ cityId: string }>();
-  const cityId = params?.cityId;
+  const params = useParams<{ slug: string }>();
+  const slug = params?.slug;
   const searchParams = useSearchParams();
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
   const [selectedSubcategory, setSelectedSubcategory] = useState<number | null>(null);
@@ -23,10 +23,11 @@ export default function CityPage() {
   // Get search term from URL params
   const searchTerm = searchParams?.get('search') || '';
 
-  const { data: city } = useQuery({
-    queryKey: ['cities'],
-    queryFn: getCities,
-    select: (cities) => cities.find((c) => c.id === Number(cityId)),
+  // Fetch city by slug
+  const { data: city, isLoading: cityLoading } = useQuery({
+    queryKey: ['city', slug],
+    queryFn: () => getCityBySlug(slug!),
+    enabled: !!slug,
   });
 
   const { data: categories, isLoading: categoriesLoading } = useQuery({
@@ -39,10 +40,11 @@ export default function CityPage() {
     queryFn: getSubcategories,
   });
 
+  // Fetch businesses using city.id after city is loaded
   const { data: businesses, isLoading: businessesLoading, error } = useQuery({
-    queryKey: ['businesses', cityId],
-    queryFn: () => getBusinesses({ cityId: Number(cityId) }),
-    enabled: !!cityId,
+    queryKey: ['businesses', city?.id],
+    queryFn: () => getBusinesses({ cityId: city!.id }),
+    enabled: !!city?.id,
   });
 
   // Reset subcategory when category changes
@@ -84,7 +86,7 @@ export default function CityPage() {
     : filteredBusinesses;
   const hasMoreToShow = shouldShowLoadMore && filteredBusinesses.length > initialLimit;
 
-  if (businessesLoading || categoriesLoading) return <LoadingSpinner />;
+  if (cityLoading || businessesLoading || categoriesLoading) return <LoadingSpinner />;
 
   if (error) {
     return (

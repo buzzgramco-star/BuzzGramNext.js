@@ -20,26 +20,26 @@ export async function GET() {
       priority: 1.0,
     },
     {
-      url: `${BASE_URL}/city/36`,
+      url: `${BASE_URL}/city/toronto`,
       lastmod: new Date().toISOString(),
       changefreq: 'daily',
       priority: 0.9,
     },
     // Toronto category pages (Phase 2 SEO)
     {
-      url: `${BASE_URL}/city/36/beauty`,
+      url: `${BASE_URL}/city/toronto/beauty`,
       lastmod: new Date().toISOString(),
       changefreq: 'daily',
       priority: 0.85,
     },
     {
-      url: `${BASE_URL}/city/36/food`,
+      url: `${BASE_URL}/city/toronto/food`,
       lastmod: new Date().toISOString(),
       changefreq: 'daily',
       priority: 0.85,
     },
     {
-      url: `${BASE_URL}/city/36/events`,
+      url: `${BASE_URL}/city/toronto/events`,
       lastmod: new Date().toISOString(),
       changefreq: 'daily',
       priority: 0.85,
@@ -47,63 +47,63 @@ export async function GET() {
     // Toronto subcategory pages (Phase 3 SEO)
     // Beauty subcategories
     {
-      url: `${BASE_URL}/city/36/beauty/nails`,
+      url: `${BASE_URL}/city/toronto/beauty/nails`,
       lastmod: new Date().toISOString(),
       changefreq: 'daily',
       priority: 0.82,
     },
     {
-      url: `${BASE_URL}/city/36/beauty/lashes`,
+      url: `${BASE_URL}/city/toronto/beauty/lashes`,
       lastmod: new Date().toISOString(),
       changefreq: 'daily',
       priority: 0.82,
     },
     {
-      url: `${BASE_URL}/city/36/beauty/makeup`,
+      url: `${BASE_URL}/city/toronto/beauty/makeup`,
       lastmod: new Date().toISOString(),
       changefreq: 'daily',
       priority: 0.82,
     },
     {
-      url: `${BASE_URL}/city/36/beauty/hair`,
+      url: `${BASE_URL}/city/toronto/beauty/hair`,
       lastmod: new Date().toISOString(),
       changefreq: 'daily',
       priority: 0.82,
     },
     // Food subcategories
     {
-      url: `${BASE_URL}/city/36/food/bakery`,
+      url: `${BASE_URL}/city/toronto/food/bakery`,
       lastmod: new Date().toISOString(),
       changefreq: 'daily',
       priority: 0.82,
     },
     {
-      url: `${BASE_URL}/city/36/food/catering`,
+      url: `${BASE_URL}/city/toronto/food/catering`,
       lastmod: new Date().toISOString(),
       changefreq: 'daily',
       priority: 0.82,
     },
     {
-      url: `${BASE_URL}/city/36/food/chef`,
+      url: `${BASE_URL}/city/toronto/food/chef`,
       lastmod: new Date().toISOString(),
       changefreq: 'daily',
       priority: 0.82,
     },
     // Event subcategories
     {
-      url: `${BASE_URL}/city/36/events/planning`,
+      url: `${BASE_URL}/city/toronto/events/planning`,
       lastmod: new Date().toISOString(),
       changefreq: 'daily',
       priority: 0.82,
     },
     {
-      url: `${BASE_URL}/city/36/events/decor`,
+      url: `${BASE_URL}/city/toronto/events/decor`,
       lastmod: new Date().toISOString(),
       changefreq: 'daily',
       priority: 0.82,
     },
     {
-      url: `${BASE_URL}/city/36/events/photography`,
+      url: `${BASE_URL}/city/toronto/events/photography`,
       lastmod: new Date().toISOString(),
       changefreq: 'daily',
       priority: 0.82,
