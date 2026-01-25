@@ -42,7 +42,12 @@ export default async function BusinessDetail({ params }: Props) {
         initialReviews={reviews}
       />
     );
-  } catch (error) {
+  } catch (error: any) {
+    // Re-throw Next.js redirect errors - they must bubble up to Next.js
+    if (error?.digest?.startsWith('NEXT_REDIRECT')) {
+      throw error;
+    }
+
     console.error('[Business Page] Error:', error);
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">

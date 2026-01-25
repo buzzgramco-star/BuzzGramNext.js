@@ -47,6 +47,11 @@ export default async function CityPage({ params, searchParams }: Props) {
       />
     );
   } catch (error: any) {
+    // Re-throw Next.js redirect errors - they must bubble up to Next.js
+    if (error?.digest?.startsWith('NEXT_REDIRECT')) {
+      throw error;
+    }
+
     console.error('[City Page] Error:', error);
     console.error('[City Page] Error message:', error?.message);
     console.error('[City Page] Error response:', error?.response?.data);
