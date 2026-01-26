@@ -6,16 +6,18 @@ type Props = {
   children: React.ReactNode;
 };
 
+// City to Province mapping
+const CITY_PROVINCE_MAP: Record<string, string> = {
+  'toronto': 'ON',
+  'vancouver': 'BC',
+  'calgary': 'AB',
+  'montreal': 'QC',
+  'ottawa': 'ON',
+};
+
 // Server-side metadata generation
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-
-  // Only generate SEO metadata for Toronto
-  if (slug !== 'toronto') {
-    return {
-      title: 'BuzzGram - Local Businesses',
-    };
-  }
 
   // Fetch city data by slug server-side with caching for performance
   const cityResponse = await fetch(`https://backend-production-f30d.up.railway.app/api/cities/by-slug/${slug}`, {
@@ -23,7 +25,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   });
   const cityData = await cityResponse.json();
   const city = cityData.success ? cityData.data : null;
-  const cityName = city?.name || 'Toronto';
+  const cityName = city?.name || slug.charAt(0).toUpperCase() + slug.slice(1);
   const cityId = city?.id;
 
   const businessResponse = await fetch(
@@ -78,14 +80,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function CityLayout({ params, children }: Props) {
   const { slug } = await params;
 
-  // Only add structured data for Toronto
-  if (slug !== 'toronto') {
-    return <>{children}</>;
-  }
-
   // Fetch city data by slug server-side for structured data
   const cityResponse = await fetch(`https://backend-production-f30d.up.railway.app/api/cities/by-slug/${slug}`, {
-    cache: 'no-store',
+    next: { revalidate: 300 }, // Cache for 5 minutes
   });
   const cityData = await cityResponse.json();
   const city = cityData.success ? cityData.data : null;
@@ -93,12 +90,13 @@ export default async function CityLayout({ params, children }: Props) {
 
   const businessResponse = await fetch(
     `https://backend-production-f30d.up.railway.app/api/businesses?cityId=${cityId}`,
-    { cache: 'no-store' }
+    { next: { revalidate: 300 } } // Cache for 5 minutes
   );
   const businessData = await businessResponse.json();
   const businesses = businessData.success ? businessData.data : [];
 
-  const cityName = city?.name || 'Toronto';
+  const cityName = city?.name || slug.charAt(0).toUpperCase() + slug.slice(1);
+  const province = CITY_PROVINCE_MAP[slug] || 'ON';
   const businessCount = businesses.length;
 
   // Generate ItemList Schema
@@ -120,7 +118,7 @@ export default async function CityLayout({ params, children }: Props) {
         address: {
           '@type': 'PostalAddress',
           addressLocality: cityName,
-          addressRegion: 'ON',
+          addressRegion: province,
           addressCountry: 'CA',
         },
       },

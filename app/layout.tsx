@@ -2,32 +2,30 @@ import type { Metadata } from "next";
 import Script from "next/script";
 import "./globals.css";
 import { Providers } from "./providers";
-import { HomepageStructuredData } from "./layout-seo";
 
 export const metadata: Metadata = {
-  title: "BuzzGram - Discover Local Businesses in Toronto | Beauty, Food & Events",
-  description: "Discover verified local businesses in Toronto. Browse beauty services (nails, lashes, makeup, hair), food services (bakery, catering, chefs), and event services (decor, planning, photography). Connect instantly with top-rated Toronto businesses on BuzzGram.",
+  title: "BuzzGram - Discover Local Businesses in Canada | Beauty, Food & Events",
+  description: "Discover verified local businesses across Canada. Browse beauty services (nails, lashes, makeup, hair), food services (bakery, catering, chefs), and event services (decor, planning, photography). Connect instantly with top-rated businesses in Toronto, Vancouver, Calgary, Montreal, and Ottawa.",
   keywords: [
-    "Toronto businesses",
-    "local businesses Toronto",
-    "nail salons Toronto",
-    "lash extensions Toronto",
-    "makeup artists Toronto",
-    "hair salons Toronto",
-    "bakery Toronto",
-    "catering Toronto",
-    "private chef Toronto",
-    "event planners Toronto",
-    "event decorators Toronto",
-    "wedding photographers Toronto",
-    "beauty services Toronto",
-    "food services Toronto",
-    "event services Toronto",
+    "local businesses Canada",
+    "beauty services",
+    "food services",
+    "event services",
+    "nail salons",
+    "lash extensions",
+    "makeup artists",
+    "hair salons",
+    "bakery",
+    "catering",
+    "private chef",
+    "event planners",
+    "event decorators",
+    "wedding photographers",
   ],
   openGraph: {
-    title: "BuzzGram - Discover Local Businesses in Toronto",
+    title: "BuzzGram - Discover Local Businesses in Canada",
     description:
-      "Connect with verified local businesses in Toronto. Browse beauty, food, and event services. Get instant quotes from top-rated Toronto businesses.",
+      "Connect with verified local businesses across Canada. Browse beauty, food, and event services in Toronto, Vancouver, Calgary, Montreal, and Ottawa.",
     url: "https://buzz-gram-next-js.vercel.app",
     siteName: "BuzzGram",
     locale: "en_CA",
@@ -35,9 +33,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "BuzzGram - Discover Local Businesses in Toronto",
+    title: "BuzzGram - Discover Local Businesses in Canada",
     description:
-      "Connect with verified local businesses in Toronto. Browse beauty, food, and event services.",
+      "Connect with verified local businesses across Canada. Browse beauty, food, and event services.",
   },
   alternates: {
     canonical: "https://buzz-gram-next-js.vercel.app",
@@ -62,8 +60,6 @@ export default function RootLayout({
           src="https://upload-widget.cloudinary.com/global/all.js"
           strategy="beforeInteractive"
         />
-        {/* Homepage Structured Data - Organization & WebSite schemas */}
-        <HomepageStructuredData />
       </head>
       <body className="antialiased">
         <Providers>
