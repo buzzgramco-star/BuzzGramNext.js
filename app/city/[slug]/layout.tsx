@@ -34,7 +34,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const businessCount = businessData.success ? businessData.data.length : 0;
 
   const title = `Local Businesses in ${cityName} | Beauty, Food & Events | BuzzGram`;
-  const description = `Discover ${businessCount} verified local businesses in ${cityName}. Browse beauty services (nails, lashes, makeup, hair), food services (bakery, catering, chefs), and event services (decor, planning, photography). Connect instantly with top-rated ${cityName} businesses on BuzzGram.`;
+  const description = `Discover verified local businesses in ${cityName}. Browse beauty services (nails, lashes, makeup, hair), food services (bakery, catering, chefs), and event services (decor, planning, photography). Connect instantly with top-rated ${cityName} businesses on BuzzGram.`;
 
   return {
     title,
