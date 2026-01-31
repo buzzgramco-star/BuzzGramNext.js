@@ -29,6 +29,7 @@ export interface BusinessService {
   businessId: number;
   serviceName: string;
   price: string | null;
+  duration: string | null;
   displayOrder: number;
   createdAt: string;
   updatedAt: string;

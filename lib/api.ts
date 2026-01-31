@@ -260,6 +260,7 @@ export const updateBusinessProfile = async (profileData: {
 export const addBusinessService = async (serviceData: {
   serviceName: string;
   price?: string;
+  duration?: string;
 }) => {
   const { data } = await api.post('/owner/business/services', serviceData);
   return data;
@@ -269,6 +270,7 @@ export const addBusinessService = async (serviceData: {
 export const updateBusinessService = async (serviceId: number, serviceData: {
   serviceName?: string;
   price?: string;
+  duration?: string;
 }) => {
   const { data } = await api.put(`/owner/business/services/${serviceId}`, serviceData);
   return data;

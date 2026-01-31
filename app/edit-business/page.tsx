@@ -18,6 +18,47 @@ import {
 import type { Business, BusinessService } from '@/types';
 import LoadingSpinner from '@/components/LoadingSpinner';
 
+// Utility function to standardize duration input
+function standardizeDuration(input: string): string {
+  if (!input || !input.trim()) return '';
+
+  const trimmed = input.toLowerCase().trim();
+
+  // Parse common formats: "30 mins", "1 hour", "1.5 hours", "90 mins", "1 hour 30 mins"
+  let totalMinutes = 0;
+
+  // Try to match "X hours Y mins" format
+  const hoursMinutesMatch = trimmed.match(/(\d+\.?\d*)\s*(?:hours?|hrs?|h)\s*(\d+)?\s*(?:minutes?|mins?|m)?/);
+  if (hoursMinutesMatch) {
+    const hours = parseFloat(hoursMinutesMatch[1]);
+    const mins = hoursMinutesMatch[2] ? parseInt(hoursMinutesMatch[2]) : 0;
+    totalMinutes = hours * 60 + mins;
+  } else {
+    // Try to match "X hours" or "X mins" only
+    const hoursMatch = trimmed.match(/(\d+\.?\d*)\s*(?:hours?|hrs?|h)/);
+    const minsMatch = trimmed.match(/(\d+)\s*(?:minutes?|mins?|m)/);
+
+    if (hoursMatch) {
+      totalMinutes = parseFloat(hoursMatch[1]) * 60;
+    } else if (minsMatch) {
+      totalMinutes = parseInt(minsMatch[1]);
+    } else {
+      // If no match, return original input
+      return input.trim();
+    }
+  }
+
+  // Standardize output
+  if (totalMinutes === 0) return '';
+  if (totalMinutes < 60) return `${totalMinutes} mins`;
+  if (totalMinutes === 60) return '1 hour';
+
+  const hours = Math.floor(totalMinutes / 60);
+  const mins = totalMinutes % 60;
+  if (mins === 0) return hours === 1 ? '1 hour' : `${hours} hours`;
+  return `${hours} hour${hours > 1 ? 's' : ''} ${mins} mins`;
+}
+
 function EditBusinessPageContent() {
   const queryClient = useQueryClient();
 
@@ -35,9 +76,11 @@ function EditBusinessPageContent() {
   // Service form states
   const [newServiceName, setNewServiceName] = useState('');
   const [newServicePrice, setNewServicePrice] = useState('');
+  const [newServiceDuration, setNewServiceDuration] = useState('');
   const [editingService, setEditingService] = useState<BusinessService | null>(null);
   const [editServiceName, setEditServiceName] = useState('');
   const [editServicePrice, setEditServicePrice] = useState('');
+  const [editServiceDuration, setEditServiceDuration] = useState('');
 
   // UI states
   const [profileSuccess, setProfileSuccess] = useState('');
@@ -76,6 +119,7 @@ function EditBusinessPageContent() {
       queryClient.invalidateQueries({ queryKey: ['ownerBusiness'] });
       setNewServiceName('');
       setNewServicePrice('');
+      setNewServiceDuration('');
       setServiceSuccess('Service added successfully!');
       setServiceError('');
       setTimeout(() => setServiceSuccess(''), 3000);
@@ -88,7 +132,7 @@ function EditBusinessPageContent() {
 
   // Update service mutation
   const updateServiceMutation = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: { serviceName?: string; price?: string } }) =>
+    mutationFn: ({ id, data }: { id: number; data: { serviceName?: string; price?: string; duration?: string } }) =>
       updateBusinessService(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['ownerBusiness'] });
@@ -133,9 +177,11 @@ function EditBusinessPageContent() {
       setServiceError('Service name is required');
       return;
     }
+    const standardizedDuration = newServiceDuration.trim() ? standardizeDuration(newServiceDuration.trim()) : undefined;
     addServiceMutation.mutate({
       serviceName: newServiceName.trim(),
       price: newServicePrice.trim() || undefined,
+      duration: standardizedDuration,
     });
   };
 
@@ -143,6 +189,7 @@ function EditBusinessPageContent() {
     setEditingService(service);
     setEditServiceName(service.serviceName);
     setEditServicePrice(service.price || '');
+    setEditServiceDuration(service.duration || '');
   };
 
   const handleUpdateService = (e: React.FormEvent) => {
@@ -152,11 +199,13 @@ function EditBusinessPageContent() {
       setServiceError('Service name is required');
       return;
     }
+    const standardizedDuration = editServiceDuration.trim() ? standardizeDuration(editServiceDuration.trim()) : undefined;
     updateServiceMutation.mutate({
       id: editingService.id,
       data: {
         serviceName: editServiceName.trim(),
         price: editServicePrice.trim() || undefined,
+        duration: standardizedDuration,
       },
     });
   };
@@ -380,6 +429,13 @@ function EditBusinessPageContent() {
                           className="w-32 appearance-none rounded-lg px-3 py-2 border border-gray-300 dark:border-dark-border text-gray-900 dark:text-white bg-white dark:bg-dark-card focus:outline-none focus:ring-2 focus:ring-orange-500"
                           placeholder="Price"
                         />
+                        <input
+                          type="text"
+                          value={editServiceDuration}
+                          onChange={(e) => setEditServiceDuration(e.target.value)}
+                          className="w-32 appearance-none rounded-lg px-3 py-2 border border-gray-300 dark:border-dark-border text-gray-900 dark:text-white bg-white dark:bg-dark-card focus:outline-none focus:ring-2 focus:ring-orange-500"
+                          placeholder="Duration"
+                        />
                         <button
                           type="submit"
                           disabled={updateServiceMutation.isPending}
@@ -400,9 +456,14 @@ function EditBusinessPageContent() {
                       <>
                         <div className="flex-1">
                           <p className="font-medium text-gray-900 dark:text-white">{service.serviceName}</p>
-                          {service.price && (
-                            <p className="text-sm text-gray-600 dark:text-gray-400">{service.price}</p>
-                          )}
+                          <div className="flex gap-3 mt-1">
+                            {service.price && (
+                              <p className="text-sm text-gray-600 dark:text-gray-400">{service.price}</p>
+                            )}
+                            {service.duration && (
+                              <p className="text-sm text-gray-600 dark:text-gray-400">• {service.duration}</p>
+                            )}
+                          </div>
                         </div>
                         <div className="flex gap-2">
                           <button
@@ -450,6 +511,13 @@ function EditBusinessPageContent() {
                 className="w-40 appearance-none rounded-lg px-3 py-2 border border-gray-300 dark:border-dark-border placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white bg-white dark:bg-dark-card focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                 placeholder="Price (optional)"
               />
+              <input
+                type="text"
+                value={newServiceDuration}
+                onChange={(e) => setNewServiceDuration(e.target.value)}
+                className="w-40 appearance-none rounded-lg px-3 py-2 border border-gray-300 dark:border-dark-border placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white bg-white dark:bg-dark-card focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                placeholder="Duration (optional)"
+              />
               <button
                 type="submit"
                 disabled={addServiceMutation.isPending}
@@ -459,7 +527,7 @@ function EditBusinessPageContent() {
               </button>
             </form>
             <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-              Price examples: "$50", "Starting at $100", "Call for quote"
+              Examples - Price: "$50", "Starting at $100" | Duration: "30 mins", "1 hour", "2 hours"
             </p>
           </div>
         </div>

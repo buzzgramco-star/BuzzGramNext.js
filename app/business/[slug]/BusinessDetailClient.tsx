@@ -459,15 +459,20 @@ export default function BusinessDetailClient({ business: initialBusiness, catego
                       key={service.id}
                       className="flex items-start justify-between p-4 bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-lg hover:border-orange-500 dark:hover:border-orange-500 transition-colors"
                     >
-                      <div className="flex items-start gap-3">
+                      <div className="flex items-start gap-3 flex-1">
                         <svg className="w-5 h-5 text-orange-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                         </svg>
-                        <span className="text-gray-900 dark:text-white font-medium">{service.serviceName}</span>
+                        <div className="flex-1">
+                          <span className="text-gray-900 dark:text-white font-medium">{service.serviceName}</span>
+                          {service.duration && (
+                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{service.duration}</p>
+                          )}
+                        </div>
                       </div>
                       {service.price && (
                         <span className="text-orange-600 dark:text-orange-400 font-semibold whitespace-nowrap ml-4">
-                          ${service.price}
+                          {service.price}
                         </span>
                       )}
                     </div>
