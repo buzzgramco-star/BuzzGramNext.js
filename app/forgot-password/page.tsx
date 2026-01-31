@@ -2,9 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import axios from 'axios';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+import { api } from '@/lib/api';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
@@ -19,7 +17,7 @@ export default function ForgotPasswordPage() {
     setLoading(true);
 
     try {
-      await axios.post(`${API_URL}/api/auth/forgot-password`, { email });
+      await api.post('/auth/forgot-password', { email });
       setSuccess(true);
       setEmail('');
     } catch (err: any) {

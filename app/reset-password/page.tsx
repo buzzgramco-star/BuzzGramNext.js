@@ -3,9 +3,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import axios from 'axios';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+import { api } from '@/lib/api';
 
 function ResetPasswordForm() {
   const [password, setPassword] = useState('');
@@ -47,7 +45,7 @@ function ResetPasswordForm() {
     setLoading(true);
 
     try {
-      await axios.post(`${API_URL}/api/auth/reset-password`, {
+      await api.post('/auth/reset-password', {
         token,
         newPassword: password,
       });
