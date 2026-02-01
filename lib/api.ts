@@ -423,3 +423,14 @@ export const updateBlogStatus = async (id: number, status: 'draft' | 'published'
 export const deleteBlog = async (id: number): Promise<void> => {
   await api.delete(`/blogs/admin/${id}`);
 };
+
+// Contact Form
+export const submitContactForm = async (formData: {
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+}) => {
+  const { data } = await api.post('/contact', formData);
+  return data;
+};

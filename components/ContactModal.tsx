@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from 'react';
+import { submitContactForm } from '@/lib/api';
 
 interface ContactModalProps {
   isOpen: boolean;
@@ -22,16 +23,20 @@ export default function ContactModal({ isOpen, onClose }: ContactModalProps) {
     setLoading(true);
 
     try {
-      // Here you would send the contact form to your backend
-      // For now, we'll just simulate success
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await submitContactForm({
+        name,
+        email,
+        subject,
+        message,
+      });
 
       setSuccess(true);
       setTimeout(() => {
         handleClose();
       }, 2000);
-    } catch (err) {
-      setError('Failed to send message. Please try again.');
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || 'Failed to send message. Please try again.';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
