@@ -692,15 +692,6 @@ export default function PrivacyPage() {
               <p className="text-gray-700 dark:text-gray-300">
                 Email: <a href="mailto:buzzgramco@gmail.com" className="text-orange-600 hover:text-orange-700 dark:text-orange-400 dark:hover:text-orange-300">buzzgramco@gmail.com</a>
               </p>
-              <p className="text-gray-700 dark:text-gray-300 mt-3">
-                Mailing Address:<br />
-                BuzzGram<br />
-                Toronto, Ontario, Canada
-              </p>
-              <p className="text-gray-700 dark:text-gray-300 mt-3">
-                Privacy Officer:<br />
-                [Your Privacy Officer Name and Contact Information, if applicable]
-              </p>
             </section>
 
             <section>
