@@ -673,23 +673,17 @@ function QuoteLandingContent() {
       {/* Section 6: Social Proof */}
       <div className="bg-white dark:bg-slate-950 py-16 sm:py-20 border-b border-gray-200 dark:border-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 max-w-3xl mx-auto">
             {/* Stat 1 */}
             <div className="text-center">
-              <div className="text-5xl font-bold text-[#ff6b35] mb-2">2,500+</div>
-              <p className="text-gray-600 dark:text-gray-400 text-lg">Quotes Submitted</p>
+              <div className="text-5xl font-bold text-[#ff6b35] mb-2">1,000+</div>
+              <p className="text-gray-600 dark:text-gray-400 text-lg">Businesses</p>
             </div>
 
             {/* Stat 2 */}
             <div className="text-center">
-              <div className="text-5xl font-bold text-[#ff6b35] mb-2">950+</div>
-              <p className="text-gray-600 dark:text-gray-400 text-lg">Vetted Providers</p>
-            </div>
-
-            {/* Stat 3 */}
-            <div className="text-center">
-              <div className="text-5xl font-bold text-[#ff6b35] mb-2">4.8★</div>
-              <p className="text-gray-600 dark:text-gray-400 text-lg">Average Rating</p>
+              <div className="text-5xl font-bold text-[#ff6b35] mb-2">10+</div>
+              <p className="text-gray-600 dark:text-gray-400 text-lg">Cities</p>
             </div>
           </div>
         </div>
