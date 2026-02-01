@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Script from "next/script";
 import "./globals.css";
 import { Providers } from "./providers";
+import CookieConsent from "@/components/CookieConsent";
 
 export const metadata: Metadata = {
   title: "BuzzGram - Discover Local Businesses in Canada | Beauty, Food & Events",
@@ -64,6 +65,7 @@ export default function RootLayout({
       <body className="antialiased">
         <Providers>
           {children}
+          <CookieConsent />
         </Providers>
       </body>
     </html>
