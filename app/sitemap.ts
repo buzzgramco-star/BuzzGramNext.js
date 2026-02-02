@@ -1,7 +1,8 @@
 import { MetadataRoute } from 'next'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = 'https://buzzgram.co'
+  // Use environment variable if available, otherwise fallback to production domain
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://buzzgram.co'
 
   // Static pages
   const staticPages: MetadataRoute.Sitemap = [

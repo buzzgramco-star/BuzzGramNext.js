@@ -4,6 +4,8 @@ import "./globals.css";
 import { Providers } from "./providers";
 import CookieConsent from "@/components/CookieConsent";
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://buzzgram.co";
+
 export const metadata: Metadata = {
   title: "BuzzGram - Discover Home-Based & Instagram Businesses | Beauty, Food & Events",
   description: "The first platform to connect you with home-based and Instagram businesses. Find beauty services (nails, lashes, makeup, hair), food specialists (bakery, catering, chefs), and event planners (decor, planning, photography) across 10 major cities in the USA and Canada.",
@@ -32,7 +34,7 @@ export const metadata: Metadata = {
     title: "BuzzGram - Discover Home-Based & Instagram Businesses",
     description:
       "The first platform to connect you with home-based and Instagram businesses. Browse beauty, food, and event services across 10 major cities in the USA and Canada.",
-    url: "https://buzzgram.co",
+    url: siteUrl,
     siteName: "BuzzGram",
     locale: "en_US",
     type: "website",
@@ -44,7 +46,7 @@ export const metadata: Metadata = {
       "The first platform for home-based and Instagram businesses. Find beauty, food, and event services across 10 major cities.",
   },
   alternates: {
-    canonical: "https://buzzgram.co",
+    canonical: siteUrl,
   },
 };
 
