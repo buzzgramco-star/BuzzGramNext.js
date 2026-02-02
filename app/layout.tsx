@@ -5,10 +5,11 @@ import { Providers } from "./providers";
 import CookieConsent from "@/components/CookieConsent";
 
 export const metadata: Metadata = {
-  title: "BuzzGram - Discover Local Businesses in Canada | Beauty, Food & Events",
-  description: "Discover verified local businesses across Canada. Browse beauty services (nails, lashes, makeup, hair), food services (bakery, catering, chefs), and event services (decor, planning, photography). Connect instantly with top-rated businesses in Toronto, Vancouver, Calgary, Montreal, and Ottawa.",
+  title: "BuzzGram - Discover Home-Based & Instagram Businesses | Beauty, Food & Events",
+  description: "The first platform to connect you with home-based and Instagram businesses. Find beauty services (nails, lashes, makeup, hair), food specialists (bakery, catering, chefs), and event planners (decor, planning, photography) across 10 major cities in the USA and Canada.",
   keywords: [
-    "local businesses Canada",
+    "home-based businesses",
+    "Instagram businesses",
     "beauty services",
     "food services",
     "event services",
@@ -22,24 +23,28 @@ export const metadata: Metadata = {
     "event planners",
     "event decorators",
     "wedding photographers",
+    "Toronto businesses",
+    "Vancouver businesses",
+    "New York businesses",
+    "Los Angeles businesses",
   ],
   openGraph: {
-    title: "BuzzGram - Discover Local Businesses in Canada",
+    title: "BuzzGram - Discover Home-Based & Instagram Businesses",
     description:
-      "Connect with verified local businesses across Canada. Browse beauty, food, and event services in Toronto, Vancouver, Calgary, Montreal, and Ottawa.",
-    url: "https://buzz-gram-next-js.vercel.app",
+      "The first platform to connect you with home-based and Instagram businesses. Browse beauty, food, and event services across 10 major cities in the USA and Canada.",
+    url: "https://buzzgram.co",
     siteName: "BuzzGram",
-    locale: "en_CA",
+    locale: "en_US",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "BuzzGram - Discover Local Businesses in Canada",
+    title: "BuzzGram - Discover Home-Based & Instagram Businesses",
     description:
-      "Connect with verified local businesses across Canada. Browse beauty, food, and event services.",
+      "The first platform for home-based and Instagram businesses. Find beauty, food, and event services across 10 major cities.",
   },
   alternates: {
-    canonical: "https://buzz-gram-next-js.vercel.app",
+    canonical: "https://buzzgram.co",
   },
 };
 
