@@ -185,10 +185,12 @@ function QuoteLandingContent() {
 
   const handleCategoryCardClick = (categoryName: string) => {
     const category = categories?.find(c => c.name === categoryName);
-    if (category && !selectedCategoryIds.includes(category.id)) {
-      if (selectedCategoryIds.length < 5) {
+    if (category) {
+      // Add category if not already selected and under limit
+      if (!selectedCategoryIds.includes(category.id) && selectedCategoryIds.length < 5) {
         setSelectedCategoryIds(prev => [...prev, category.id]);
       }
+      // Always scroll to form when clicking category card
       scrollToForm();
     }
   };
