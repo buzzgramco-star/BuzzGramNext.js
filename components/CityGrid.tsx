@@ -6,21 +6,24 @@ interface CityGridProps {
 }
 
 export default function CityGrid({ cities }: CityGridProps) {
-  // Placeholder images for cities
+  // Category images representing Beauty, Food, and Events services
   const getCityImage = (cityName: string) => {
     const images: Record<string, string> = {
-      'Los Angeles': 'https://images.unsplash.com/photo-1534190239940-9ba8944ea261?w=800&auto=format&fit=crop',
-      'New York City': 'https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=800&auto=format&fit=crop',
-      'Miami': 'https://images.unsplash.com/photo-1506966953602-c20cc11f75e3?w=800&auto=format&fit=crop',
-      'Chicago': 'https://images.unsplash.com/photo-1494522855154-9297ac14b55f?w=800&auto=format&fit=crop',
-      'Phoenix': 'https://images.unsplash.com/photo-1518639192441-8fce0a366e2e?w=800&auto=format&fit=crop',
-      'Toronto': 'https://images.unsplash.com/photo-1517935706615-2717063c2225?w=800&auto=format&fit=crop',
-      'Vancouver': 'https://images.unsplash.com/photo-1559511260-66a654ae982a?w=800&auto=format&fit=crop',
-      'Calgary': 'https://images.unsplash.com/photo-1561134643-668f9057cce4?w=800&auto=format&fit=crop',
-      'Montreal': 'https://images.unsplash.com/photo-1519676867240-f03562e64548?w=800&auto=format&fit=crop',
-      'Ottawa': 'https://images.unsplash.com/photo-1519834785169-98be25ec3f84?w=800&auto=format&fit=crop',
+      // Beauty Services
+      'Los Angeles': 'https://images.unsplash.com/photo-1487412947147-5cebf100ffc2?w=800&auto=format&fit=crop', // Makeup brushes
+      'New York City': 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=800&auto=format&fit=crop', // Nail polish
+      'Miami': 'https://images.unsplash.com/photo-1516975080664-ed2fc6a32937?w=800&auto=format&fit=crop', // Lash extensions
+      'Chicago': 'https://images.unsplash.com/photo-1562322140-8baeececf3df?w=800&auto=format&fit=crop', // Hair styling
+      // Food Services
+      'Phoenix': 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=800&auto=format&fit=crop', // Desserts/Bakery
+      'Toronto': 'https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=800&auto=format&fit=crop', // Catering/Food
+      'Vancouver': 'https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?w=800&auto=format&fit=crop', // Gourmet food
+      // Events Services
+      'Calgary': 'https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=800&auto=format&fit=crop', // Party balloons
+      'Montreal': 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=800&auto=format&fit=crop', // Event decorations
+      'Ottawa': 'https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=800&auto=format&fit=crop', // Wedding flowers
     };
-    return images[cityName] || 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=800&auto=format&fit=crop';
+    return images[cityName] || 'https://images.unsplash.com/photo-1487412947147-5cebf100ffc2?w=800&auto=format&fit=crop';
   };
 
   return (
@@ -42,11 +45,6 @@ export default function CityGrid({ cities }: CityGridProps) {
 
           <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
             <h3 className="text-2xl font-bold mb-1 drop-shadow-lg tracking-tight">{city.name}</h3>
-            {city.description && (
-              <p className="text-sm text-gray-200 mt-2 line-clamp-2 drop-shadow-md leading-relaxed">
-                {city.description}
-              </p>
-            )}
             <div className="mt-4 flex items-center text-orange-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
               <span className="text-sm font-medium">Explore businesses</span>
               <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
