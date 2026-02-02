@@ -19,10 +19,10 @@ export default async function HomePage() {
           <div className="bg-gradient-to-b from-gray-50 to-white dark:from-dark-card dark:to-dark-bg border-b border-gray-200 dark:border-dark-border">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
               <h1 className="text-5xl md:text-6xl font-bold text-gray-900 dark:text-white mb-6 tracking-tight">
-                Discover Local Businesses
+                Discover Home-Based & Instagram Businesses
               </h1>
               <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto leading-relaxed">
-                Explore amazing businesses across cities. From beauty salons to restaurants, find your next favorite spot.
+                BuzzGram is the first platform to help you explore and connect with local home-based and Instagram businesses. Find beauty services, food specialists, and event planners across 10 major cities in the USA and Canada.
               </p>
             </div>
           </div>
