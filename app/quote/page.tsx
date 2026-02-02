@@ -273,56 +273,7 @@ function QuoteLandingContent() {
         </div>
       </div>
 
-      {/* Section 3: Why BuzzGram */}
-      <div className="bg-gray-100 dark:bg-slate-950 py-16 sm:py-20 border-y border-gray-200 dark:border-slate-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white text-center mb-12">
-            Why <span className="text-[#ff6b35]">BuzzGram</span>?
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Feature 1 */}
-            <div className="text-center">
-              <div className="w-16 h-16 bg-[#ff6b35] rounded-full flex items-center justify-center mx-auto mb-6">
-                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">One Form, Multiple Quotes</h3>
-              <p className="text-gray-600 dark:text-gray-400">
-                Fill out one simple form and get responses from multiple service providers in your area.
-              </p>
-            </div>
-
-            {/* Feature 2 */}
-            <div className="text-center">
-              <div className="w-16 h-16 bg-[#ff6b35] rounded-full flex items-center justify-center mx-auto mb-6">
-                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">Compare & Choose</h3>
-              <p className="text-gray-600 dark:text-gray-400">
-                Review quotes, check provider profiles, and choose the best fit for your needs and budget.
-              </p>
-            </div>
-
-            {/* Feature 3 */}
-            <div className="text-center">
-              <div className="w-16 h-16 bg-[#ff6b35] rounded-full flex items-center justify-center mx-auto mb-6">
-                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">Fast Responses</h3>
-              <p className="text-gray-600 dark:text-gray-400">
-                Most providers respond within 24 hours. Get your project started quickly and efficiently.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Section 4: How It Works */}
+      {/* Section 3: How It Works */}
       <div className="bg-white dark:bg-slate-900 py-16 sm:py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white text-center mb-12">
@@ -365,7 +316,7 @@ function QuoteLandingContent() {
         </div>
       </div>
 
-      {/* Section 5: Quote Form */}
+      {/* Section 4: Quote Form */}
       <div id="quote-form" className="bg-gray-50 dark:bg-slate-950 py-16 sm:py-20 border-y border-gray-200 dark:border-slate-800">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white text-center mb-4">
@@ -672,7 +623,7 @@ function QuoteLandingContent() {
         </div>
       </div>
 
-      {/* Section 6: Social Proof */}
+      {/* Section 5: Social Proof */}
       <div className="bg-white dark:bg-slate-950 py-16 sm:py-20 border-b border-gray-200 dark:border-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 max-w-3xl mx-auto">
@@ -691,7 +642,7 @@ function QuoteLandingContent() {
         </div>
       </div>
 
-      {/* Section 7: Business Owner CTA */}
+      {/* Section 6: Business Owner CTA */}
       <div className="bg-gradient-to-b from-gray-50 to-white dark:from-slate-900 dark:to-slate-950 py-16 sm:py-20">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-4">
