@@ -1,12 +1,14 @@
 import Script from 'next/script';
 
 export function HomepageStructuredData() {
+  const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://buzzgram.co';
+
   // Organization Schema
   const organizationSchema = {
     '@context': 'https://schema.org',
     '@type': 'Organization',
     name: 'BuzzGram',
-    url: 'https://buzz-gram-next-js.vercel.app',
+    url: SITE_URL,
     description:
       "Toronto's premier local business directory connecting customers with verified beauty, food, and event services.",
     address: {
@@ -44,13 +46,13 @@ export function HomepageStructuredData() {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
     name: 'BuzzGram',
-    url: 'https://buzz-gram-next-js.vercel.app',
+    url: SITE_URL,
     description: 'Discover verified local businesses in Toronto',
     potentialAction: {
       '@type': 'SearchAction',
       target: {
         '@type': 'EntryPoint',
-        urlTemplate: 'https://buzz-gram-next-js.vercel.app/city/toronto?search={search_term_string}',
+        urlTemplate: `${SITE_URL}/city/toronto?search={search_term_string}`,
       },
       'query-input': 'required name=search_term_string',
     },

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-const BASE_URL = 'https://buzz-gram-next-js.vercel.app';
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://buzzgram.co';
 
 export async function GET() {
   // Fetch Toronto businesses to generate dynamic URLs

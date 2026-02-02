@@ -64,7 +64,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     openGraph: {
       title,
       description,
-      url: `https://buzz-gram-next-js.vercel.app/business/${business.slug}`,
+      url: `${SITE_URL}/business/${business.slug}`,
       type: 'website',
       locale: 'en_CA',
       images: business.imageUrl ? [business.imageUrl] : undefined,
@@ -76,7 +76,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       images: business.imageUrl ? [business.imageUrl] : undefined,
     },
     alternates: {
-      canonical: `https://buzz-gram-next-js.vercel.app/business/${business.slug}`,
+      canonical: `${SITE_URL}/business/${business.slug}`,
     },
   };
 }
@@ -127,11 +127,11 @@ export default async function BusinessLayout({ params, children }: Props) {
   const localBusinessSchema: any = {
     '@context': 'https://schema.org',
     '@type': 'LocalBusiness',
-    '@id': `https://buzz-gram-next-js.vercel.app/business/${business.slug}`,
+    '@id': `${SITE_URL}/business/${business.slug}`,
     name: business.name,
     description:
       business.description || `${business.name} - ${business.category?.name} business in ${cityName}`,
-    url: `https://buzz-gram-next-js.vercel.app/business/${business.slug}`,
+    url: `${SITE_URL}/business/${business.slug}`,
     image: business.imageUrl || undefined,
     address: {
       '@type': 'PostalAddress',
@@ -170,19 +170,19 @@ export default async function BusinessLayout({ params, children }: Props) {
         '@type': 'ListItem',
         position: 1,
         name: 'Home',
-        item: 'https://buzz-gram-next-js.vercel.app',
+        item: '${SITE_URL}',
       },
       {
         '@type': 'ListItem',
         position: 2,
         name: cityName,
-        item: 'https://buzz-gram-next-js.vercel.app/city/toronto',
+        item: '${SITE_URL}/city/toronto',
       },
       {
         '@type': 'ListItem',
         position: 3,
         name: business.name,
-        item: `https://buzz-gram-next-js.vercel.app/business/${business.slug}`,
+        item: `${SITE_URL}/business/${business.slug}`,
       },
     ],
   };

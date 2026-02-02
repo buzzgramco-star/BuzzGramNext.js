@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 
 export async function GET() {
+  const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://buzzgram.co';
+
   const robotsTxt = `# BuzzGram - Toronto Local Business Directory
 # Optimized for search engines and AI crawlers
 
@@ -39,7 +41,7 @@ Disallow: /register
 Disallow: /verify-email
 
 # Sitemap location
-Sitemap: https://buzz-gram-next-js.vercel.app/sitemap.xml
+Sitemap: ${SITE_URL}/sitemap.xml
 
 # Crawl-delay for politeness
 Crawl-delay: 1

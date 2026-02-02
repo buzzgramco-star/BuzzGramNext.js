@@ -6,6 +6,9 @@ type Props = {
   children: React.ReactNode;
 };
 
+// Site URL
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://buzzgram.co';
+
 // City to Province mapping
 const CITY_PROVINCE_MAP: Record<string, string> = {
   'toronto': 'ON',
@@ -61,7 +64,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     openGraph: {
       title,
       description,
-      url: `https://buzz-gram-next-js.vercel.app/city/${slug}`,
+      url: `${SITE_URL}/city/${slug}`,
       siteName: 'BuzzGram',
       locale: 'en_CA',
       type: 'website',
@@ -72,7 +75,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description,
     },
     alternates: {
-      canonical: `https://buzz-gram-next-js.vercel.app/city/${slug}`,
+      canonical: `${SITE_URL}/city/${slug}`,
     },
   };
 }
@@ -111,10 +114,10 @@ export default async function CityLayout({ params, children }: Props) {
       position: index + 1,
       item: {
         '@type': 'LocalBusiness',
-        '@id': `https://buzz-gram-next-js.vercel.app/business/${business.slug}`,
+        '@id': `${SITE_URL}/business/${business.slug}`,
         name: business.name,
         description: business.description || `${business.name} - a local business in ${cityName}`,
-        url: `https://buzz-gram-next-js.vercel.app/business/${business.slug}`,
+        url: `${SITE_URL}/business/${business.slug}`,
         address: {
           '@type': 'PostalAddress',
           addressLocality: cityName,
@@ -238,13 +241,13 @@ export default async function CityLayout({ params, children }: Props) {
         '@type': 'ListItem',
         position: 1,
         name: 'Home',
-        item: 'https://buzz-gram-next-js.vercel.app',
+        item: SITE_URL,
       },
       {
         '@type': 'ListItem',
         position: 2,
         name: cityName,
-        item: `https://buzz-gram-next-js.vercel.app/city/${slug}`,
+        item: `${SITE_URL}/city/${slug}`,
       },
     ],
   };

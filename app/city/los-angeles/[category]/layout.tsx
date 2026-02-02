@@ -7,6 +7,7 @@ type Props = {
 };
 
 const API_BASE = 'https://backend-production-f30d.up.railway.app/api';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://buzzgram.co';
 
 // Server-side metadata generation
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -78,7 +79,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     openGraph: {
       title,
       description,
-      url: `https://buzz-gram-next-js.vercel.app/city/los-angeles/${categorySlug}`,
+      url: `${SITE_URL}/city/los-angeles/${categorySlug}`,
       siteName: 'BuzzGram',
       locale: 'en_US',
       type: 'website',
@@ -89,7 +90,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description,
     },
     alternates: {
-      canonical: `https://buzz-gram-next-js.vercel.app/city/los-angeles/${categorySlug}`,
+      canonical: `${SITE_URL}/city/los-angeles/${categorySlug}`,
     },
   };
 }
@@ -145,10 +146,10 @@ export default async function CategoryLayout({ params, children }: Props) {
   const collectionPageSchema = {
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
-    '@id': `https://buzz-gram-next-js.vercel.app/city/los-angeles/${categorySlug}`,
+    '@id': `${SITE_URL}/city/los-angeles/${categorySlug}`,
     name: `${categoryName} in ${cityName}`,
     description: `Discover verified ${categoryName.toLowerCase()} businesses in ${cityName}`,
-    url: `https://buzz-gram-next-js.vercel.app/city/los-angeles/${categorySlug}`,
+    url: `${SITE_URL}/city/los-angeles/${categorySlug}`,
     mainEntity: {
       '@type': 'ItemList',
       numberOfItems: businessCount,
@@ -157,10 +158,10 @@ export default async function CategoryLayout({ params, children }: Props) {
         position: index + 1,
         item: {
           '@type': 'LocalBusiness',
-          '@id': `https://buzz-gram-next-js.vercel.app/business/${business.id}`,
+          '@id': `${SITE_URL}/business/${business.id}`,
           name: business.name,
           description: business.description || `${business.name} - ${categoryName} in ${cityName}`,
-          url: `https://buzz-gram-next-js.vercel.app/business/${business.id}`,
+          url: `${SITE_URL}/business/${business.id}`,
           address: {
             '@type': 'PostalAddress',
             addressLocality: cityName,
@@ -253,19 +254,19 @@ export default async function CategoryLayout({ params, children }: Props) {
         '@type': 'ListItem',
         position: 1,
         name: 'Home',
-        item: 'https://buzz-gram-next-js.vercel.app',
+        item: '${SITE_URL}',
       },
       {
         '@type': 'ListItem',
         position: 2,
         name: cityName,
-        item: 'https://buzz-gram-next-js.vercel.app/city/los-angeles',
+        item: '${SITE_URL}/city/los-angeles',
       },
       {
         '@type': 'ListItem',
         position: 3,
         name: categoryName,
-        item: `https://buzz-gram-next-js.vercel.app/city/los-angeles/${categorySlug}`,
+        item: `${SITE_URL}/city/los-angeles/${categorySlug}`,
       },
     ],
   };
