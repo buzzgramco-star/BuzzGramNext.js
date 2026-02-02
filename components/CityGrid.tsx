@@ -9,19 +9,19 @@ export default function CityGrid({ cities }: CityGridProps) {
   // Category images representing Beauty, Food, and Events services
   const getCityImage = (cityName: string) => {
     const images: Record<string, string> = {
-      // Beauty Services
-      'Los Angeles': 'https://images.unsplash.com/photo-1487412947147-5cebf100ffc2?w=800&auto=format&fit=crop', // Makeup brushes
-      'New York City': 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=800&auto=format&fit=crop', // Nail polish
-      'Miami': 'https://images.unsplash.com/photo-1516975080664-ed2fc6a32937?w=800&auto=format&fit=crop', // Lash extensions
-      'Chicago': 'https://images.unsplash.com/photo-1562322140-8baeececf3df?w=800&auto=format&fit=crop', // Hair styling
-      // Food Services
-      'Phoenix': 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=800&auto=format&fit=crop', // Desserts/Bakery
-      'Toronto': 'https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=800&auto=format&fit=crop', // Catering/Food
-      'Vancouver': 'https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?w=800&auto=format&fit=crop', // Gourmet food
-      // Events Services
-      'Calgary': 'https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=800&auto=format&fit=crop', // Party balloons
-      'Montreal': 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=800&auto=format&fit=crop', // Event decorations
-      'Ottawa': 'https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=800&auto=format&fit=crop', // Wedding flowers
+      // Beauty Services (with people)
+      'Los Angeles': 'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=800&auto=format&fit=crop', // Makeup artist working
+      'New York City': 'https://images.unsplash.com/photo-1604902396830-aca29e19b067?w=800&auto=format&fit=crop', // Nail salon with person
+      'Miami': 'https://images.unsplash.com/photo-1519415510236-718bdfcd89c8?w=800&auto=format&fit=crop', // Lash artist working
+      'Chicago': 'https://images.unsplash.com/photo-1605497788044-5a32c7078486?w=800&auto=format&fit=crop', // Hair salon with stylist
+      // Food Services (with people)
+      'Phoenix': 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=800&auto=format&fit=crop', // Baker with pastries
+      'Toronto': 'https://images.unsplash.com/photo-1577219491135-ce391730fb2c?w=800&auto=format&fit=crop', // Chef plating food
+      'Vancouver': 'https://images.unsplash.com/photo-1558636508-e0db3814bd1d?w=800&auto=format&fit=crop', // Kid with birthday cake
+      // Events Services (with people and decor)
+      'Calgary': 'https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=800&auto=format&fit=crop', // Wedding/event setup with people
+      'Montreal': 'https://images.unsplash.com/photo-1505236858219-8359eb29e329?w=800&auto=format&fit=crop', // Event planner decorating
+      'Ottawa': 'https://images.unsplash.com/photo-1519741497674-611481863552?w=800&auto=format&fit=crop', // Florist arranging flowers
     };
     return images[cityName] || 'https://images.unsplash.com/photo-1487412947147-5cebf100ffc2?w=800&auto=format&fit=crop';
   };
