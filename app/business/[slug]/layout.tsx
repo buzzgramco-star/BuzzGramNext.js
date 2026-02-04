@@ -6,6 +6,8 @@ type Props = {
   children: React.ReactNode;
 };
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://buzzgram.co';
+
 // Server-side metadata generation
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
@@ -170,13 +172,13 @@ export default async function BusinessLayout({ params, children }: Props) {
         '@type': 'ListItem',
         position: 1,
         name: 'Home',
-        item: '${SITE_URL}',
+        item: SITE_URL,
       },
       {
         '@type': 'ListItem',
         position: 2,
         name: cityName,
-        item: '${SITE_URL}/city/toronto',
+        item: `${SITE_URL}/city/toronto`,
       },
       {
         '@type': 'ListItem',
