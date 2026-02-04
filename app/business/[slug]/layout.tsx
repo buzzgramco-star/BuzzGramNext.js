@@ -27,14 +27,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const businessData = await businessResponse.json();
   const business = businessData.success ? businessData.data : null;
 
-  if (!business || business.cityId !== 36) {
-    // Only SEO for Toronto businesses
+  if (!business) {
     return {
-      title: business ? `${business.name} | BuzzGram` : 'Business | BuzzGram',
+      title: 'Business Not Found | BuzzGram',
     };
   }
 
-  const cityName = business.city?.name || 'Toronto';
+  const cityName = business.city?.name || '';
   const categoryName = business.category?.name || '';
   const subcategoryName = business.subcategory?.name || '';
 
@@ -108,11 +107,6 @@ export default async function BusinessLayout({ params, children }: Props) {
     `https://backend-production-f30d.up.railway.app/api/reviews/business/${business.id}`,
     { next: { revalidate: 300 } }
   ).catch(() => null);
-
-  if (business.cityId !== 36) {
-    // Only add schemas for Toronto businesses
-    return <>{children}</>;
-  }
 
   const reviewsData = reviewsResponse ? await reviewsResponse.json() : null;
   const reviews = reviewsData?.success ? reviewsData.data : [];
