@@ -24,15 +24,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     console.log('Saved theme from localStorage:', savedTheme);
     if (savedTheme) {
       setTheme(savedTheme);
-      return;
     }
-
-    // Check system preference
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    console.log('System prefers dark mode:', prefersDark);
-    if (prefersDark) {
-      setTheme('dark');
-    }
+    // Default to light mode if no saved preference
   }, []);
 
   // Apply theme to document
