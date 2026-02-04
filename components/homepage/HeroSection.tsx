@@ -4,15 +4,19 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
-export default function HeroSection() {
+interface HeroSectionProps {
+  detectedCity: string;
+}
+
+export default function HeroSection({ detectedCity }: HeroSectionProps) {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      // Redirect to Toronto with search query (default city)
-      router.push(`/city/toronto?search=${encodeURIComponent(searchQuery.trim())}`);
+      // Redirect to detected city with search query
+      router.push(`/city/${detectedCity}?search=${encodeURIComponent(searchQuery.trim())}`);
     }
   };
 
@@ -56,21 +60,21 @@ export default function HeroSection() {
         {/* Category Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
           <Link
-            href="/city/toronto/beauty"
+            href={`/city/${detectedCity}/beauty`}
             className="w-full sm:w-auto px-8 py-4 bg-white dark:bg-dark-card border-2 border-gray-300 dark:border-dark-border text-gray-900 dark:text-white font-semibold rounded-xl hover:border-orange-500 dark:hover:border-orange-500 hover:text-orange-600 dark:hover:text-orange-400 transition-all shadow-sm hover:shadow-md flex items-center justify-center gap-2"
           >
             <span className="text-2xl">💅</span>
             Beauty Services
           </Link>
           <Link
-            href="/city/toronto/food"
+            href={`/city/${detectedCity}/food`}
             className="w-full sm:w-auto px-8 py-4 bg-white dark:bg-dark-card border-2 border-gray-300 dark:border-dark-border text-gray-900 dark:text-white font-semibold rounded-xl hover:border-orange-500 dark:hover:border-orange-500 hover:text-orange-600 dark:hover:text-orange-400 transition-all shadow-sm hover:shadow-md flex items-center justify-center gap-2"
           >
             <span className="text-2xl">🍰</span>
             Food Services
           </Link>
           <Link
-            href="/city/toronto/events"
+            href={`/city/${detectedCity}/events`}
             className="w-full sm:w-auto px-8 py-4 bg-white dark:bg-dark-card border-2 border-gray-300 dark:border-dark-border text-gray-900 dark:text-white font-semibold rounded-xl hover:border-orange-500 dark:hover:border-orange-500 hover:text-orange-600 dark:hover:text-orange-400 transition-all shadow-sm hover:shadow-md flex items-center justify-center gap-2"
           >
             <span className="text-2xl">🎉</span>

@@ -34,7 +34,7 @@ export default async function HomePage() {
 
         <div className="min-h-screen bg-white dark:bg-dark-bg flex flex-col">
           {/* Hero Section - Search + Category buttons */}
-          <HeroSection />
+          <HeroSection detectedCity={detectedCity} />
 
           {/* Quick Value Props - 4 short points */}
           <QuickValueProps />
