@@ -3,10 +3,9 @@ import { getCities, getCategories, getSubcategories } from '@/lib/api';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import HeroSection from '@/components/homepage/HeroSection';
-import HowItWorks from '@/components/homepage/HowItWorks';
+import QuickValueProps from '@/components/homepage/QuickValueProps';
 import CategoryShowcase from '@/components/homepage/CategoryShowcase';
 import CitiesGridMatrix from '@/components/homepage/CitiesGridMatrix';
-import WhyBuzzGram from '@/components/homepage/WhyBuzzGram';
 import FinalCTA from '@/components/homepage/FinalCTA';
 
 // Server Component - SSR for SEO
@@ -26,11 +25,11 @@ export default async function HomePage() {
         </Suspense>
 
         <div className="min-h-screen bg-white dark:bg-dark-bg flex flex-col">
-          {/* Hero Section - Split columns with OneQuote */}
+          {/* Hero Section - Search + Category buttons */}
           <HeroSection />
 
-          {/* How It Works - Visual steps */}
-          <HowItWorks />
+          {/* Quick Value Props - 4 short points */}
+          <QuickValueProps />
 
           {/* Category Showcase - 3 cards with subcategories */}
           {categories && categories.length > 0 && subcategories && (
@@ -46,10 +45,7 @@ export default async function HomePage() {
             />
           )}
 
-          {/* Why BuzzGram - Benefits */}
-          <WhyBuzzGram />
-
-          {/* Final CTA - Big call to action */}
+          {/* Final CTA - Simple call to action */}
           <FinalCTA />
 
           <Footer />
