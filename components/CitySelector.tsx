@@ -47,16 +47,6 @@ export default function CitySelector() {
     }
   }, [cityId]);
 
-  // Auto-redirect returning users from homepage to their last selected city
-  useEffect(() => {
-    if (pathname === '/' && cities) {
-      const lastCityId = localStorage.getItem('lastSelectedCityId');
-      if (lastCityId) {
-        router.push(`/city/${lastCityId}`);
-      }
-    }
-  }, [pathname, cities, router]);
-
   const handleCitySelect = (selectedCityId: number) => {
     localStorage.setItem('lastSelectedCityId', selectedCityId.toString());
     router.push(`/city/${selectedCityId}`);
