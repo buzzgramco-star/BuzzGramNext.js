@@ -66,20 +66,18 @@ export default function CategoryClient({ citySlug, categorySlug, categoryName, b
         <PromotionalBanner />
       </div>
 
-      {/* Hero Section */}
-      <div className="w-full md:max-w-7xl md:mx-auto px-2 md:px-6 lg:px-8 py-6">
-        <div className="bg-gradient-to-br from-orange-50 to-pink-50 dark:from-orange-900/10 dark:to-pink-900/10 rounded-xl p-6 border border-orange-100 dark:border-orange-900/30">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-3">
-            {selectedSubcategory
-              ? `${subcategories.find((s) => s.id === selectedSubcategory)?.name} in Los Angeles`
-              : `${categoryName} in Los Angeles`}
-          </h1>
-          <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-            {selectedSubcategory
-              ? `Find verified ${subcategories.find((s) => s.id === selectedSubcategory)?.name.toLowerCase()} businesses in Los Angeles. Browse local businesses, read authentic reviews, and connect instantly with top-rated services.`
-              : `Welcome to Los Angeles's premier ${categoryName.toLowerCase()} directory. Discover verified businesses, connect with trusted local services, compare options, and book instantly.`}
-          </p>
-        </div>
+      {/* Hero Section - Hidden for SEO/Accessibility */}
+      <div className="sr-only">
+        <h1>
+          {selectedSubcategory
+            ? `${subcategories.find((s) => s.id === selectedSubcategory)?.name} in Los Angeles`
+            : `${categoryName} in Los Angeles`}
+        </h1>
+        <p>
+          {selectedSubcategory
+            ? `Find verified ${subcategories.find((s) => s.id === selectedSubcategory)?.name.toLowerCase()} businesses in Los Angeles. Browse local businesses, read authentic reviews, and connect instantly with top-rated services.`
+            : `Welcome to Los Angeles's premier ${categoryName.toLowerCase()} directory. Discover verified businesses, connect with trusted local services, compare options, and book instantly.`}
+        </p>
       </div>
 
       {/* Filters */}

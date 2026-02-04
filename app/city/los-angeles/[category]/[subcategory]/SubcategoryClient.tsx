@@ -29,36 +29,32 @@ export default function SubcategoryClient({ businesses, subcategoryName, categor
         <PromotionalBanner />
       </div>
 
-      {/* Hero Section */}
-      <div className="w-full md:max-w-7xl md:mx-auto px-2 md:px-6 lg:px-8 py-6">
-        <div className="bg-gradient-to-br from-orange-50 to-pink-50 dark:from-orange-900/10 dark:to-pink-900/10 rounded-xl p-6 border border-orange-100 dark:border-orange-900/30">
-          {/* Breadcrumb */}
-          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mb-3">
-            <Link href="/city/los-angeles" className="hover:text-orange-600 dark:hover:text-orange-400 transition-colors">
-              Los Angeles
-            </Link>
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-            <Link
-              href={`/city/los-angeles/${categorySlug}`}
-              className="hover:text-orange-600 dark:hover:text-orange-400 transition-colors"
-            >
-              {categoryName}
-            </Link>
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-            <span className="text-gray-900 dark:text-white font-medium">{subcategoryName}</span>
-          </div>
-
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-3">
-            {subcategoryName} in Los Angeles
-          </h1>
-          <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-            Discover verified {subcategoryName.toLowerCase()} in Los Angeles. Browse portfolios, read authentic reviews, and connect instantly with top-rated professionals.
-          </p>
+      {/* Breadcrumb Navigation */}
+      <div className="w-full md:max-w-7xl md:mx-auto px-2 md:px-6 lg:px-8 pt-6">
+        <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+          <Link href="/city/los-angeles" className="hover:text-orange-600 dark:hover:text-orange-400 transition-colors">
+            Los Angeles
+          </Link>
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+          <Link
+            href={`/city/los-angeles/${categorySlug}`}
+            className="hover:text-orange-600 dark:hover:text-orange-400 transition-colors"
+          >
+            {categoryName}
+          </Link>
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+          <span className="text-gray-900 dark:text-white font-medium">{subcategoryName}</span>
         </div>
+      </div>
+
+      {/* Hero Section - Hidden for SEO/Accessibility */}
+      <div className="sr-only">
+        <h1>{subcategoryName} in Los Angeles</h1>
+        <p>Discover verified {subcategoryName.toLowerCase()} in Los Angeles. Browse portfolios, read authentic reviews, and connect instantly with top-rated professionals.</p>
       </div>
 
       {/* Results Section */}

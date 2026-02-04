@@ -29,11 +29,9 @@ export default function SubcategoryClient({ businesses, subcategoryName, categor
         <PromotionalBanner />
       </div>
 
-      {/* Hero Section */}
-      <div className="w-full md:max-w-7xl md:mx-auto px-2 md:px-6 lg:px-8 py-6">
-        <div className="bg-gradient-to-br from-orange-50 to-pink-50 dark:from-orange-900/10 dark:to-pink-900/10 rounded-xl p-6 border border-orange-100 dark:border-orange-900/30">
-          {/* Breadcrumb */}
-          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mb-3">
+      {/* Breadcrumb Navigation */}
+      <div className="w-full md:max-w-7xl md:mx-auto px-2 md:px-6 lg:px-8 pt-6">
+        <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mb-3">
             <Link href="/city/chicago" className="hover:text-orange-600 dark:hover:text-orange-400 transition-colors">
               Chicago
             </Link>
@@ -51,17 +49,15 @@ export default function SubcategoryClient({ businesses, subcategoryName, categor
             </svg>
             <span className="text-gray-900 dark:text-white font-medium">{subcategoryName}</span>
           </div>
-
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-3">
-            {subcategoryName} in Chicago
-          </h1>
-          <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-            Discover verified {subcategoryName.toLowerCase()} in Chicago. Browse portfolios, read authentic reviews, and connect instantly with top-rated professionals.
-          </p>
-        </div>
       </div>
 
-      {/* Results Section */}
+      {/* Hero Section - Hidden for SEO/Accessibility */}
+      <div className="sr-only">
+        <h1>{subcategoryName} in Chicago</h1>
+        <p>Discover verified {subcategoryName.toLowerCase()} in Chicago. Browse portfolios, read authentic reviews, and connect instantly with top-rated professionals.</p>
+      </div>
+
+  {/* Results Section */}
       <div className="w-full md:max-w-7xl md:mx-auto px-2 md:px-6 lg:px-8 py-10 flex-grow">
         {businesses.length > 0 ? (
           <>
