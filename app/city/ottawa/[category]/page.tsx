@@ -83,6 +83,8 @@ export default async function CategoryPage({ params }: Props) {
           <Header />
         </Suspense>
         <CategoryClient
+          citySlug="ottawa"
+          categorySlug={categorySlug}
           categoryName={categoryName}
           businesses={businesses}
           subcategories={subcategories}

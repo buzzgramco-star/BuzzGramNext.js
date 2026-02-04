@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import type { Business, Subcategory } from '@/types';
 import BusinessCard from '@/components/BusinessCard';
 import SubcategoryFilter from '@/components/SubcategoryFilter';
@@ -8,15 +9,32 @@ import PromotionalBanner from '@/components/PromotionalBanner';
 import Footer from '@/components/Footer';
 
 type Props = {
+  citySlug: string;
+  categorySlug: string;
   categoryName: string;
   businesses: Business[];
   subcategories: Subcategory[];
   categoryId: number;
 };
 
-export default function CategoryClient({ categoryName, businesses, subcategories, categoryId }: Props) {
+export default function CategoryClient({ citySlug, categorySlug, categoryName, businesses, subcategories, categoryId }: Props) {
+  const router = useRouter();
   const [selectedSubcategory, setSelectedSubcategory] = useState<number | null>(null);
   const [showAll, setShowAll] = useState(false);
+
+  // Navigate to subcategory page instead of filtering
+  const handleSubcategorySelect = (subcategoryId: number | null) => {
+    if (subcategoryId === null) {
+      // "All" clicked - stay on category page (reload)
+      router.push(`/city/${citySlug}/${categorySlug}`);
+    } else {
+      // Find subcategory slug
+      const subcategory = subcategories.find(s => s.id === subcategoryId);
+      if (subcategory) {
+        router.push(`/city/${citySlug}/${categorySlug}/${subcategory.slug}`);
+      }
+    }
+  };
 
   // Reset showAll when subcategory filter changes
   useEffect(() => {
@@ -71,7 +89,7 @@ export default function CategoryClient({ categoryName, businesses, subcategories
             <SubcategoryFilter
               subcategories={filteredSubcategories}
               selectedSubcategory={selectedSubcategory}
-              onSelectSubcategory={setSelectedSubcategory}
+              onSelectSubcategory={handleSubcategorySelect}
             />
           </div>
         </div>

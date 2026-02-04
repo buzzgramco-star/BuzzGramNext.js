@@ -26,6 +26,41 @@ export default function CityPageClient({ city, businesses, categories, subcatego
   const [showAll, setShowAll] = useState(false);
   const [searchTerm, setSearchTerm] = useState(initialSearchTerm);
 
+  // Navigate to category page instead of filtering
+  const handleCategorySelect = (categoryId: number | null) => {
+    if (categoryId === null) {
+      // "All" clicked - go back to city page
+      const search = searchParams?.get('search');
+      router.push(`/city/${city.slug}${search ? `?search=${encodeURIComponent(search)}` : ''}`);
+    } else {
+      // Find category slug
+      const category = categories.find(c => c.id === categoryId);
+      if (category) {
+        const search = searchParams?.get('search');
+        router.push(`/city/${city.slug}/${category.slug}${search ? `?search=${encodeURIComponent(search)}` : ''}`);
+      }
+    }
+  };
+
+  // Navigate to subcategory page instead of filtering
+  const handleSubcategorySelect = (subcategoryId: number | null) => {
+    const category = categories.find(c => c.id === selectedCategory);
+    if (!category) return;
+
+    if (subcategoryId === null) {
+      // "All" in subcategory - go back to category page
+      const search = searchParams?.get('search');
+      router.push(`/city/${city.slug}/${category.slug}${search ? `?search=${encodeURIComponent(search)}` : ''}`);
+    } else {
+      // Find subcategory slug
+      const subcategory = subcategories.find(s => s.id === subcategoryId);
+      if (subcategory) {
+        const search = searchParams?.get('search');
+        router.push(`/city/${city.slug}/${category.slug}/${subcategory.slug}${search ? `?search=${encodeURIComponent(search)}` : ''}`);
+      }
+    }
+  };
+
   // Reset subcategory when category changes
   useEffect(() => {
     setSelectedSubcategory(null);
@@ -110,7 +145,7 @@ export default function CityPageClient({ city, businesses, categories, subcatego
                 <CategoryFilter
                   categories={categories}
                   selectedCategory={selectedCategory}
-                  onSelectCategory={setSelectedCategory}
+                  onSelectCategory={handleCategorySelect}
                 />
               )}
 
@@ -119,7 +154,7 @@ export default function CityPageClient({ city, businesses, categories, subcatego
                 <SubcategoryFilter
                   subcategories={filteredSubcategories}
                   selectedSubcategory={selectedSubcategory}
-                  onSelectSubcategory={setSelectedSubcategory}
+                  onSelectSubcategory={handleSubcategorySelect}
                 />
               )}
             </div>
