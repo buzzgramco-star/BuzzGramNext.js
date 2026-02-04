@@ -49,13 +49,15 @@ export default async function HomePage() {
           )}
 
           {/* Cities Grid - Booksy style matrix */}
-          {cities && cities.length > 0 && categories && subcategories && (
-            <CitiesGridMatrix
-              cities={cities}
-              categories={categories}
-              subcategories={subcategories}
-            />
-          )}
+          <div id="cities-grid" className="scroll-mt-20">
+            {cities && cities.length > 0 && categories && subcategories && (
+              <CitiesGridMatrix
+                cities={cities}
+                categories={categories}
+                subcategories={subcategories}
+              />
+            )}
+          </div>
 
           {/* Final CTA - Simple call to action */}
           <FinalCTA />

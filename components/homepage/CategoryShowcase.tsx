@@ -55,12 +55,12 @@ export default function CategoryShowcase({ categories, subcategories, detectedCi
           {/* City indicator with change option */}
           <p className="text-sm text-gray-500 dark:text-gray-400">
             Showing <span className="font-semibold text-gray-700 dark:text-gray-300">{formatCityName(detectedCity)}</span> businesses •{' '}
-            <Link
-              href={`/city/${detectedCity}`}
+            <a
+              href="#cities-grid"
               className="text-orange-600 dark:text-orange-400 hover:underline font-medium"
             >
               Change city →
-            </Link>
+            </a>
           </p>
         </div>
 
