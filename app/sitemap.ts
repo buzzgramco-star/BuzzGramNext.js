@@ -3,6 +3,7 @@ import { MetadataRoute } from 'next'
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Use environment variable if available, otherwise fallback to production domain
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://buzzgram.co'
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://backend-production-f30d.up.railway.app/api'
 
   // Static pages
   const staticPages: MetadataRoute.Sitemap = [
@@ -74,5 +75,38 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })
   })
 
-  return [...staticPages, ...cityPages, ...cityCategories]
+  // Fetch all businesses dynamically
+  let businessPages: MetadataRoute.Sitemap = []
+
+  try {
+    console.log('[Sitemap] Fetching businesses from API...')
+    const response = await fetch(`${apiBaseUrl}/businesses`, {
+      next: { revalidate: 3600 }, // Cache for 1 hour
+    })
+
+    if (!response.ok) {
+      throw new Error(`API returned ${response.status}`)
+    }
+
+    const data = await response.json()
+
+    if (data.success && Array.isArray(data.data)) {
+      console.log(`[Sitemap] Found ${data.data.length} businesses`)
+
+      businessPages = data.data.map((business: any) => ({
+        url: `${baseUrl}/business/${business.slug}`,
+        lastModified: business.updatedAt ? new Date(business.updatedAt) : new Date(),
+        changeFrequency: 'weekly' as const,
+        priority: 0.6,
+      }))
+    } else {
+      console.warn('[Sitemap] Invalid API response format')
+    }
+  } catch (error) {
+    console.error('[Sitemap] Failed to fetch businesses:', error)
+    console.warn('[Sitemap] Continuing with basic sitemap (no business pages)')
+    // Fallback: Return sitemap without business pages (no breaking)
+  }
+
+  return [...staticPages, ...cityPages, ...cityCategories, ...businessPages]
 }
