@@ -53,7 +53,7 @@ export default function HowItWorksPage() {
                 </div>
                 <div>
                   <h3 className="font-semibold text-gray-900 dark:text-white mb-2 text-lg">
-                    View portfolios and read reviews
+                    View profiles and read reviews
                   </h3>
                   <p className="text-gray-600 dark:text-gray-300">
                     Every business profile includes their Instagram link so you can see their work, style, and customer results before contacting them.
@@ -115,7 +115,7 @@ export default function HowItWorksPage() {
                     Get discovered by local customers
                   </h3>
                   <p className="text-gray-600 dark:text-gray-300">
-                    Appear in search results when customers in your area are looking for services you offer. Your Instagram portfolio helps showcase your work.
+                    Appear in search results when customers in your area are looking for services you offer. Your Instagram profile helps showcase your work.
                   </p>
                 </div>
               </div>

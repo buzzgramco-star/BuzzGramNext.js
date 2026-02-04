@@ -1,4 +1,5 @@
 import { Suspense } from 'react';
+import { headers } from 'next/headers';
 import { getCities, getCategories, getSubcategories } from '@/lib/api';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -8,9 +9,16 @@ import CategoryShowcase from '@/components/homepage/CategoryShowcase';
 import CitiesGridMatrix from '@/components/homepage/CitiesGridMatrix';
 import FinalCTA from '@/components/homepage/FinalCTA';
 
+// Force dynamic rendering for IP-based city detection
+export const dynamic = 'force-dynamic';
+
 // Server Component - SSR for SEO
 export default async function HomePage() {
   try {
+    // Get detected city from middleware
+    const headersList = await headers();
+    const detectedCity = headersList.get('x-detected-city') || 'toronto';
+
     // Fetch all data in parallel
     const [cities, categories, subcategories] = await Promise.all([
       getCities(),
@@ -33,7 +41,11 @@ export default async function HomePage() {
 
           {/* Category Showcase - 3 cards with subcategories */}
           {categories && categories.length > 0 && subcategories && (
-            <CategoryShowcase categories={categories} subcategories={subcategories} />
+            <CategoryShowcase
+              categories={categories}
+              subcategories={subcategories}
+              detectedCity={detectedCity}
+            />
           )}
 
           {/* Cities Grid - Booksy style matrix */}

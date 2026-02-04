@@ -4,12 +4,22 @@ import type { Category, Subcategory } from '@/types';
 interface CategoryShowcaseProps {
   categories: Category[];
   subcategories: Subcategory[];
+  detectedCity: string;
 }
 
-export default function CategoryShowcase({ categories, subcategories }: CategoryShowcaseProps) {
+export default function CategoryShowcase({ categories, subcategories, detectedCity }: CategoryShowcaseProps) {
   // Get subcategories for a specific category
   const getSubcategoriesForCategory = (categoryId: number) => {
     return subcategories.filter(sub => sub.categoryId === categoryId);
+  };
+
+  // Format city name for display (e.g., 'new-york-city' -> 'New York')
+  const formatCityName = (slug: string): string => {
+    return slug
+      .split('-')
+      .map(word => word === 'city' ? '' : word.charAt(0).toUpperCase() + word.slice(1))
+      .filter(Boolean)
+      .join(' ');
   };
 
   // Category icons and colors
@@ -39,8 +49,18 @@ export default function CategoryShowcase({ categories, subcategories }: Category
           <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-4">
             Browse by Category
           </h2>
-          <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+          <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto mb-3">
             Find the perfect service for your needs across beauty, food, and events
+          </p>
+          {/* City indicator with change option */}
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            Showing <span className="font-semibold text-gray-700 dark:text-gray-300">{formatCityName(detectedCity)}</span> businesses •{' '}
+            <Link
+              href={`/city/${detectedCity}`}
+              className="text-orange-600 dark:text-orange-400 hover:underline font-medium"
+            >
+              Change city →
+            </Link>
           </p>
         </div>
 
@@ -88,7 +108,7 @@ export default function CategoryShowcase({ categories, subcategories }: Category
 
                 {/* Browse Button */}
                 <Link
-                  href={`/city/toronto/${category.slug}`}
+                  href={`/city/${detectedCity}/${category.slug}`}
                   className={`block w-full text-center px-6 py-3 bg-gradient-to-r ${config.gradient} ${config.textColor} font-semibold rounded-lg hover:shadow-md transition-all border-2 border-transparent hover:border-current`}
                 >
                   Browse {category.name} →
