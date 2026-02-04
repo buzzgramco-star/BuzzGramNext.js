@@ -242,6 +242,54 @@ export default async function CategoryLayout({ params, children }: Props) {
           text: `BuzzGram features a growing directory of verified ${categoryName.toLowerCase()} businesses serving ${cityName}. Our directory grows regularly with new verified businesses joining to serve the community.`,
         },
       },
+      {
+        '@type': 'Question',
+        name: `How do I start a ${categoryName.toLowerCase()} business from home in ${cityName}?`,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: `Starting a home-based ${categoryName.toLowerCase()} business in ${cityName} is easier than ever. Focus on building your skills${subcategoryNames.length > 0 ? ` in areas like ${subcategoryNames.slice(0, 3).join(', ')}` : ''}, create an Instagram portfolio showcasing your work, and list your business on BuzzGram to get discovered by local customers. BuzzGram helps home-based and Instagram businesses connect with clients actively searching for ${categoryName.toLowerCase()} services in ${cityName}.`,
+        },
+      },
+      {
+        '@type': 'Question',
+        name: `Is ${categoryName.toLowerCase()} a profitable side hustle in ${cityName}?`,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: `Yes! ${categoryName.toLowerCase()} is a popular and profitable side hustle in ${cityName}. Many successful home-based ${categoryName.toLowerCase()} businesses${subcategoryNames.length > 0 ? ` offering ${subcategoryNames.slice(0, 2).join(' and ')}` : ''} operate from home and use Instagram to showcase their work. Listing on BuzzGram gives you instant visibility to ${cityName} customers actively searching for ${categoryName.toLowerCase()} services, helping you grow your client base quickly.`,
+        },
+      },
+      {
+        '@type': 'Question',
+        name: `Where can I list my ${categoryName.toLowerCase()} business to get more clients in ${cityName}?`,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: `BuzzGram is the leading platform for home-based and Instagram ${categoryName.toLowerCase()} businesses in ${cityName}. List your business for free, connect your Instagram profile, and start receiving quote requests from local customers. BuzzGram specializes in promoting home-based businesses${subcategoryNames.length > 0 ? ` like ${subcategoryNames.slice(0, 3).join(', ')}` : ''} to customers actively searching for services in ${cityName}.`,
+        },
+      },
+      {
+        '@type': 'Question',
+        name: `How can I grow my Instagram ${categoryName.toLowerCase()} business in ${cityName}?`,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: `Growing your Instagram ${categoryName.toLowerCase()} business starts with visibility. List your business on BuzzGram to reach ${cityName} customers who are ready to book services. BuzzGram integrates directly with your Instagram profile, making it easy for customers to see your portfolio and contact you. With instant quote request features, customers can reach you directly, helping you convert followers into paying clients.`,
+        },
+      },
+      {
+        '@type': 'Question',
+        name: `What do I need to launch a ${categoryName.toLowerCase()} side hustle?`,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: `Launching a ${categoryName.toLowerCase()} side hustle requires three key things: skills in your chosen service${subcategoryNames.length > 0 ? ` (such as ${subcategoryNames.slice(0, 2).join(' or ')})` : ''}, an Instagram portfolio showcasing your work, and a platform to get discovered. BuzzGram provides that platform by connecting home-based ${categoryName.toLowerCase()} businesses with ${cityName} customers actively searching for services. Sign up, create your profile, and start receiving quote requests from local clients.`,
+        },
+      },
+      {
+        '@type': 'Question',
+        name: `How do I get my first clients for my ${categoryName.toLowerCase()} business in ${cityName}?`,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: `Getting your first clients is easy with BuzzGram. List your ${categoryName.toLowerCase()} business, showcase your Instagram portfolio, and start appearing in search results when ${cityName} customers look for${subcategoryNames.length > 0 ? ` ${subcategoryNames.slice(0, 2).join(' and ')}` : ` ${categoryName.toLowerCase()}`} services. BuzzGram's quote request system connects you directly with customers ready to book, eliminating the challenge of finding your first clients. Many home-based businesses get their first quote requests within days of listing.`,
+        },
+      },
     ],
   };
 

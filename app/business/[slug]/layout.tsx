@@ -189,10 +189,63 @@ export default async function BusinessLayout({ params, children }: Props) {
     ],
   };
 
+  // FAQ Schema - Customer-focused
+  const categoryName = business.category?.name || 'service';
+  const subcategoryName = business.subcategory?.name || '';
+
+  const faqSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: [
+      {
+        '@type': 'Question',
+        name: `What services does ${business.name} offer?`,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: business.description
+            ? `${business.name} offers ${business.description}${subcategoryName ? ` They specialize in ${subcategoryName.toLowerCase()} services in ${cityName}.` : ''} You can view their portfolio on Instagram ${business.instagramHandle ? `@${business.instagramHandle}` : ''} and request a quote directly through BuzzGram.`
+            : `${business.name} is a ${categoryName.toLowerCase()} business${subcategoryName ? ` specializing in ${subcategoryName.toLowerCase()}` : ''} serving ${cityName}. Connect with them through BuzzGram to learn more about their services and request a personalized quote.`,
+        },
+      },
+      {
+        '@type': 'Question',
+        name: `How can I contact ${business.name}?`,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: `You can contact ${business.name} through BuzzGram by submitting a quote request on their profile page. ${business.instagramHandle ? `You can also reach them on Instagram @${business.instagramHandle}.` : ''} BuzzGram makes it easy to connect with local ${categoryName.toLowerCase()} businesses and get responses directly from service providers.`,
+        },
+      },
+      {
+        '@type': 'Question',
+        name: `Does ${business.name} serve ${cityName}?`,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: `Yes, ${business.name} is a verified ${categoryName.toLowerCase()} business serving ${cityName} and surrounding areas. They are listed on BuzzGram's local business directory and available for quote requests from ${cityName} residents.`,
+        },
+      },
+      {
+        '@type': 'Question',
+        name: `What makes ${business.name} a good choice for ${subcategoryName || categoryName} services?`,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: `${business.name} is a verified local business on BuzzGram${subcategoryName ? ` specializing in ${subcategoryName.toLowerCase()}` : ''} in ${cityName}. ${business.instagramHandle ? `They showcase their work on Instagram @${business.instagramHandle} where you can see their portfolio and customer results.` : ''} As a home-based and Instagram business, they offer personalized service and direct communication with clients.`,
+        },
+      },
+      {
+        '@type': 'Question',
+        name: `How do I request a quote from ${business.name}?`,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: `Requesting a quote from ${business.name} is simple on BuzzGram. Visit their business profile, click the quote request button, fill in your service needs and availability, and ${business.name} will respond directly. BuzzGram connects you instantly with local ${categoryName.toLowerCase()} businesses in ${cityName}.`,
+        },
+      },
+    ],
+  };
+
   // Combine schemas
   const combinedSchema = {
     '@context': 'https://schema.org',
-    '@graph': [localBusinessSchema, breadcrumbSchema],
+    '@graph': [localBusinessSchema, breadcrumbSchema, faqSchema],
   };
 
   return (
