@@ -33,13 +33,19 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
   }
 
+  const canonicalUrl = `https://www.buzzgram.co/city/phoenix/${categorySlug}`;
+
   return {
     title: `${categoryName} in Phoenix | BuzzGram`,
     description: `Discover the best ${categoryName.toLowerCase()} in Phoenix. Browse verified businesses, read reviews, and connect with top-rated local services.`,
+    alternates: {
+      canonical: canonicalUrl,
+    },
     openGraph: {
       title: `${categoryName} in Phoenix`,
       description: `Find trusted ${categoryName.toLowerCase()} businesses in Phoenix`,
       type: 'website',
+      url: canonicalUrl,
     },
   };
 }

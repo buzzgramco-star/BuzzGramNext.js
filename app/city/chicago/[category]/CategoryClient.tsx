@@ -6,7 +6,9 @@ import type { Business, Subcategory } from '@/types';
 import BusinessCard from '@/components/BusinessCard';
 import SubcategoryFilter from '@/components/SubcategoryFilter';
 import PromotionalBanner from '@/components/PromotionalBanner';
+import Breadcrumbs, { BreadcrumbItem } from '@/components/Breadcrumbs';
 import Footer from '@/components/Footer';
+import { categoryContent } from '@/lib/seoContent';
 
 type Props = {
   citySlug: string;
@@ -15,6 +17,19 @@ type Props = {
   businesses: Business[];
   subcategories: Subcategory[];
   categoryId: number;
+};
+
+const CITY_NAMES: Record<string, string> = {
+  'toronto': 'Toronto',
+  'vancouver': 'Vancouver',
+  'calgary': 'Calgary',
+  'montreal': 'Montreal',
+  'ottawa': 'Ottawa',
+  'new-york-city': 'New York City',
+  'los-angeles': 'Los Angeles',
+  'chicago': 'Chicago',
+  'miami': 'Miami',
+  'phoenix': 'Phoenix',
 };
 
 export default function CategoryClient({ citySlug, categorySlug, categoryName, businesses, subcategories, categoryId }: Props) {
@@ -59,6 +74,15 @@ export default function CategoryClient({ citySlug, categorySlug, categoryName, b
     : filteredBusinesses;
   const hasMoreToShow = !selectedSubcategory && filteredBusinesses.length > initialLimit;
 
+  const cityName = CITY_NAMES[citySlug] || 'Chicago';
+  const breadcrumbItems: BreadcrumbItem[] = [
+    { label: 'Home', href: '/' },
+    { label: cityName, href: `/city/${citySlug}` },
+    { label: categoryName },
+  ];
+
+  const catContent = categoryContent[categorySlug];
+
   return (
     <div className="min-h-screen bg-white dark:bg-dark-bg flex flex-col">
       {/* Promotional Banner */}
@@ -66,18 +90,24 @@ export default function CategoryClient({ citySlug, categorySlug, categoryName, b
         <PromotionalBanner />
       </div>
 
-      {/* Hero Section - Hidden for SEO/Accessibility */}
-      <div className="sr-only">
-        <h1>
-          {selectedSubcategory
-            ? `${subcategories.find((s) => s.id === selectedSubcategory)?.name} in Chicago`
-            : `${categoryName} in Chicago`}
+      {/* Breadcrumbs & SEO Content */}
+      <div className="w-full md:max-w-7xl md:mx-auto px-4 md:px-6 lg:px-8 pt-6 pb-4">
+        <Breadcrumbs items={breadcrumbItems} />
+
+        <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+          {categoryName} in {cityName}
         </h1>
-        <p>
-          {selectedSubcategory
-            ? `Find verified ${subcategories.find((s) => s.id === selectedSubcategory)?.name.toLowerCase()} businesses in Chicago. Browse local businesses, read authentic reviews, and connect instantly with top-rated services.`
-            : `Welcome to Chicago's premier ${categoryName.toLowerCase()} directory. Discover verified businesses, connect with trusted local services, compare options, and book instantly.`}
-        </p>
+
+        {catContent && (
+          <div className="mb-6">
+            <p className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed">
+              {catContent.description}
+            </p>
+            <p className="mt-4 text-gray-600 dark:text-gray-400 leading-relaxed">
+              {catContent.content}
+            </p>
+          </div>
+        )}
       </div>
 
 

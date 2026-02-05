@@ -33,13 +33,19 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
   }
 
+  const canonicalUrl = `https://www.buzzgram.co/city/new-york-city/${categorySlug}`;
+
   return {
     title: `${categoryName} in New York City | BuzzGram`,
     description: `Discover the best ${categoryName.toLowerCase()} in New York City. Browse verified businesses, read reviews, and connect with top-rated local services.`,
+    alternates: {
+      canonical: canonicalUrl,
+    },
     openGraph: {
       title: `${categoryName} in New York City`,
       description: `Find trusted ${categoryName.toLowerCase()} businesses in New York City`,
       type: 'website',
+      url: canonicalUrl,
     },
   };
 }

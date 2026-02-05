@@ -33,13 +33,19 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
   }
 
+  const canonicalUrl = `https://www.buzzgram.co/city/miami/${categorySlug}`;
+
   return {
     title: `${categoryName} in Miami | BuzzGram`,
     description: `Discover the best ${categoryName.toLowerCase()} in Miami. Browse verified businesses, read reviews, and connect with top-rated local services.`,
+    alternates: {
+      canonical: canonicalUrl,
+    },
     openGraph: {
       title: `${categoryName} in Miami`,
       description: `Find trusted ${categoryName.toLowerCase()} businesses in Miami`,
       type: 'website',
+      url: canonicalUrl,
     },
   };
 }

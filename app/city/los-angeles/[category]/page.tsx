@@ -33,13 +33,19 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
   }
 
+  const canonicalUrl = `https://www.buzzgram.co/city/los-angeles/${categorySlug}`;
+
   return {
     title: `${categoryName} in Los Angeles | BuzzGram`,
     description: `Discover the best ${categoryName.toLowerCase()} in Los Angeles. Browse verified businesses, read reviews, and connect with top-rated local services.`,
+    alternates: {
+      canonical: canonicalUrl,
+    },
     openGraph: {
       title: `${categoryName} in Los Angeles`,
       description: `Find trusted ${categoryName.toLowerCase()} businesses in Los Angeles`,
       type: 'website',
+      url: canonicalUrl,
     },
   };
 }
