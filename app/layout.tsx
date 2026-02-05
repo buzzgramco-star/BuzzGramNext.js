@@ -30,6 +30,10 @@ export const metadata: Metadata = {
     "New York businesses",
     "Los Angeles businesses",
   ],
+  icons: {
+    icon: '/icon',
+    apple: '/apple-icon',
+  },
   openGraph: {
     title: "BuzzGram - Discover Home-Based & Instagram Businesses",
     description:
@@ -38,12 +42,21 @@ export const metadata: Metadata = {
     siteName: "BuzzGram",
     locale: "en_US",
     type: "website",
+    images: [
+      {
+        url: `${siteUrl}/icon?size=1200`,
+        width: 1200,
+        height: 1200,
+        alt: 'BuzzGram Logo',
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "BuzzGram - Discover Home-Based & Instagram Businesses",
     description:
       "The first platform for home-based and Instagram businesses. Find beauty, food, and event services across 10 major cities.",
+    images: [`${siteUrl}/icon?size=1200`],
   },
   alternates: {
     canonical: siteUrl,
