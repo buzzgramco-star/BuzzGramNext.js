@@ -1,14 +1,20 @@
 import { Suspense } from 'react';
+import { headers } from 'next/headers';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import Link from 'next/link';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata = {
   title: 'About Us | BuzzGram - Supporting Home-Based & Instagram Businesses',
-  description: 'Learn about BuzzGram\'s mission to connect customers with talented home-based and Instagram entrepreneurs across North America. Discover why we\'re building the first platform dedicated to small businesses that traditional platforms overlook.',
+  description: 'Learn about BuzzGram\'s mission to connect customers with home-based and Instagram businesses across North America. Discover why we\'re building the first platform dedicated to small businesses that traditional platforms overlook.',
 };
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  // Get detected city from middleware
+  const headersList = await headers();
+  const detectedCity = headersList.get('x-detected-city') || 'toronto';
   const aboutSchema = {
     '@context': 'https://schema.org',
     '@type': 'AboutPage',
@@ -47,17 +53,12 @@ export default function AboutPage() {
               We're Building the Platform Small Businesses Deserve
             </h1>
             <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
-              BuzzGram exists because talented entrepreneurs deserve a platform that actually understands them.
+              BuzzGram exists because businesses deserve a platform that actually understands them.
             </p>
           </div>
 
           {/* The Problem Section */}
           <div className="mb-16">
-            <div className="w-20 h-20 mx-auto mb-6 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center">
-              <svg className="w-10 h-10 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </div>
             <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-6 text-center">
               The Problem We're Solving
             </h2>
@@ -73,28 +74,18 @@ export default function AboutPage() {
 
           {/* Our Mission Section */}
           <div className="mb-16">
-            <div className="w-20 h-20 mx-auto mb-6 bg-orange-100 dark:bg-orange-900/30 rounded-full flex items-center justify-center">
-              <svg className="w-10 h-10 text-orange-600 dark:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
             <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-6 text-center">
               Our Mission
             </h2>
             <div className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 rounded-2xl p-8 border-2 border-orange-300 dark:border-orange-700">
               <p className="text-xl text-gray-900 dark:text-white font-medium text-center">
-                "Make every talented entrepreneur discoverable, no matter where they work from."
+                "Make every business discoverable, no matter where they work from."
               </p>
             </div>
           </div>
 
           {/* How We're Different Section */}
           <div className="mb-16">
-            <div className="w-20 h-20 mx-auto mb-6 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center">
-              <svg className="w-10 h-10 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
-            </div>
             <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-6 text-center">
               How We're Different
             </h2>
@@ -110,7 +101,7 @@ export default function AboutPage() {
                     Built for Home-Based Businesses
                   </h3>
                   <p className="text-gray-600 dark:text-gray-300">
-                    We don't require a storefront, business license, or years of history. If you're talented and serve customers, you belong here.
+                    We don't require a storefront or years of history. If you're talented and serve customers, you belong here.
                   </p>
                 </div>
               </div>
@@ -183,11 +174,6 @@ export default function AboutPage() {
 
           {/* By The Numbers Section */}
           <div className="mb-16">
-            <div className="w-20 h-20 mx-auto mb-6 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
-              <svg className="w-10 h-10 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              </svg>
-            </div>
             <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-8 text-center">
               Our Growing Community
             </h2>
@@ -221,11 +207,6 @@ export default function AboutPage() {
 
           {/* Our Values Section */}
           <div className="mb-16">
-            <div className="w-20 h-20 mx-auto mb-6 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center">
-              <svg className="w-10 h-10 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-              </svg>
-            </div>
             <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-6 text-center">
               What We Believe In
             </h2>
@@ -274,7 +255,7 @@ export default function AboutPage() {
                   </h3>
                 </div>
                 <p className="text-gray-600 dark:text-gray-300">
-                  Big platforms prioritize big businesses. We prioritize entrepreneurs building their dreams one customer at a time.
+                  Big platforms prioritize big businesses. We prioritize small businesses building their dreams one customer at a time.
                 </p>
               </div>
 
@@ -290,7 +271,7 @@ export default function AboutPage() {
                   </h3>
                 </div>
                 <p className="text-gray-600 dark:text-gray-300">
-                  We're not here to compete with entrepreneurs. We're here to amplify them.
+                  We're not here to compete with businesses. We're here to amplify them.
                 </p>
               </div>
             </div>
@@ -298,11 +279,6 @@ export default function AboutPage() {
 
           {/* Vision Section */}
           <div className="mb-16">
-            <div className="w-20 h-20 mx-auto mb-6 bg-cyan-100 dark:bg-cyan-900/30 rounded-full flex items-center justify-center">
-              <svg className="w-10 h-10 text-cyan-600 dark:text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
             <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-6 text-center">
               Where We're Going
             </h2>
@@ -314,27 +290,22 @@ export default function AboutPage() {
                 Our vision is to become the go-to platform for <span className="font-semibold text-orange-600 dark:text-orange-400">every home-based and Instagram business</span> across North America—and eventually, the world.
               </p>
               <p className="text-lg text-gray-700 dark:text-gray-300">
-                When customers think "I need a talented local entrepreneur," we want them to think BuzzGram first.
+                When customers think "I need a talented local business," we want them to think BuzzGram first.
               </p>
             </div>
           </div>
 
           {/* CTA Section */}
           <div className="text-center bg-gradient-to-r from-orange-600 to-orange-700 dark:from-orange-700 dark:to-orange-800 rounded-2xl p-12">
-            <div className="w-20 h-20 mx-auto mb-6 bg-white/20 rounded-full flex items-center justify-center">
-              <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-              </svg>
-            </div>
             <h2 className="text-3xl font-bold text-white mb-6">
               Join Our Growing Community
             </h2>
             <p className="text-xl text-orange-100 mb-8 max-w-2xl mx-auto">
-              Whether you're looking for talented entrepreneurs or you are one, BuzzGram is built for you.
+              Whether you're looking for talented businesses or you are one, BuzzGram is built for you.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
-                href="/city/toronto"
+                href={`/city/${detectedCity}`}
                 className="px-8 py-4 bg-white text-orange-600 font-semibold rounded-lg hover:bg-orange-50 transition-all shadow-xl hover:shadow-2xl hover:-translate-y-1"
               >
                 Find Businesses
