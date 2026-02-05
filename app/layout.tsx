@@ -31,8 +31,14 @@ export const metadata: Metadata = {
     "Los Angeles businesses",
   ],
   icons: {
-    icon: '/icon',
-    apple: '/apple-icon',
+    icon: [
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/icon', sizes: '32x32', type: 'image/png' },
+    ],
+    apple: [
+      { url: '/apple-icon', sizes: '180x180', type: 'image/png' },
+    ],
+    shortcut: '/favicon.ico',
   },
   openGraph: {
     title: "BuzzGram - Discover Home-Based & Instagram Businesses",

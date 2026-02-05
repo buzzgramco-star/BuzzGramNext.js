@@ -14,8 +14,8 @@ export default function Icon() {
     (
       <div
         style={{
-          fontSize: 18,
-          background: 'linear-gradient(135deg, #ff6b35 0%, #f97316 100%)',
+          fontSize: 20,
+          background: '#f97316',
           width: '100%',
           height: '100%',
           display: 'flex',
@@ -23,8 +23,7 @@ export default function Icon() {
           justifyContent: 'center',
           color: 'white',
           fontWeight: 'bold',
-          fontFamily: 'sans-serif',
-          borderRadius: '6px',
+          fontFamily: 'system-ui, -apple-system, sans-serif',
         }}
       >
         BG
