@@ -1,3 +1,4 @@
+import { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { getCityBySlug, getCityById, getBusinesses, getCategories, getSubcategories } from '@/lib/api';
 import CityPageClient from './CityPageClient';
@@ -6,6 +7,43 @@ type Props = {
   params: Promise<{ slug: string }>;
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 };
+
+// Generate metadata for SEO
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params;
+
+  try {
+    // Skip if it's a numeric ID (will redirect anyway)
+    if (/^\d+$/.test(slug)) {
+      return {
+        title: 'BuzzGram',
+        description: 'Discover home-based and Instagram businesses',
+      };
+    }
+
+    const city = await getCityBySlug(slug);
+    const canonicalUrl = `https://www.buzzgram.co/city/${city.slug}`;
+
+    return {
+      title: `${city.name} Home-Based & Instagram Businesses | Beauty, Food & Events | BuzzGram`,
+      description: `Discover verified home-based and Instagram businesses in ${city.name}. Browse beauty services (nails, lashes, makeup, hair), food specialists (bakery, catering, chefs), and event planners. Connect instantly with local professionals.`,
+      alternates: {
+        canonical: canonicalUrl,
+      },
+      openGraph: {
+        title: `${city.name} Home-Based & Instagram Businesses | BuzzGram`,
+        description: `Find trusted home-based and Instagram businesses in ${city.name}. Beauty, food, and event services all in one place.`,
+        type: 'website',
+        url: canonicalUrl,
+      },
+    };
+  } catch (error) {
+    return {
+      title: 'City Not Found | BuzzGram',
+      description: 'The city you are looking for does not exist.',
+    };
+  }
+}
 
 // Server Component - SSR for SEO
 export default async function CityPage({ params, searchParams }: Props) {

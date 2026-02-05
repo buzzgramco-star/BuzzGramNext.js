@@ -7,8 +7,10 @@ import BusinessCard from '@/components/BusinessCard';
 import CategoryFilter from '@/components/CategoryFilter';
 import SubcategoryFilter from '@/components/SubcategoryFilter';
 import PromotionalBanner from '@/components/PromotionalBanner';
+import Breadcrumbs, { BreadcrumbItem } from '@/components/Breadcrumbs';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import { cityContent } from '@/lib/seoContent';
 
 type Props = {
   city: City;
@@ -111,6 +113,13 @@ export default function CityPageClient({ city, businesses, categories, subcatego
     router.replace(`?${newParams.toString()}`, { scroll: false });
   };
 
+  const breadcrumbItems: BreadcrumbItem[] = [
+    { label: 'Home', href: '/' },
+    { label: city.name },
+  ];
+
+  const citySeoContent = cityContent[city.slug];
+
   return (
     <>
       <Header />
@@ -118,6 +127,28 @@ export default function CityPageClient({ city, businesses, categories, subcatego
         {/* Promotional Banner */}
         <div className="w-full md:max-w-7xl md:mx-auto px-2 md:px-6 lg:px-8 pt-0 sm:pt-8">
           <PromotionalBanner />
+        </div>
+
+        {/* Breadcrumbs & SEO Content */}
+        <div className="w-full md:max-w-7xl md:mx-auto px-4 md:px-6 lg:px-8 pt-6 pb-4">
+          <Breadcrumbs items={breadcrumbItems} />
+
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+            {citySeoContent?.title || `Home-Based & Instagram Businesses in ${city.name}`}
+          </h1>
+
+          {citySeoContent && (
+            <div className="mb-6">
+              <p className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
+                {citySeoContent.description}
+              </p>
+              <div className="prose prose-gray dark:prose-invert max-w-none">
+                <div className="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-line">
+                  {citySeoContent.content}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Filters */}
