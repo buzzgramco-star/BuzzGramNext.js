@@ -40,13 +40,19 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
   }
 
+  const canonicalUrl = `https://www.buzzgram.co/city/phoenix/${categorySlug}/${subcategorySlug}`;
+
   return {
     title: `${subcategoryConfig.name} in Phoenix | BuzzGram`,
     description: `Discover verified ${subcategoryConfig.name.toLowerCase()} in Phoenix. Browse portfolios, read reviews, and connect with top-rated professionals.`,
+    alternates: {
+      canonical: canonicalUrl,
+    },
     openGraph: {
       title: `${subcategoryConfig.name} in Phoenix`,
       description: `Find trusted ${subcategoryConfig.name.toLowerCase()} professionals in Phoenix`,
       type: 'website',
+      url: canonicalUrl,
     },
   };
 }
@@ -93,7 +99,9 @@ export default async function SubcategoryPage({ params }: Props) {
           businesses={businesses}
           subcategoryName={subcategoryConfig.name}
           categoryName={subcategoryConfig.categoryName}
+          citySlug="phoenix"
           categorySlug={categorySlug}
+          subcategorySlug={subcategorySlug}
         />
       </>
     );
