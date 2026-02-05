@@ -14,6 +14,24 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 1,
     },
     {
+      url: `${baseUrl}/about`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/how-it-works`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/business-signup`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.9,
+    },
+    {
       url: `${baseUrl}/quote`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
@@ -60,17 +78,36 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }))
 
-  // Categories for each city
+  // Categories and subcategories for each city
   const categories = ['beauty', 'food', 'events']
+  const subcategoriesMap: Record<string, string[]> = {
+    beauty: ['nails', 'lashes', 'makeup', 'hair'],
+    food: ['bakery', 'catering', 'private-chef'],
+    events: ['event-decor', 'event-planning', 'photography'],
+  }
+
   const cityCategories: MetadataRoute.Sitemap = []
+  const citySubcategories: MetadataRoute.Sitemap = []
 
   cities.forEach((city) => {
     categories.forEach((category) => {
+      // Add category pages
       cityCategories.push({
         url: `${baseUrl}/city/${city}/${category}`,
         lastModified: new Date(),
         changeFrequency: 'weekly',
         priority: 0.7,
+      })
+
+      // Add subcategory pages
+      const subcats = subcategoriesMap[category] || []
+      subcats.forEach((subcategory) => {
+        citySubcategories.push({
+          url: `${baseUrl}/city/${city}/${category}/${subcategory}`,
+          lastModified: new Date(),
+          changeFrequency: 'weekly',
+          priority: 0.65,
+        })
       })
     })
   })
@@ -108,5 +145,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Fallback: Return sitemap without business pages (no breaking)
   }
 
-  return [...staticPages, ...cityPages, ...cityCategories, ...businessPages]
+  return [...staticPages, ...cityPages, ...cityCategories, ...citySubcategories, ...businessPages]
 }
