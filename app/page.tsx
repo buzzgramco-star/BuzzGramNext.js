@@ -57,12 +57,32 @@ export default async function HomePage() {
       ],
     };
 
+    // Schema.org WebSite structured data for sitelinks search box
+    const websiteSchema = {
+      '@context': 'https://schema.org',
+      '@type': 'WebSite',
+      name: 'BuzzGram',
+      url: 'https://buzzgram.co',
+      potentialAction: {
+        '@type': 'SearchAction',
+        target: {
+          '@type': 'EntryPoint',
+          urlTemplate: 'https://buzzgram.co/city/toronto?search={search_term_string}',
+        },
+        'query-input': 'required name=search_term_string',
+      },
+    };
+
     return (
       <>
         {/* Structured Data for SEO/AEO */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
         />
 
         <Suspense fallback={<div className="h-16" />}>
