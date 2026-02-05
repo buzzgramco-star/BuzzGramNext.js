@@ -58,6 +58,9 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        {/* Web App Manifest for Mobile */}
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#f97316" />
         {/* Google Sign-In SDK */}
         <Script
           src="https://accounts.google.com/gsi/client"
