@@ -34,12 +34,15 @@ export const metadata: Metadata = {
     icon: [
       { url: '/favicon.ico', sizes: 'any' },
       { url: '/icon', sizes: '32x32', type: 'image/png' },
+      { url: '/icon-192', sizes: '192x192', type: 'image/png' },
+      { url: '/icon-512', sizes: '512x512', type: 'image/png' },
     ],
     apple: [
       { url: '/apple-icon', sizes: '180x180', type: 'image/png' },
     ],
     shortcut: '/favicon.ico',
   },
+  manifest: '/manifest.webmanifest',
   openGraph: {
     title: "BuzzGram - Discover Home-Based & Instagram Businesses",
     description:
@@ -66,6 +69,12 @@ export const metadata: Metadata = {
   },
   alternates: {
     canonical: siteUrl,
+  },
+  themeColor: '#f97316',
+  viewport: {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 5,
   },
 };
 
