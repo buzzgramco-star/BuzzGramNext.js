@@ -8,11 +8,9 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { api, getCities, getCategories, getSubcategories } from '@/lib/api';
-import { useAuth } from '@/hooks/useAuth';
 import type { City, Category, Subcategory } from '@/types';
 
 function BusinessSignupPageContent() {
-  const { user } = useAuth();
   const router = useRouter();
   
 
@@ -53,14 +51,6 @@ function BusinessSignupPageContent() {
     (sub) => sub.categoryId === categoryId
   ) || [];
 
-  // Pre-fill name and email if user is logged in
-  useEffect(() => {
-    if (user) {
-      setName(user.name || '');
-      setEmail(user.email || '');
-    }
-  }, [user]);
-
   // Reset subcategory when category changes
   useEffect(() => {
     setSubcategoryId('');
@@ -76,17 +66,10 @@ function BusinessSignupPageContent() {
       return;
     }
 
-    if (!user) {
-      setError('You must be logged in to register a business');
-      return;
-    }
-
     setLoading(true);
 
     try {
-      const token = localStorage.getItem('token');
-
-      await api.post('/business-registrations', {
+      await api.post('/business-registrations/form', {
         name,
         email,
         phone,
@@ -96,10 +79,6 @@ function BusinessSignupPageContent() {
         categoryId,
         subcategoryId: subcategoryId || undefined,
         additionalInfo: additionalInfo || undefined,
-      }, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
       });
 
       setSuccess(true);
@@ -128,13 +107,13 @@ function BusinessSignupPageContent() {
               Your business registration has been submitted successfully. Our team will review your application within 48 hours.
             </p>
             <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
-              We'll notify you via email at <strong className="text-gray-900 dark:text-white">{email}</strong> once your business is approved.
+              We'll contact you via email at <strong className="text-gray-900 dark:text-white">{email}</strong> or phone at <strong className="text-gray-900 dark:text-white">{phone}</strong> with next steps.
             </p>
             <button
-              onClick={() => router.push('/dashboard')}
+              onClick={() => router.push('/')}
               className="w-full px-6 py-3 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-lg transition-colors"
             >
-              Go to Dashboard
+              Back to Home
             </button>
           </div>
         </div>
@@ -376,7 +355,7 @@ function BusinessSignupPageContent() {
             <div>
               <button
                 type="button"
-                onClick={() => router.push('/dashboard')}
+                onClick={() => router.push('/')}
                 className="w-full flex justify-center py-3 px-4 border border-gray-300 dark:border-dark-border text-sm font-medium rounded-lg text-gray-700 dark:text-gray-300 hover:border-orange-500 dark:hover:border-orange-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition-colors"
               >
                 Cancel
