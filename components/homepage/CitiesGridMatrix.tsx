@@ -11,8 +11,24 @@ interface CitiesGridMatrixProps {
 }
 
 export default function CitiesGridMatrix({ cities, categories, subcategories }: CitiesGridMatrixProps) {
+  // Track master categories section expansion per city
+  const [expandedMaster, setExpandedMaster] = useState<Record<number, boolean>>({});
+
   // Track expanded categories per city: { cityId: { categoryId: boolean } }
   const [expandedCategories, setExpandedCategories] = useState<Record<number, Record<number, boolean>>>({});
+
+  // Toggle master categories section
+  const toggleMaster = (cityId: number) => {
+    setExpandedMaster(prev => ({
+      ...prev,
+      [cityId]: !prev[cityId]
+    }));
+  };
+
+  // Check if master is expanded
+  const isMasterExpanded = (cityId: number) => {
+    return expandedMaster[cityId] || false;
+  };
 
   // Toggle category expansion
   const toggleCategory = (cityId: number, categoryId: number) => {
@@ -69,8 +85,25 @@ export default function CitiesGridMatrix({ cities, categories, subcategories }: 
                 </Link>
               </div>
 
-              {/* Categories */}
-              <div className="space-y-3">
+              {/* Master Categories Toggle */}
+              <button
+                onClick={() => toggleMaster(city.id)}
+                className="w-full flex items-center justify-between py-2 px-3 mb-3 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors"
+              >
+                <span className="font-medium text-gray-900 dark:text-white">Categories</span>
+                <svg
+                  className={`w-5 h-5 text-gray-600 dark:text-gray-400 transition-transform ${isMasterExpanded(city.id) ? 'rotate-180' : ''}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+
+              {/* Categories Section - Collapsible */}
+              {isMasterExpanded(city.id) && (
+                <div className="space-y-3 animate-fadeIn">
                 {categories.map((category) => {
                   const categorySubcategories = getSubcategoriesForCategory(category.id);
                   const isExpanded = isCategoryExpanded(city.id, category.id);
@@ -119,7 +152,8 @@ export default function CitiesGridMatrix({ cities, categories, subcategories }: 
                     </div>
                   );
                 })}
-              </div>
+                </div>
+              )}
 
               {/* View All Link */}
               <div className="mt-6 pt-4 border-t border-gray-200 dark:border-dark-border">
