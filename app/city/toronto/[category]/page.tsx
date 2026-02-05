@@ -25,6 +25,7 @@ type Props = {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { category: categorySlug } = await params;
   const categoryName = CATEGORY_NAMES[categorySlug];
+  const canonicalUrl = `https://www.buzzgram.co/city/toronto/${categorySlug}`;
 
   if (!categoryName) {
     return {
@@ -36,10 +37,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: `${categoryName} in Toronto | BuzzGram`,
     description: `Discover the best ${categoryName.toLowerCase()} in Toronto. Browse verified businesses, read reviews, and connect with top-rated local services.`,
+    alternates: {
+      canonical: canonicalUrl,
+    },
     openGraph: {
       title: `${categoryName} in Toronto`,
       description: `Find trusted ${categoryName.toLowerCase()} businesses in Toronto`,
       type: 'website',
+      url: canonicalUrl,
     },
   };
 }
