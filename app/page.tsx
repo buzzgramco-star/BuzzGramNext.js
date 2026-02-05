@@ -7,6 +7,7 @@ import HeroSection from '@/components/homepage/HeroSection';
 import QuickValueProps from '@/components/homepage/QuickValueProps';
 import CategoryShowcase from '@/components/homepage/CategoryShowcase';
 import CitiesGridMatrix from '@/components/homepage/CitiesGridMatrix';
+import FAQ from '@/components/homepage/FAQ';
 import FinalCTA from '@/components/homepage/FinalCTA';
 
 // Force dynamic rendering for IP-based city detection
@@ -26,8 +27,44 @@ export default async function HomePage() {
       getSubcategories(),
     ]);
 
+    // Schema.org Organization structured data for SEO/AEO
+    const organizationSchema = {
+      '@context': 'https://schema.org',
+      '@type': 'Organization',
+      name: 'BuzzGram',
+      url: 'https://buzzgram.co',
+      logo: 'https://buzzgram.co/icon',
+      description: 'The first platform to connect customers with home-based and Instagram businesses across multiple cities in North America.',
+      areaServed: [
+        { '@type': 'City', name: 'Toronto', addressRegion: 'ON', addressCountry: 'CA' },
+        { '@type': 'City', name: 'Vancouver', addressRegion: 'BC', addressCountry: 'CA' },
+        { '@type': 'City', name: 'Montreal', addressRegion: 'QC', addressCountry: 'CA' },
+        { '@type': 'City', name: 'Ottawa', addressRegion: 'ON', addressCountry: 'CA' },
+        { '@type': 'City', name: 'Calgary', addressRegion: 'AB', addressCountry: 'CA' },
+        { '@type': 'City', name: 'New York', addressRegion: 'NY', addressCountry: 'US' },
+        { '@type': 'City', name: 'Chicago', addressRegion: 'IL', addressCountry: 'US' },
+        { '@type': 'City', name: 'Los Angeles', addressRegion: 'CA', addressCountry: 'US' },
+        { '@type': 'City', name: 'Miami', addressRegion: 'FL', addressCountry: 'US' },
+        { '@type': 'City', name: 'Phoenix', addressRegion: 'AZ', addressCountry: 'US' },
+      ],
+      serviceType: [
+        'Beauty Services',
+        'Food Services',
+        'Event Services',
+      ],
+      sameAs: [
+        'https://www.instagram.com/buzzgram',
+      ],
+    };
+
     return (
       <>
+        {/* Structured Data for SEO/AEO */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+        />
+
         <Suspense fallback={<div className="h-16" />}>
           <Header />
         </Suspense>
@@ -58,6 +95,9 @@ export default async function HomePage() {
               />
             )}
           </div>
+
+          {/* FAQ Section - SEO/AEO optimization */}
+          <FAQ />
 
           {/* Final CTA - Simple call to action */}
           <FinalCTA />

@@ -8,7 +8,7 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://buzzgram.co";
 
 export const metadata: Metadata = {
   title: "BuzzGram - Discover Home-Based & Instagram Businesses | Beauty, Food & Events",
-  description: "The first platform to connect you with home-based and Instagram businesses. Find beauty services (nails, lashes, makeup, hair), food specialists (bakery, catering, chefs), and event planners (decor, planning, photography) across 10 major cities in the USA and Canada.",
+  description: "The first platform to connect you with home-based and Instagram businesses across Toronto, Vancouver, Montreal, Ottawa, Calgary, New York, Chicago, Los Angeles, Miami, and Phoenix. Find beauty services (nails, lashes, makeup, hair), food specialists (bakery, catering, chefs), and event planners (decor, planning, photography).",
   keywords: [
     "home-based businesses",
     "Instagram businesses",
@@ -37,7 +37,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "BuzzGram - Discover Home-Based & Instagram Businesses",
     description:
-      "The first platform to connect you with home-based and Instagram businesses. Browse beauty, food, and event services across 10 major cities in the USA and Canada.",
+      "The first platform to connect you with home-based and Instagram businesses across Toronto, Vancouver, Montreal, Ottawa, Calgary, New York, Chicago, Los Angeles, Miami, and Phoenix. Browse beauty, food, and event services.",
     url: siteUrl,
     siteName: "BuzzGram",
     locale: "en_US",
@@ -55,7 +55,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "BuzzGram - Discover Home-Based & Instagram Businesses",
     description:
-      "The first platform for home-based and Instagram businesses. Find beauty, food, and event services across 10 major cities.",
+      "The first platform for home-based and Instagram businesses across Toronto, Vancouver, Montreal, Ottawa, Calgary, New York, Chicago, Los Angeles, Miami, and Phoenix.",
     images: [`${siteUrl}/icon?size=1200`],
   },
   alternates: {
