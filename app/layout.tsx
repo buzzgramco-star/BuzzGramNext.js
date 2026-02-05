@@ -30,19 +30,6 @@ export const metadata: Metadata = {
     "New York businesses",
     "Los Angeles businesses",
   ],
-  icons: {
-    icon: [
-      { url: '/favicon.ico', sizes: 'any' },
-      { url: '/icon', sizes: '32x32', type: 'image/png' },
-      { url: '/icon-192', sizes: '192x192', type: 'image/png' },
-      { url: '/icon-512', sizes: '512x512', type: 'image/png' },
-    ],
-    apple: [
-      { url: '/apple-icon', sizes: '180x180', type: 'image/png' },
-    ],
-    shortcut: '/favicon.ico',
-  },
-  manifest: '/manifest.webmanifest',
   openGraph: {
     title: "BuzzGram - Discover Home-Based & Instagram Businesses",
     description:
@@ -51,30 +38,15 @@ export const metadata: Metadata = {
     siteName: "BuzzGram",
     locale: "en_US",
     type: "website",
-    images: [
-      {
-        url: `${siteUrl}/icon?size=1200`,
-        width: 1200,
-        height: 1200,
-        alt: 'BuzzGram Logo',
-      },
-    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "BuzzGram - Discover Home-Based & Instagram Businesses",
     description:
       "The first platform for home-based and Instagram businesses across Toronto, Vancouver, Montreal, Ottawa, Calgary, New York, Chicago, Los Angeles, Miami, and Phoenix.",
-    images: [`${siteUrl}/icon?size=1200`],
   },
   alternates: {
     canonical: siteUrl,
-  },
-  themeColor: '#f97316',
-  viewport: {
-    width: 'device-width',
-    initialScale: 1,
-    maximumScale: 5,
   },
 };
 
