@@ -266,13 +266,13 @@ export default async function SubcategoryLayout({ params, children }: Props) {
         '@type': 'ListItem',
         position: 1,
         name: 'Home',
-        item: '${SITE_URL}',
+        item: `${SITE_URL}`,
       },
       {
         '@type': 'ListItem',
         position: 2,
         name: cityName,
-        item: '${SITE_URL}/city/vancouver',
+        item: `${SITE_URL}/city/vancouver`,
       },
       {
         '@type': 'ListItem',
