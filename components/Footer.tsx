@@ -27,7 +27,7 @@ export default function Footer() {
               href="/about"
               className="text-sm text-gray-600 dark:text-gray-400 hover:text-orange-600 dark:hover:text-orange-400 transition-colors"
             >
-              About
+              About Us
             </Link>
             <Link
               href="/blog"
