@@ -5,22 +5,49 @@ import Link from 'next/link';
 import type { Business } from '@/types';
 import BusinessCard from '@/components/BusinessCard';
 import PromotionalBanner from '@/components/PromotionalBanner';
+import Breadcrumbs, { BreadcrumbItem } from '@/components/Breadcrumbs';
 import Footer from '@/components/Footer';
+import { subcategoryContent } from '@/lib/seoContent';
 
 type Props = {
   businesses: Business[];
   subcategoryName: string;
   categoryName: string;
+  citySlug: string;
   categorySlug: string;
+  subcategorySlug: string;
 };
 
-export default function SubcategoryClient({ businesses, subcategoryName, categoryName, categorySlug }: Props) {
+const CITY_NAMES: Record<string, string> = {
+  'toronto': 'Toronto',
+  'vancouver': 'Vancouver',
+  'calgary': 'Calgary',
+  'montreal': 'Montreal',
+  'ottawa': 'Ottawa',
+  'new-york-city': 'New York City',
+  'los-angeles': 'Los Angeles',
+  'chicago': 'Chicago',
+  'miami': 'Miami',
+  'phoenix': 'Phoenix',
+};
+
+export default function SubcategoryClient({ businesses, subcategoryName, categoryName, citySlug, categorySlug, subcategorySlug }: Props) {
   const [showAll, setShowAll] = useState(false);
 
   // Pagination logic
   const initialLimit = typeof window !== 'undefined' && window.innerWidth < 768 ? 10 : 20;
   const displayedBusinesses = showAll ? businesses : businesses.slice(0, initialLimit);
   const hasMoreToShow = businesses.length > initialLimit;
+
+  const cityName = CITY_NAMES[citySlug] || 'Los Angeles';
+  const breadcrumbItems: BreadcrumbItem[] = [
+    { label: 'Home', href: '/' },
+    { label: cityName, href: `/city/${citySlug}` },
+    { label: categoryName, href: `/city/${citySlug}/${categorySlug}` },
+    { label: subcategoryName },
+  ];
+
+  const subContent = subcategoryContent[subcategorySlug];
 
   return (
     <div className="min-h-screen bg-white dark:bg-dark-bg flex flex-col">
@@ -29,32 +56,38 @@ export default function SubcategoryClient({ businesses, subcategoryName, categor
         <PromotionalBanner />
       </div>
 
-      {/* Breadcrumb Navigation */}
-      <div className="w-full md:max-w-7xl md:mx-auto px-2 md:px-6 lg:px-8 pt-6">
-        <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-          <Link href="/city/los-angeles" className="hover:text-orange-600 dark:hover:text-orange-400 transition-colors">
-            Los Angeles
-          </Link>
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-          </svg>
-          <Link
-            href={`/city/los-angeles/${categorySlug}`}
-            className="hover:text-orange-600 dark:hover:text-orange-400 transition-colors"
-          >
-            {categoryName}
-          </Link>
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-          </svg>
-          <span className="text-gray-900 dark:text-white font-medium">{subcategoryName}</span>
-        </div>
-      </div>
+      {/* Breadcrumbs & SEO Content */}
+      <div className="w-full md:max-w-7xl md:mx-auto px-4 md:px-6 lg:px-8 pt-6 pb-4">
+        <Breadcrumbs items={breadcrumbItems} />
 
-      {/* Hero Section - Hidden for SEO/Accessibility */}
-      <div className="sr-only">
-        <h1>{subcategoryName} in Los Angeles</h1>
-        <p>Discover verified {subcategoryName.toLowerCase()} in Los Angeles. Browse portfolios, read authentic reviews, and connect instantly with top-rated professionals.</p>
+        <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+          {subcategoryName} in {cityName}
+        </h1>
+
+        {subContent && (
+          <div className="mb-6">
+            <p className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
+              {subContent.description}
+            </p>
+            {subContent.benefits && subContent.benefits.length > 0 && (
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">
+                  Why Choose Local {subcategoryName}?
+                </h2>
+                <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {subContent.benefits.map((benefit, index) => (
+                    <li key={index} className="flex items-start gap-2 text-gray-700 dark:text-gray-300">
+                      <svg className="w-5 h-5 text-orange-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span>{benefit}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Results Section */}
@@ -91,7 +124,7 @@ export default function SubcategoryClient({ businesses, subcategoryName, categor
               No {subcategoryName.toLowerCase()} are available yet. Check back soon!
             </p>
             <Link
-              href={`/city/los-angeles/${categorySlug}`}
+              href={`/city/${citySlug}/${categorySlug}`}
               className="inline-flex items-center px-6 py-3 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-lg transition-colors"
             >
               <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
