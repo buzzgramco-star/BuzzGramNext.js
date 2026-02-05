@@ -24,6 +24,12 @@ export default function Footer() {
           {/* Footer Links */}
           <div className="flex justify-center items-center gap-8 mb-6">
             <Link
+              href="/about"
+              className="text-sm text-gray-600 dark:text-gray-400 hover:text-orange-600 dark:hover:text-orange-400 transition-colors"
+            >
+              About
+            </Link>
+            <Link
               href="/blog"
               className="text-sm text-gray-600 dark:text-gray-400 hover:text-orange-600 dark:hover:text-orange-400 transition-colors"
             >
