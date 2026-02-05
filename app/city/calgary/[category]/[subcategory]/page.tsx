@@ -40,13 +40,19 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
   }
 
+  const canonicalUrl = `https://www.buzzgram.co/city/calgary/${categorySlug}/${subcategorySlug}`;
+
   return {
     title: `${subcategoryConfig.name} in Calgary | BuzzGram`,
     description: `Discover verified ${subcategoryConfig.name.toLowerCase()} in Calgary. Browse portfolios, read reviews, and connect with top-rated professionals.`,
+    alternates: {
+      canonical: canonicalUrl,
+    },
     openGraph: {
       title: `${subcategoryConfig.name} in Calgary`,
       description: `Find trusted ${subcategoryConfig.name.toLowerCase()} professionals in Calgary`,
       type: 'website',
+      url: canonicalUrl,
     },
   };
 }
@@ -93,7 +99,9 @@ export default async function SubcategoryPage({ params }: Props) {
           businesses={businesses}
           subcategoryName={subcategoryConfig.name}
           categoryName={subcategoryConfig.categoryName}
+          citySlug="calgary"
           categorySlug={categorySlug}
+          subcategorySlug={subcategorySlug}
         />
       </>
     );
