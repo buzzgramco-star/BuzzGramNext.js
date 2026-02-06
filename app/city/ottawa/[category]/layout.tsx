@@ -173,126 +173,6 @@ export default async function CategoryLayout({ params, children }: Props) {
     },
   };
 
-  // FAQPage Schema with category-specific questions
-  const faqSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'FAQPage',
-    mainEntity: [
-      {
-        '@type': 'Question',
-        name: `What are the best ${categoryName.toLowerCase()} in ${cityName}?`,
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: `${cityName} features verified ${categoryName.toLowerCase()} businesses on BuzzGram. Browse top-rated options including ${subcategoryNames.join(', ')}. All businesses are verified with active Instagram profiles and instant quote request functionality.`,
-        },
-      },
-      {
-        '@type': 'Question',
-        name: `How do I find ${categoryName.toLowerCase()} near me in ${cityName}?`,
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: `BuzzGram makes it easy to discover ${categoryName.toLowerCase()} in ${cityName}. Browse verified businesses, filter by subcategory (${subcategoryNames.join(', ')}), view Instagram portfolios, and submit quote requests directly.`,
-        },
-      },
-      {
-        '@type': 'Question',
-        name: `Can I request quotes from ${categoryName.toLowerCase()} on BuzzGram?`,
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: `Yes! BuzzGram allows you to submit instant quote requests to ${categoryName.toLowerCase()} businesses in ${cityName}. Share your requirements, availability, and budget, and receive responses directly from interested businesses.`,
-        },
-      },
-      {
-        '@type': 'Question',
-        name: `Are ${categoryName.toLowerCase()} businesses on BuzzGram verified?`,
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: `All ${categoryName.toLowerCase()} businesses listed on BuzzGram are verified and actively serving ${cityName}. Each business has an active Instagram presence and verified contact information for your safety and confidence.`,
-        },
-      },
-      {
-        '@type': 'Question',
-        name: `What types of ${categoryName.toLowerCase()} are available in ${cityName}?`,
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: `${cityName} offers diverse ${categoryName.toLowerCase()} including ${subcategoryNames.join(', ')}. BuzzGram features businesses across all service levels, specialties, and price points to match your needs.`,
-        },
-      },
-      {
-        '@type': 'Question',
-        name: `How can I view portfolios of ${categoryName.toLowerCase()} businesses?`,
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: `Every ${categoryName.toLowerCase()} business on BuzzGram includes an Instagram link where you can view their latest work, customer photos, and portfolio. This helps you make informed decisions by seeing real examples before contacting them.`,
-        },
-      },
-      {
-        '@type': 'Question',
-        name: `Is it free to use BuzzGram for finding ${categoryName.toLowerCase()}?`,
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: `Yes! BuzzGram is completely free for customers. Browse unlimited ${categoryName.toLowerCase()} businesses in ${cityName}, view Instagram profiles, submit quote requests, and connect with businesses at no cost.`,
-        },
-      },
-      {
-        '@type': 'Question',
-        name: `How many ${categoryName.toLowerCase()} businesses are on BuzzGram?`,
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: `BuzzGram features a growing directory of verified ${categoryName.toLowerCase()} businesses serving ${cityName}. Our directory grows regularly with new verified businesses joining to serve the community.`,
-        },
-      },
-      {
-        '@type': 'Question',
-        name: `How do I start a ${categoryName.toLowerCase()} business from home in ${cityName}?`,
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: `Starting a home-based ${categoryName.toLowerCase()} business in ${cityName} is easier than ever. Focus on building your skills${subcategoryNames.length > 0 ? ` in areas like ${subcategoryNames.slice(0, 3).join(', ')}` : ''}, create an Instagram portfolio showcasing your work, and list your business on BuzzGram to get discovered by local customers. BuzzGram helps home-based and Instagram businesses connect with clients actively searching for ${categoryName.toLowerCase()} services in ${cityName}.`,
-        },
-      },
-      {
-        '@type': 'Question',
-        name: `Is ${categoryName.toLowerCase()} a profitable side hustle in ${cityName}?`,
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: `Yes! ${categoryName.toLowerCase()} is a popular and profitable side hustle in ${cityName}. Many successful home-based ${categoryName.toLowerCase()} businesses${subcategoryNames.length > 0 ? ` offering ${subcategoryNames.slice(0, 2).join(' and ')}` : ''} operate from home and use Instagram to showcase their work. Listing on BuzzGram gives you instant visibility to ${cityName} customers actively searching for ${categoryName.toLowerCase()} services, helping you grow your client base quickly.`,
-        },
-      },
-      {
-        '@type': 'Question',
-        name: `Where can I list my ${categoryName.toLowerCase()} business to get more clients in ${cityName}?`,
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: `BuzzGram is the leading platform for home-based and Instagram ${categoryName.toLowerCase()} businesses in ${cityName}. List your business for free, connect your Instagram profile, and start receiving quote requests from local customers. BuzzGram specializes in promoting home-based businesses${subcategoryNames.length > 0 ? ` like ${subcategoryNames.slice(0, 3).join(', ')}` : ''} to customers actively searching for services in ${cityName}.`,
-        },
-      },
-      {
-        '@type': 'Question',
-        name: `How can I grow my Instagram ${categoryName.toLowerCase()} business in ${cityName}?`,
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: `Growing your Instagram ${categoryName.toLowerCase()} business starts with visibility. List your business on BuzzGram to reach ${cityName} customers who are ready to book services. BuzzGram integrates directly with your Instagram profile, making it easy for customers to see your portfolio and contact you. With instant quote request features, customers can reach you directly, helping you convert followers into paying clients.`,
-        },
-      },
-      {
-        '@type': 'Question',
-        name: `What do I need to launch a ${categoryName.toLowerCase()} side hustle?`,
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: `Launching a ${categoryName.toLowerCase()} side hustle requires three key things: skills in your chosen service${subcategoryNames.length > 0 ? ` (such as ${subcategoryNames.slice(0, 2).join(' or ')})` : ''}, an Instagram portfolio showcasing your work, and a platform to get discovered. BuzzGram provides that platform by connecting home-based ${categoryName.toLowerCase()} businesses with ${cityName} customers actively searching for services. Sign up, create your profile, and start receiving quote requests from local clients.`,
-        },
-      },
-      {
-        '@type': 'Question',
-        name: `How do I get my first clients for my ${categoryName.toLowerCase()} business in ${cityName}?`,
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: `Getting your first clients is easy with BuzzGram. List your ${categoryName.toLowerCase()} business, showcase your Instagram portfolio, and start appearing in search results when ${cityName} customers look for${subcategoryNames.length > 0 ? ` ${subcategoryNames.slice(0, 2).join(' and ')}` : ` ${categoryName.toLowerCase()}`} services. BuzzGram's quote request system connects you directly with customers ready to book, eliminating the challenge of finding your first clients. Many home-based businesses get their first quote requests within days of listing.`,
-        },
-      },
-    ],
-  };
-
   // BreadcrumbList Schema
   const breadcrumbSchema = {
     '@context': 'https://schema.org',
@@ -302,13 +182,13 @@ export default async function CategoryLayout({ params, children }: Props) {
         '@type': 'ListItem',
         position: 1,
         name: 'Home',
-        item: '${SITE_URL}',
+        item: `${SITE_URL}`,
       },
       {
         '@type': 'ListItem',
         position: 2,
         name: cityName,
-        item: '${SITE_URL}/city/ottawa',
+        item: `${SITE_URL}/city/ottawa`,
       },
       {
         '@type': 'ListItem',
@@ -322,7 +202,7 @@ export default async function CategoryLayout({ params, children }: Props) {
   // Combine schemas
   const combinedSchema = {
     '@context': 'https://schema.org',
-    '@graph': [collectionPageSchema, faqSchema, breadcrumbSchema],
+    '@graph': [collectionPageSchema, breadcrumbSchema],
   };
 
   return (
