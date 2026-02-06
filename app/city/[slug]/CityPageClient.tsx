@@ -138,7 +138,7 @@ export default function CityPageClient({ city, businesses, categories, subcatego
           </h1>
 
           {citySeoContent && (
-            <div className="mb-6">
+            <div className="mb-6 hidden">
               <p className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
                 {citySeoContent.description}
               </p>

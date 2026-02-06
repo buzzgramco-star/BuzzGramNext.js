@@ -65,7 +65,7 @@ export default function SubcategoryClient({ businesses, subcategoryName, categor
         </h1>
 
         {subContent && (
-          <div className="mb-6">
+          <div className="mb-6 hidden">
             <p className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
               {subContent.description}
             </p>

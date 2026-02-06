@@ -99,7 +99,7 @@ export default function CategoryClient({ citySlug, categorySlug, categoryName, b
         </h1>
 
         {catContent && (
-          <div className="mb-6">
+          <div className="mb-6 hidden">
             <p className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed">
               {catContent.description}
             </p>
