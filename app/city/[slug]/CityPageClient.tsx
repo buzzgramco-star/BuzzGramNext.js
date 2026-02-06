@@ -133,10 +133,6 @@ export default function CityPageClient({ city, businesses, categories, subcatego
         <div className="w-full md:max-w-7xl md:mx-auto px-4 md:px-6 lg:px-8 pt-6 pb-4">
           <Breadcrumbs items={breadcrumbItems} />
 
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-            {citySeoContent?.title || `Home-Based & Instagram Businesses in ${city.name}`}
-          </h1>
-
           {citySeoContent && (
             <div className="mb-6 hidden">
               <p className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
