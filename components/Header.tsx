@@ -91,7 +91,7 @@ export default function Header() {
               onClick={() => router.push('/quote')}
               className="px-4 py-2 text-sm font-medium text-orange-600 dark:text-orange-400 border border-gray-200 dark:border-dark-border hover:border-orange-500 dark:hover:border-orange-500 hover:bg-orange-50 dark:hover:bg-orange-900/10 rounded-lg transition-colors"
             >
-              One Quote
+              OneQuote
             </button>
 
             {/* Desktop Menu - Hidden on Mobile */}
