@@ -103,12 +103,22 @@ export default function CityPageClient({ city, businesses, categories, subcatego
       const businessCategory = categoryMap[business.categoryId];
       const businessSubcategory = subcategoryMap[business.subcategoryId];
 
-      const matchesSearch =
-        !searchTerm ||
-        business.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (business.description && business.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (businessCategory?.name && businessCategory.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (businessSubcategory?.name && businessSubcategory.name.toLowerCase().includes(searchTerm.toLowerCase()));
+      // Multi-word search: split search term and match if ANY word matches ANY field
+      const matchesSearch = !searchTerm || (() => {
+        const searchWords = searchTerm.toLowerCase().split(' ').filter(word => word.length > 0);
+
+        const businessName = business.name.toLowerCase();
+        const businessDescription = business.description?.toLowerCase() || '';
+        const categoryName = businessCategory?.name?.toLowerCase() || '';
+        const subcategoryName = businessSubcategory?.name?.toLowerCase() || '';
+
+        return searchWords.some(word =>
+          businessName.includes(word) ||
+          businessDescription.includes(word) ||
+          categoryName.includes(word) ||
+          subcategoryName.includes(word)
+        );
+      })();
 
       return matchesCategory && matchesSubcategory && matchesSearch;
     });
