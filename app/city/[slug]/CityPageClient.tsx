@@ -79,6 +79,19 @@ export default function CityPageClient({ city, businesses, categories, subcatego
     return subcategories.filter((subcategory) => subcategory.categoryId === selectedCategory);
   }, [subcategories, selectedCategory]);
 
+  // Create lookup maps for fast O(1) access instead of O(n) find operations
+  const categoryMap = useMemo(() => {
+    const map: Record<number, Category> = {};
+    categories.forEach(c => map[c.id] = c);
+    return map;
+  }, [categories]);
+
+  const subcategoryMap = useMemo(() => {
+    const map: Record<number, Subcategory> = {};
+    subcategories.forEach(s => map[s.id] = s);
+    return map;
+  }, [subcategories]);
+
   const filteredBusinesses = useMemo(() => {
     if (!businesses) return [];
 
@@ -86,9 +99,9 @@ export default function CityPageClient({ city, businesses, categories, subcatego
       const matchesCategory = !selectedCategory || business.categoryId === selectedCategory;
       const matchesSubcategory = !selectedSubcategory || business.subcategoryId === selectedSubcategory;
 
-      // Find category and subcategory names for this business
-      const businessCategory = categories.find(c => c.id === business.categoryId);
-      const businessSubcategory = subcategories.find(s => s.id === business.subcategoryId);
+      // Use lookup maps for instant access
+      const businessCategory = categoryMap[business.categoryId];
+      const businessSubcategory = subcategoryMap[business.subcategoryId];
 
       const matchesSearch =
         !searchTerm ||
@@ -99,7 +112,7 @@ export default function CityPageClient({ city, businesses, categories, subcatego
 
       return matchesCategory && matchesSubcategory && matchesSearch;
     });
-  }, [businesses, selectedCategory, selectedSubcategory, searchTerm, categories, subcategories]);
+  }, [businesses, selectedCategory, selectedSubcategory, searchTerm, categoryMap, subcategoryMap]);
 
   // Determine how many businesses to show initially
   const shouldShowLoadMore = !selectedSubcategory && !searchTerm;
