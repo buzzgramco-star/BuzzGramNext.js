@@ -101,7 +101,7 @@ export default function CityPageClient({ city, businesses, categories, subcatego
 
       // Use lookup maps for instant access
       const businessCategory = categoryMap[business.categoryId];
-      const businessSubcategory = subcategoryMap[business.subcategoryId];
+      const businessSubcategory = business.subcategoryId ? subcategoryMap[business.subcategoryId] : undefined;
 
       // Multi-word search: split search term and match if ANY word matches ANY field
       const matchesSearch = !searchTerm || (() => {
