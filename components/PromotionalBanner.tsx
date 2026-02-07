@@ -23,7 +23,7 @@ export default function PromotionalBanner() {
                 onClick={() => router.push('/quote')}
                 className="px-5 py-2.5 bg-white text-orange-600 font-semibold rounded-lg hover:bg-gray-50 transition-colors shadow-md"
               >
-                Explore Quote Tool →
+                Explore OneQuote →
               </button>
             </div>
 
@@ -51,7 +51,7 @@ export default function PromotionalBanner() {
               onClick={() => router.push('/quote')}
               className="px-4 py-2 bg-white/20 text-white font-medium text-sm rounded-lg hover:bg-white/30 transition-colors backdrop-blur-sm whitespace-nowrap"
             >
-              Explore →
+              OneQuote →
             </button>
           </div>
         </div>
