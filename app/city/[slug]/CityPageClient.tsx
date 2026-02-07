@@ -43,7 +43,7 @@ export default function CityPageClient({ city, businesses, categories, subcatego
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [inputValue, searchParams, router]);
+  }, [inputValue]);
 
   // Navigate to category page instead of filtering
   const handleCategorySelect = (categoryId: number | null) => {

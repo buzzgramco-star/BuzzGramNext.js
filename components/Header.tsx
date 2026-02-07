@@ -43,7 +43,7 @@ export default function Header() {
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [inputValue, pathname, router, searchParams]);
+  }, [inputValue, pathname]);
 
   const handleSearchChange = (value: string) => {
     setInputValue(value);
