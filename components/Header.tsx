@@ -21,16 +21,34 @@ export default function Header() {
   const isCityPage = pathname?.startsWith('/city/') || false;
   const searchTerm = searchParams?.get('search') || '';
 
-  const handleSearchChange = (value: string) => {
-    const params = new URLSearchParams(searchParams?.toString());
-    if (value) {
-      params.set('search', value);
-    } else {
-      params.delete('search');
-    }
-    const newUrl = `${pathname}?${params.toString()}`;
-    router.push(newUrl);
-  };
+  // Local state for input (updates immediately for responsive typing)
+  const [searchInput, setSearchInput] = useState(searchTerm);
+
+  // Sync local input with URL when searchTerm changes externally (e.g., navigation)
+  useEffect(() => {
+    setSearchInput(searchTerm);
+  }, [searchTerm]);
+
+  // Debounced URL update: only runs when searchInput changes, waits 500ms after user stops typing
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      const params = new URLSearchParams(searchParams?.toString());
+      if (searchInput) {
+        params.set('search', searchInput);
+      } else {
+        params.delete('search');
+      }
+      const newUrl = `${pathname}?${params.toString()}`;
+      const currentUrl = `${pathname}?${searchParams?.toString()}`;
+
+      // Only update if URL actually changed
+      if (newUrl !== currentUrl) {
+        router.push(newUrl);
+      }
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
+  }, [searchInput]); // ONLY depends on searchInput, NOT searchParams or router
 
   // Close mobile menu when clicking outside
   useEffect(() => {
@@ -78,8 +96,8 @@ export default function Header() {
                 <input
                   type="text"
                   placeholder="Search businesses..."
-                  value={searchTerm}
-                  onChange={(e) => handleSearchChange(e.target.value)}
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
                   className="w-full px-3 py-1.5 pl-9 text-sm border border-gray-300 dark:border-dark-border rounded-lg bg-white dark:bg-dark-bg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
                 />
               </div>

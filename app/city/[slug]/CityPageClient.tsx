@@ -27,8 +27,37 @@ export default function CityPageClient({ city, businesses, categories, subcatego
   const [selectedSubcategory, setSelectedSubcategory] = useState<number | null>(null);
   const [showAll, setShowAll] = useState(false);
 
-  // Use search term directly from URL
+  // Get search term from URL for filtering
   const searchTerm = searchParams?.get('search') || '';
+
+  // Local state for input (updates immediately for responsive typing)
+  const [searchInput, setSearchInput] = useState(searchTerm);
+
+  // Sync local input with URL when searchTerm changes externally (e.g., navigation)
+  useEffect(() => {
+    setSearchInput(searchTerm);
+  }, [searchTerm]);
+
+  // Debounced URL update: only runs when searchInput changes, waits 500ms after user stops typing
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      const newParams = new URLSearchParams(searchParams?.toString() || '');
+      if (searchInput) {
+        newParams.set('search', searchInput);
+      } else {
+        newParams.delete('search');
+      }
+      const newUrl = `?${newParams.toString()}`;
+      const currentUrl = `?${searchParams?.toString()}`;
+
+      // Only update if URL actually changed
+      if (newUrl !== currentUrl) {
+        router.replace(newUrl, { scroll: false });
+      }
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
+  }, [searchInput]); // ONLY depends on searchInput, NOT searchParams or router
 
   // Navigate to category page instead of filtering
   const handleCategorySelect = (categoryId: number | null) => {
@@ -134,15 +163,6 @@ export default function CityPageClient({ city, businesses, categories, subcatego
     : filteredBusinesses;
   const hasMoreToShow = shouldShowLoadMore && filteredBusinesses.length > initialLimit;
 
-  const handleSearchChange = (value: string) => {
-    const newParams = new URLSearchParams(searchParams?.toString() || '');
-    if (value) {
-      newParams.set('search', value);
-    } else {
-      newParams.delete('search');
-    }
-    router.replace(`?${newParams.toString()}`, { scroll: false });
-  };
 
   const breadcrumbItems: BreadcrumbItem[] = [
     { label: 'Home', href: '/' },
@@ -192,8 +212,8 @@ export default function CityPageClient({ city, businesses, categories, subcatego
                 <input
                   type="text"
                   placeholder="Search businesses..."
-                  value={searchTerm}
-                  onChange={(e) => handleSearchChange(e.target.value)}
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
                   className="w-full px-4 py-3 pl-11 border border-gray-300 dark:border-dark-border rounded-lg bg-white dark:bg-dark-bg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
                 />
               </div>
