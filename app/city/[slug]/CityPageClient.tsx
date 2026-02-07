@@ -26,7 +26,24 @@ export default function CityPageClient({ city, businesses, categories, subcatego
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
   const [selectedSubcategory, setSelectedSubcategory] = useState<number | null>(null);
   const [showAll, setShowAll] = useState(false);
+  const [inputValue, setInputValue] = useState(initialSearchTerm);
   const [searchTerm, setSearchTerm] = useState(initialSearchTerm);
+
+  // Debounce search term to improve performance
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearchTerm(inputValue);
+      const newParams = new URLSearchParams(searchParams?.toString() || '');
+      if (inputValue) {
+        newParams.set('search', inputValue);
+      } else {
+        newParams.delete('search');
+      }
+      router.replace(`?${newParams.toString()}`, { scroll: false });
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [inputValue, searchParams, router]);
 
   // Navigate to category page instead of filtering
   const handleCategorySelect = (categoryId: number | null) => {
@@ -133,14 +150,7 @@ export default function CityPageClient({ city, businesses, categories, subcatego
   const hasMoreToShow = shouldShowLoadMore && filteredBusinesses.length > initialLimit;
 
   const handleSearchChange = (value: string) => {
-    setSearchTerm(value);
-    const newParams = new URLSearchParams(searchParams?.toString() || '');
-    if (value) {
-      newParams.set('search', value);
-    } else {
-      newParams.delete('search');
-    }
-    router.replace(`?${newParams.toString()}`, { scroll: false });
+    setInputValue(value);
   };
 
   const breadcrumbItems: BreadcrumbItem[] = [
@@ -191,7 +201,7 @@ export default function CityPageClient({ city, businesses, categories, subcatego
                 <input
                   type="text"
                   placeholder="Search businesses..."
-                  value={searchTerm}
+                  value={inputValue}
                   onChange={(e) => handleSearchChange(e.target.value)}
                   className="w-full px-4 py-3 pl-11 border border-gray-300 dark:border-dark-border rounded-lg bg-white dark:bg-dark-bg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
                 />

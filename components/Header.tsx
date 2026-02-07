@@ -20,15 +20,33 @@ export default function Header() {
   // Check if we're on a city page
   const isCityPage = pathname?.startsWith('/city/') || false;
   const searchTerm = searchParams?.get('search') || '';
+  const [inputValue, setInputValue] = useState(searchTerm);
+
+  // Sync input value when URL search param changes
+  useEffect(() => {
+    setInputValue(searchTerm);
+  }, [searchTerm]);
+
+  // Debounce search to improve performance
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const params = new URLSearchParams(searchParams?.toString());
+      if (inputValue) {
+        params.set('search', inputValue);
+      } else {
+        params.delete('search');
+      }
+      const newUrl = `${pathname}?${params.toString()}`;
+      if (newUrl !== `${pathname}?${searchParams?.toString()}`) {
+        router.push(newUrl);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [inputValue, pathname, router, searchParams]);
 
   const handleSearchChange = (value: string) => {
-    const params = new URLSearchParams(searchParams?.toString());
-    if (value) {
-      params.set('search', value);
-    } else {
-      params.delete('search');
-    }
-    router.push(`${pathname}?${params.toString()}`);
+    setInputValue(value);
   };
 
   // Close mobile menu when clicking outside
@@ -77,7 +95,7 @@ export default function Header() {
                 <input
                   type="text"
                   placeholder="Search businesses..."
-                  value={searchTerm}
+                  value={inputValue}
                   onChange={(e) => handleSearchChange(e.target.value)}
                   className="w-full px-3 py-1.5 pl-9 text-sm border border-gray-300 dark:border-dark-border rounded-lg bg-white dark:bg-dark-bg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
                 />
