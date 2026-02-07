@@ -85,14 +85,21 @@ export default function CityPageClient({ city, businesses, categories, subcatego
     return businesses.filter((business) => {
       const matchesCategory = !selectedCategory || business.categoryId === selectedCategory;
       const matchesSubcategory = !selectedSubcategory || business.subcategoryId === selectedSubcategory;
+
+      // Find category and subcategory names for this business
+      const businessCategory = categories.find(c => c.id === business.categoryId);
+      const businessSubcategory = subcategories.find(s => s.id === business.subcategoryId);
+
       const matchesSearch =
         !searchTerm ||
         business.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (business.description && business.description.toLowerCase().includes(searchTerm.toLowerCase()));
+        (business.description && business.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (businessCategory?.name && businessCategory.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (businessSubcategory?.name && businessSubcategory.name.toLowerCase().includes(searchTerm.toLowerCase()));
 
       return matchesCategory && matchesSubcategory && matchesSearch;
     });
-  }, [businesses, selectedCategory, selectedSubcategory, searchTerm]);
+  }, [businesses, selectedCategory, selectedSubcategory, searchTerm, categories, subcategories]);
 
   // Determine how many businesses to show initially
   const shouldShowLoadMore = !selectedSubcategory && !searchTerm;
