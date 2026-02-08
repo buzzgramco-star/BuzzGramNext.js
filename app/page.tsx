@@ -93,9 +93,6 @@ export default async function HomePage() {
           {/* Hero Section - Search + Category buttons */}
           <HeroSection detectedCity={detectedCity} />
 
-          {/* Quick Value Props - 4 short points */}
-          <QuickValueProps />
-
           {/* Category Showcase - 3 cards with subcategories */}
           {categories && categories.length > 0 && subcategories && (
             <CategoryShowcase
@@ -104,6 +101,9 @@ export default async function HomePage() {
               detectedCity={detectedCity}
             />
           )}
+
+          {/* OneQuote Value Proposition */}
+          <QuickValueProps />
 
           {/* Cities Grid - Booksy style matrix */}
           <div id="cities-grid" className="scroll-mt-20">
