@@ -57,31 +57,6 @@ export default function HeroSection({ detectedCity }: HeroSectionProps) {
           </form>
         </div>
 
-        {/* Category Buttons */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-          <Link
-            href={`/city/${detectedCity}/beauty`}
-            className="w-full sm:w-auto px-8 py-4 bg-white dark:bg-dark-card border-2 border-gray-300 dark:border-dark-border text-gray-900 dark:text-white font-semibold rounded-xl hover:border-orange-500 dark:hover:border-orange-500 hover:text-orange-600 dark:hover:text-orange-400 transition-all shadow-sm hover:shadow-md flex items-center justify-center gap-2"
-          >
-            <span className="text-2xl">💅</span>
-            Beauty Services
-          </Link>
-          <Link
-            href={`/city/${detectedCity}/food`}
-            className="w-full sm:w-auto px-8 py-4 bg-white dark:bg-dark-card border-2 border-gray-300 dark:border-dark-border text-gray-900 dark:text-white font-semibold rounded-xl hover:border-orange-500 dark:hover:border-orange-500 hover:text-orange-600 dark:hover:text-orange-400 transition-all shadow-sm hover:shadow-md flex items-center justify-center gap-2"
-          >
-            <span className="text-2xl">🍰</span>
-            Food Services
-          </Link>
-          <Link
-            href={`/city/${detectedCity}/events`}
-            className="w-full sm:w-auto px-8 py-4 bg-white dark:bg-dark-card border-2 border-gray-300 dark:border-dark-border text-gray-900 dark:text-white font-semibold rounded-xl hover:border-orange-500 dark:hover:border-orange-500 hover:text-orange-600 dark:hover:text-orange-400 transition-all shadow-sm hover:shadow-md flex items-center justify-center gap-2"
-          >
-            <span className="text-2xl">🎉</span>
-            Event Services
-          </Link>
-        </div>
-
         {/* Business Owner Link - Subtle */}
         <div className="text-center mt-8">
           <Link
