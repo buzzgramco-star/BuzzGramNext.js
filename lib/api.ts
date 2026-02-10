@@ -175,6 +175,35 @@ export const updateBusinessStatus = async (businessId: number, status: string) =
   return data;
 };
 
+// Admin: Create a new business
+export const createAdminBusiness = async (businessData: {
+  name: string;
+  cityId: number;
+  categoryId: number;
+  subcategoryId?: number;
+  instagramHandle: string;
+  description?: string;
+  address?: string;
+}) => {
+  const { data } = await api.post('/admin/businesses', businessData);
+  return data;
+};
+
+// Admin: Update a business (full update)
+export const updateAdminBusiness = async (businessId: number, businessData: {
+  name?: string;
+  cityId?: number;
+  categoryId?: number;
+  subcategoryId?: number;
+  instagramHandle?: string;
+  description?: string;
+  address?: string;
+  status?: string;
+}) => {
+  const { data } = await api.put(`/admin/businesses/${businessId}`, businessData);
+  return data;
+};
+
 // Admin: Delete a user
 export const deleteUser = async (userId: number) => {
   const { data } = await api.delete(`/admin/users/${userId}`);
