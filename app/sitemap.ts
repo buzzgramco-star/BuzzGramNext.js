@@ -87,63 +87,24 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }
 
   const cityCategories: MetadataRoute.Sitemap = []
-  const citySubcategories: MetadataRoute.Sitemap = []
 
   cities.forEach((city) => {
     categories.forEach((category) => {
-      // Add category pages
+      // Add category pages only (removed subcategories for focused indexing)
       cityCategories.push({
         url: `${baseUrl}/city/${city}/${category}`,
         lastModified: new Date(),
         changeFrequency: 'weekly',
         priority: 0.7,
       })
-
-      // Add subcategory pages
-      const subcats = subcategoriesMap[category] || []
-      subcats.forEach((subcategory) => {
-        citySubcategories.push({
-          url: `${baseUrl}/city/${city}/${category}/${subcategory}`,
-          lastModified: new Date(),
-          changeFrequency: 'weekly',
-          priority: 0.65,
-        })
-      })
     })
   })
 
-  // Fetch all businesses dynamically
-  let businessPages: MetadataRoute.Sitemap = []
+  // Business pages removed from sitemap for focused indexing strategy
+  // Google will discover them through internal links from category pages
+  // This prevents overwhelming Google with 1000+ pages on a new site
 
-  try {
-    console.log('[Sitemap] Fetching businesses from API...')
-    const response = await fetch(`${apiBaseUrl}/businesses`, {
-      next: { revalidate: 3600 }, // Cache for 1 hour
-    })
+  console.log('[Sitemap] Generated priority sitemap with', staticPages.length + cityPages.length + cityCategories.length, 'pages')
 
-    if (!response.ok) {
-      throw new Error(`API returned ${response.status}`)
-    }
-
-    const data = await response.json()
-
-    if (data.success && Array.isArray(data.data)) {
-      console.log(`[Sitemap] Found ${data.data.length} businesses`)
-
-      businessPages = data.data.map((business: any) => ({
-        url: `${baseUrl}/business/${business.slug}`,
-        lastModified: business.updatedAt ? new Date(business.updatedAt) : new Date(),
-        changeFrequency: 'weekly' as const,
-        priority: 0.6,
-      }))
-    } else {
-      console.warn('[Sitemap] Invalid API response format')
-    }
-  } catch (error) {
-    console.error('[Sitemap] Failed to fetch businesses:', error)
-    console.warn('[Sitemap] Continuing with basic sitemap (no business pages)')
-    // Fallback: Return sitemap without business pages (no breaking)
-  }
-
-  return [...staticPages, ...cityPages, ...cityCategories, ...citySubcategories, ...businessPages]
+  return [...staticPages, ...cityPages, ...cityCategories]
 }
