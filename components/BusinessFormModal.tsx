@@ -58,7 +58,8 @@ export default function BusinessFormModal({ isOpen, onClose, onSuccess, business
       setCityId(business.cityId);
       setCategoryId(business.categoryId);
       setSubcategoryId(business.subcategoryId || '');
-      setInstagramHandle(business.instagramHandle || '');
+      // Strip @ prefix from Instagram handle for editing
+      setInstagramHandle(business.instagramHandle?.replace(/^@/, '') || '');
       setDescription(business.description || '');
       setAddress(business.address || '');
     } else {
