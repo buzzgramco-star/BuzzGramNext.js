@@ -308,7 +308,7 @@ export default function BusinessDetailClient({ business: initialBusiness, catego
                     : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'
                 }`}
               >
-                Services
+                {business.category?.name === 'Food' ? 'Menu' : 'Services'}
               </button>
               <button
                 onClick={() => setActiveTab('reviews')}
@@ -450,7 +450,7 @@ export default function BusinessDetailClient({ business: initialBusiness, catego
           {activeTab === 'services' && (
             <div className="max-w-4xl">
               <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
-                Services Offered
+                {business.category?.name === 'Food' ? 'Menu' : 'Services Offered'}
               </h2>
               {business.services && business.services.length > 0 ? (
                 <div className="space-y-3">
