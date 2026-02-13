@@ -15,12 +15,12 @@ const SUBCATEGORY_CONFIG: Record<string, Record<string, { id: number; name: stri
   food: {
     bakery: { id: 15, name: 'Bakery', categoryId: 11, categoryName: 'Food Services' },
     catering: { id: 16, name: 'Catering Services', categoryId: 11, categoryName: 'Food Services' },
-    chefs: { id: 17, name: 'Private Chefs', categoryId: 11, categoryName: 'Food Services' },
+    chef: { id: 17, name: 'Private Chefs', categoryId: 11, categoryName: 'Food Services' },
   },
   events: {
     decor: { id: 18, name: 'Event Decor', categoryId: 12, categoryName: 'Event Services' },
-    photography: { id: 19, name: 'Event Photography', categoryId: 12, categoryName: 'Event Services' },
-    venues: { id: 20, name: 'Event Venues', categoryId: 12, categoryName: 'Event Services' },
+    planning: { id: 19, name: 'Event Planning', categoryId: 12, categoryName: 'Event Services' },
+    photography: { id: 20, name: 'Event Photography', categoryId: 12, categoryName: 'Event Services' },
   },
 };
 
