@@ -67,6 +67,7 @@ export interface BusinessSearchParams {
   categoryId?: number;
   subcategoryId?: number;
   search?: string;
+  includeInactive?: boolean;
 }
 
 export interface QuoteRequest {

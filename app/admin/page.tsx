@@ -86,7 +86,7 @@ function AdminDashboardContent() {
   // Search businesses query - only fetch when search is not empty
   const { data: searchResults, isLoading: isSearching } = useQuery({
     queryKey: ['businessSearch', businessSearch],
-    queryFn: () => getBusinesses({ search: businessSearch }),
+    queryFn: () => getBusinesses({ search: businessSearch, includeInactive: true }),
     enabled: showBusinesses && businessSearch.length >= 2,
   });
 
