@@ -9,13 +9,14 @@ import Link from 'next/link';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { getAdminStats, getAllUsers, getGeneralQuotes, getAllBusinessQuotes, getBusinesses, deleteBusiness, updateBusinessStatus, deleteUser, updateUserStatus, getBusinessClaims, approveBusinessClaim, rejectBusinessClaim, getBusinessRegistrations, approveBusinessRegistration, rejectBusinessRegistration, getAllReviews, toggleReviewVisibility, deleteReview } from '@/lib/api';
+import { getAdminStats, getAllUsers, getGeneralQuotes, getAllBusinessQuotes, getBusinesses, deleteBusiness, updateBusinessStatus, deleteUser, updateUserStatus, getBusinessClaims, approveBusinessClaim, rejectBusinessClaim, getBusinessRegistrations, approveBusinessRegistration, rejectBusinessRegistration, getAllReviews, toggleReviewVisibility, deleteReview, deleteAdminService } from '@/lib/api';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import StarRating from '@/components/StarRating';
 import BlogManagement from '@/components/BlogManagement';
 import BlogEditor from '@/components/BlogEditor';
 import BusinessFormModal from '@/components/BusinessFormModal';
-import type { BlogPost, Business } from '@/types';
+import ServiceManagementModal from '@/components/ServiceManagementModal';
+import type { BlogPost, Business, BusinessService } from '@/types';
 
 function AdminDashboardContent() {
   const { user } = useAuth();
@@ -40,6 +41,11 @@ function AdminDashboardContent() {
   const [deletingReviewId, setDeletingReviewId] = useState<number | null>(null);
   const [businessModalOpen, setBusinessModalOpen] = useState(false);
   const [editingBusiness, setEditingBusiness] = useState<Business | null>(null);
+  const [serviceModalOpen, setServiceModalOpen] = useState(false);
+  const [editingService, setEditingService] = useState<BusinessService | null>(null);
+  const [selectedBusinessId, setSelectedBusinessId] = useState<number | null>(null);
+  const [showingServicesForBusiness, setShowingServicesForBusiness] = useState<number | null>(null);
+  const [deletingServiceId, setDeletingServiceId] = useState<number | null>(null);
 
   const { data: stats, isLoading, error: statsError } = useQuery({
     queryKey: ['adminStats'],
@@ -295,6 +301,27 @@ function AdminDashboardContent() {
     if (window.confirm(`Are you sure you want to permanently delete ${userName}'s review for "${businessName}"? This action cannot be undone.`)) {
       setDeletingReviewId(reviewId);
       deleteReviewMutation.mutate(reviewId);
+    }
+  };
+
+  // Delete service mutation
+  const deleteServiceMutation = useMutation({
+    mutationFn: ({ businessId, serviceId }: { businessId: number; serviceId: number }) =>
+      deleteAdminService(businessId, serviceId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['businessSearch'] });
+      setDeletingServiceId(null);
+    },
+    onError: (error: any) => {
+      alert(error.response?.data?.message || 'Failed to delete service');
+      setDeletingServiceId(null);
+    },
+  });
+
+  const handleDeleteService = (businessId: number, serviceId: number, serviceName: string) => {
+    if (window.confirm(`Are you sure you want to delete "${serviceName}"? This action cannot be undone.`)) {
+      setDeletingServiceId(serviceId);
+      deleteServiceMutation.mutate({ businessId, serviceId });
     }
   };
 
@@ -651,6 +678,98 @@ function AdminDashboardContent() {
                                 )}
                               </button>
                             </div>
+                          </div>
+
+                          {/* Services Section */}
+                          <div className="mt-4 border-t border-gray-200 dark:border-dark-border pt-4">
+                            <button
+                              onClick={() => setShowingServicesForBusiness(
+                                showingServicesForBusiness === business.id ? null : business.id
+                              )}
+                              className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-orange-600 dark:hover:text-orange-400 transition-colors"
+                            >
+                              <svg className={`w-4 h-4 transition-transform ${showingServicesForBusiness === business.id ? 'rotate-90' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                              </svg>
+                              Manage Services ({business.services?.length || 0})
+                            </button>
+
+                            {showingServicesForBusiness === business.id && (
+                              <div className="mt-3 space-y-2">
+                                <button
+                                  onClick={() => {
+                                    setSelectedBusinessId(business.id);
+                                    setEditingService(null);
+                                    setServiceModalOpen(true);
+                                  }}
+                                  className="w-full px-3 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                                >
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                  </svg>
+                                  Add Service
+                                </button>
+
+                                {business.services && business.services.length > 0 ? (
+                                  <div className="space-y-2">
+                                    {business.services.map((service: any) => (
+                                      <div
+                                        key={service.id}
+                                        className="flex items-center justify-between p-3 bg-white dark:bg-dark-bg border border-gray-200 dark:border-dark-border rounded-lg"
+                                      >
+                                        <div className="flex-1">
+                                          <p className="text-sm font-medium text-gray-900 dark:text-white">
+                                            {service.serviceName}
+                                          </p>
+                                          {(service.price || service.duration) && (
+                                            <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                                              {service.price && <span>{service.price}</span>}
+                                              {service.price && service.duration && <span> • </span>}
+                                              {service.duration && <span>{service.duration}</span>}
+                                            </p>
+                                          )}
+                                        </div>
+                                        <div className="flex gap-2 ml-3">
+                                          <button
+                                            onClick={() => {
+                                              setSelectedBusinessId(business.id);
+                                              setEditingService(service);
+                                              setServiceModalOpen(true);
+                                            }}
+                                            className="px-2 py-1 bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-900/30 rounded text-xs font-medium transition-colors"
+                                            title="Edit service"
+                                          >
+                                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                            </svg>
+                                          </button>
+                                          <button
+                                            onClick={() => handleDeleteService(business.id, service.id, service.serviceName)}
+                                            disabled={deletingServiceId === service.id}
+                                            className="px-2 py-1 bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/30 rounded text-xs font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                            title="Delete service"
+                                          >
+                                            {deletingServiceId === service.id ? (
+                                              <svg className="w-3 h-3 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                              </svg>
+                                            ) : (
+                                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                              </svg>
+                                            )}
+                                          </button>
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                ) : (
+                                  <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
+                                    No services added yet
+                                  </p>
+                                )}
+                              </div>
+                            )}
                           </div>
                         </div>
                       ))}
@@ -1388,6 +1507,23 @@ function AdminDashboardContent() {
         }}
         business={editingBusiness}
       />
+
+      {/* Service Management Modal */}
+      {selectedBusinessId && (
+        <ServiceManagementModal
+          isOpen={serviceModalOpen}
+          onClose={() => {
+            setServiceModalOpen(false);
+            setEditingService(null);
+            setSelectedBusinessId(null);
+          }}
+          onSuccess={() => {
+            queryClient.invalidateQueries({ queryKey: ['businessSearch'] });
+          }}
+          businessId={selectedBusinessId}
+          service={editingService}
+        />
+      )}
     </div>
   );
 }

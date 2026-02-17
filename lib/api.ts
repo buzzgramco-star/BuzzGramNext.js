@@ -204,6 +204,32 @@ export const updateAdminBusiness = async (businessId: number, businessData: {
   return data;
 };
 
+// Admin: Add service to any business
+export const addAdminService = async (businessId: number, serviceData: {
+  serviceName: string;
+  price?: string;
+  duration?: string;
+}) => {
+  const { data } = await api.post(`/admin/businesses/${businessId}/services`, serviceData);
+  return data;
+};
+
+// Admin: Update service for any business
+export const updateAdminService = async (businessId: number, serviceId: number, serviceData: {
+  serviceName?: string;
+  price?: string;
+  duration?: string;
+}) => {
+  const { data } = await api.put(`/admin/businesses/${businessId}/services/${serviceId}`, serviceData);
+  return data;
+};
+
+// Admin: Delete service from any business
+export const deleteAdminService = async (businessId: number, serviceId: number) => {
+  const { data } = await api.delete(`/admin/businesses/${businessId}/services/${serviceId}`);
+  return data;
+};
+
 // Admin: Delete a user
 export const deleteUser = async (userId: number) => {
   const { data } = await api.delete(`/admin/users/${userId}`);
