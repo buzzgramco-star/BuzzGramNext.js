@@ -1612,7 +1612,7 @@ function AdminDashboardContent() {
           businessId={selectedBusinessId}
           service={editingService}
           availableServices={
-            businesses?.find((b: Business) => b.id === selectedBusinessId)?.services || []
+            searchResults?.find((b: Business) => b.id === selectedBusinessId)?.services || []
           }
         />
       )}
