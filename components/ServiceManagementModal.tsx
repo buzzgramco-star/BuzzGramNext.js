@@ -115,14 +115,71 @@ export default function ServiceManagementModal({ isOpen, onClose, onSuccess, bus
 
     try {
       if (service) {
-        // Edit mode - variations not supported in edit mode
+        // Edit mode
         const serviceData = {
           serviceName,
           price: price || undefined,
           duration: duration || undefined,
           parentServiceId: parentServiceId || undefined,
         };
+
+        // Update the parent service first
         await updateAdminService(businessId, service.id, serviceData);
+
+        // Add subcategories if any (3-level)
+        if (subcategories.length > 0) {
+          // Validate all subcategories have names
+          for (let i = 0; i < subcategories.length; i++) {
+            if (!subcategories[i].name.trim()) {
+              setError(`Subcategory ${i + 1} must have a name`);
+              setLoading(false);
+              return;
+            }
+            // Validate variations within subcategory
+            for (let j = 0; j < subcategories[i].variations.length; j++) {
+              if (!subcategories[i].variations[j].name.trim()) {
+                setError(`Subcategory "${subcategories[i].name}" - Variation ${j + 1} must have a name`);
+                setLoading(false);
+                return;
+              }
+            }
+          }
+
+          // Create each subcategory as a child service
+          for (const subcategory of subcategories) {
+            const subcategoryData: any = {
+              serviceName: subcategory.name,
+              price: subcategory.price || undefined,
+              duration: subcategory.duration || undefined,
+              parentServiceId: service.id,
+            };
+
+            // If subcategory has variations, use the variations array
+            if (subcategory.variations.length > 0) {
+              subcategoryData.variations = subcategory.variations;
+            }
+
+            await addAdminService(businessId, subcategoryData);
+          }
+        } else if (variations.length > 0) {
+          // Add variations (2-level)
+          const invalidVariation = variations.find(v => !v.name.trim());
+          if (invalidVariation) {
+            setError('All variations must have a name');
+            setLoading(false);
+            return;
+          }
+
+          // Create each variation as a child service
+          for (const variation of variations) {
+            await addAdminService(businessId, {
+              serviceName: variation.name,
+              price: variation.price || undefined,
+              duration: variation.duration || undefined,
+              parentServiceId: service.id,
+            });
+          }
+        }
       } else {
         // Create mode
         const serviceData: any = {
@@ -198,7 +255,7 @@ export default function ServiceManagementModal({ isOpen, onClose, onSuccess, bus
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white dark:bg-dark-card rounded-lg shadow-xl max-w-lg w-full p-6 relative">
+      <div className="bg-white dark:bg-dark-card rounded-lg shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-6 relative">
         {/* Close button */}
         <button
           onClick={handleClose}
@@ -275,8 +332,19 @@ export default function ServiceManagementModal({ isOpen, onClose, onSuccess, bus
               </div>
             )}
 
-            {/* Service Structure - Only show when creating new service */}
-            {!service && (
+            {/* Info message when editing service with children or child service */}
+            {service && (service.parentServiceId || (service.children && service.children.length > 0)) && (
+              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+                <p className="text-sm text-blue-800 dark:text-blue-200">
+                  {service.parentServiceId
+                    ? 'ℹ️ This is a variation. Edit its parent service to manage the hierarchy.'
+                    : 'ℹ️ This service already has variations/subcategories. Edit or delete them individually if needed.'}
+                </p>
+              </div>
+            )}
+
+            {/* Service Structure - Show when creating OR editing top-level service without children */}
+            {(!service || (service && !service.parentServiceId && (!service.children || service.children.length === 0))) && (
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">

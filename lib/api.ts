@@ -209,6 +209,14 @@ export const addAdminService = async (businessId: number, serviceData: {
   serviceName: string;
   price?: string;
   duration?: string;
+  parentServiceId?: number;
+  variations?: Array<{ name: string; price?: string; duration?: string }>;
+  subcategories?: Array<{
+    name: string;
+    price?: string;
+    duration?: string;
+    variations?: Array<{ name: string; price?: string; duration?: string }>;
+  }>;
 }) => {
   const { data } = await api.post(`/admin/businesses/${businessId}/services`, serviceData);
   return data;

@@ -509,26 +509,80 @@ export default function BusinessDetailClient({ business: initialBusiness, catego
                           )}
                         </div>
 
-                        {/* Child services (variations) */}
+                        {/* Child services (level 2 - subcategories) */}
                         {service.children && service.children.length > 0 && expandedServices.has(service.id) && (
                           <div className="ml-6 mt-2 space-y-2">
                             {service.children.map((child) => (
-                              <div
-                                key={child.id}
-                                className="flex items-start justify-between p-3 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-dark-border rounded-lg"
-                              >
-                                <div className="flex items-start gap-3 flex-1">
-                                  <div className="flex-1">
-                                    <span className="text-gray-900 dark:text-white text-sm">{child.serviceName}</span>
-                                    {child.duration && (
-                                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{child.duration}</p>
-                                    )}
+                              <div key={child.id}>
+                                <div
+                                  className={`flex items-start justify-between p-3 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-dark-border rounded-lg ${
+                                    child.children && child.children.length > 0 ? 'cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700/50' : ''
+                                  }`}
+                                  onClick={() => {
+                                    if (child.children && child.children.length > 0) {
+                                      setExpandedServices(prev => {
+                                        const newSet = new Set(prev);
+                                        if (newSet.has(child.id)) {
+                                          newSet.delete(child.id);
+                                        } else {
+                                          newSet.add(child.id);
+                                        }
+                                        return newSet;
+                                      });
+                                    }
+                                  }}
+                                >
+                                  <div className="flex items-start gap-3 flex-1">
+                                    <div className="flex-1">
+                                      <div className="flex items-center gap-2">
+                                        <span className="text-gray-900 dark:text-white text-sm font-medium">{child.serviceName}</span>
+                                        {child.children && child.children.length > 0 && (
+                                          <svg
+                                            className={`w-4 h-4 text-gray-400 transition-transform ${expandedServices.has(child.id) ? 'rotate-90' : ''}`}
+                                            fill="none"
+                                            stroke="currentColor"
+                                            viewBox="0 0 24 24"
+                                          >
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                          </svg>
+                                        )}
+                                      </div>
+                                      {child.duration && (
+                                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{child.duration}</p>
+                                      )}
+                                    </div>
                                   </div>
+                                  {child.price && (
+                                    <span className="text-orange-600 dark:text-orange-400 font-semibold text-sm whitespace-nowrap ml-4">
+                                      {child.price}
+                                    </span>
+                                  )}
                                 </div>
-                                {child.price && (
-                                  <span className="text-orange-600 dark:text-orange-400 font-semibold text-sm whitespace-nowrap ml-4">
-                                    {child.price}
-                                  </span>
+
+                                {/* Grandchildren (level 3 - variations under subcategory) */}
+                                {child.children && child.children.length > 0 && expandedServices.has(child.id) && (
+                                  <div className="ml-6 mt-2 space-y-2">
+                                    {child.children.map((grandchild) => (
+                                      <div
+                                        key={grandchild.id}
+                                        className="flex items-start justify-between p-2.5 bg-white dark:bg-dark-bg border border-gray-200 dark:border-dark-border rounded-lg"
+                                      >
+                                        <div className="flex items-start gap-3 flex-1">
+                                          <div className="flex-1">
+                                            <span className="text-gray-900 dark:text-white text-sm">{grandchild.serviceName}</span>
+                                            {grandchild.duration && (
+                                              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{grandchild.duration}</p>
+                                            )}
+                                          </div>
+                                        </div>
+                                        {grandchild.price && (
+                                          <span className="text-orange-600 dark:text-orange-400 font-semibold text-sm whitespace-nowrap ml-4">
+                                            {grandchild.price}
+                                          </span>
+                                        )}
+                                      </div>
+                                    ))}
+                                  </div>
                                 )}
                               </div>
                             ))}
