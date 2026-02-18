@@ -6,17 +6,19 @@ BuzzGram is a modern local business directory platform that connects customers w
 
 - **Server-Side Rendering (SSR)** - Pre-rendered pages for optimal SEO performance
 - **SEO Optimized** - Comprehensive structured data (Schema.org) for all city, category, and subcategory pages
-- **Multi-City Support** - 10 major cities with dedicated SSR implementations
+- **Multi-City Support** - 10 major cities with dedicated SSR implementations (5 Canadian, 5 US)
 - **Dark Mode** - Full dark mode support with theme persistence
-- **User Authentication** - Google OAuth and email/password authentication
+- **User Authentication** - Google OAuth and email/password authentication with JWT
 - **Business Listings** - Browse businesses by city, category, and subcategory
-- **Quote Requests** - General and business-specific quote request system
-- **Business Dashboard** - For business owners to manage their listings
-- **Admin Panel** - Manage businesses, quotes, and user accounts
-- **Responsive Design** - Mobile-first design with Tailwind CSS
-- **Real-time Search** - Search businesses within city pages
-- **Favorites** - Save and manage favorite businesses
-- **Instagram Integration** - View business portfolios directly from Instagram
+- **Quote Requests** - General and business-specific quote request system with availability calendar
+- **Business Dashboard** - For business owners to manage their listings and services
+- **Admin Panel** - Comprehensive admin dashboard with business, service, user, and quote management
+- **Service Management** - Admins can add, edit, delete, and reorder services for any business
+- **Responsive Design** - Mobile-first design with Tailwind CSS v4
+- **Real-time Search** - Search businesses within city pages with instant results
+- **Favorites System** - Save and manage favorite businesses with heart icon
+- **Instagram Integration** - View business portfolios directly from Instagram feeds
+- **Reviews & Ratings** - Customer reviews with business owner replies
 
 ## 🏙️ Cities with Full SSR + SEO Implementation
 
@@ -78,10 +80,14 @@ frontend-nextjs/
 │   ├── quote/                   # Quote request pages
 │   └── ...                      # Other app routes
 ├── components/                   # React components
-│   ├── Header.tsx               # Navigation header
+│   ├── Header.tsx               # Navigation header with auth
 │   ├── Footer.tsx               # Footer component
 │   ├── BusinessCard.tsx         # Business listing card
+│   ├── BusinessFormModal.tsx    # Create/edit business modal
+│   ├── ServiceManagementModal.tsx # Add/edit service modal (NEW)
 │   ├── GeneralQuoteModal.tsx    # Quote request modal
+│   ├── ThemeToggle.tsx          # Dark mode toggle
+│   ├── GoogleAuthButton.tsx     # Google OAuth button
 │   └── ...                      # Other components
 ├── contexts/                     # React Context providers
 │   ├── AuthContext.tsx          # Authentication context
@@ -182,8 +188,8 @@ The project is configured for automatic deployment to Vercel on push to main bra
 
 ### Event Services (Category ID: 12)
 - Event Decor (ID: 18)
+- Event Planning (ID: 19)
 - Event Photography (ID: 20)
-- Event Venues (ID: 20)
 
 ## 🔗 API Integration
 
@@ -191,16 +197,48 @@ Backend API Base URL: `https://backend-production-f30d.up.railway.app/api`
 
 ### Key Endpoints
 
+**Public Endpoints**
 - `GET /cities` - List all cities
 - `GET /cities/by-slug/:slug` - Get city by slug
 - `GET /categories` - List all categories
 - `GET /subcategories` - List all subcategories
-- `GET /businesses` - List businesses (with filters)
+- `GET /businesses` - List businesses (with filters: cityId, categoryId, subcategoryId, search, includeInactive)
+- `GET /businesses/by-slug/:slug` - Get business by slug
 - `GET /businesses/:id` - Get business details
-- `POST /general-quotes` - Submit general quote request
+
+**Authentication**
 - `POST /auth/login` - User login
 - `POST /auth/register` - User registration
 - `POST /auth/google` - Google OAuth login
+- `GET /auth/me` - Get current user
+- `PUT /auth/change-password` - Change password
+- `DELETE /auth/delete-account` - Delete account
+
+**Admin Endpoints** (requires admin role)
+- `POST /admin/businesses` - Create business
+- `PUT /admin/businesses/:id` - Update business
+- `DELETE /admin/businesses/:id` - Delete business
+- `POST /admin/businesses/:businessId/services` - Add service
+- `PUT /admin/businesses/:businessId/services/:id` - Update service
+- `DELETE /admin/businesses/:businessId/services/:id` - Delete service
+- `GET /admin/stats` - Get platform statistics
+- `GET /admin/users` - List all users
+
+**Quotes**
+- `POST /general-quotes` - Submit general quote request
+- `POST /quote-requests` - Submit business-specific quote request
+- `GET /general-quotes/my-quotes` - Get user's quotes
+
+**Favorites**
+- `GET /favorites` - Get user's favorites
+- `POST /favorites/:businessId` - Add favorite
+- `DELETE /favorites/:businessId` - Remove favorite
+- `GET /favorites/check/:businessId` - Check if favorited
+
+**Reviews**
+- `GET /reviews/business/:businessId` - Get reviews for business
+- `POST /reviews` - Create review
+- `POST /reviews/:reviewId/reply` - Reply to review (business owner)
 
 ## 🧪 Testing
 
@@ -239,6 +277,50 @@ This project is proprietary and confidential.
 ## 👥 Contributing
 
 This is a private project. Contact the project owner for contribution guidelines.
+
+## 🔄 Recent Changes
+
+### February 2026
+
+**Admin Service Management (Feb 17)**
+- Added ServiceManagementModal component for adding/editing services
+- Collapsible service list in admin dashboard with service count
+- Add, edit, and delete services for any business
+- Real-time updates with React Query cache invalidation
+- Service fields: serviceName (required), price (optional), duration (optional)
+
+**Instagram Handle Display Fix (Feb 17)**
+- Fixed double @@ bug in business cards (@@hairbycle0 → @hairbycle0)
+- Database stores handles with @ prefix, display shows as-is
+- Edit form strips @ when loading for editing
+- Updated BusinessCard.tsx and BusinessFormModal.tsx
+
+**Menu Label for Food Category (Feb 17)**
+- Food category businesses now show "Menu" instead of "Services"
+- Updated business detail page tab and section heading
+- Conditional rendering based on category name
+
+**Subcategory Routing Fix (Feb 17)**
+- Fixed Chef subcategory showing no businesses (slug mismatch: "chefs" → "chef")
+- Fixed Event Planning subcategory (was mapped to photography ID)
+- Updated all 10 city subcategory page configurations
+
+**Business Status Filtering (Feb 17)**
+- Admin dashboard now passes `includeInactive=true` to view paused businesses
+- Public pages only show active businesses automatically
+- Paused businesses no longer visible to customers
+
+**Services Display Fix (Feb 17)**
+- Service count now displays correctly in admin dashboard
+- Backend includes services relation in business queries
+- Shows service details with edit/delete buttons
+
+### January 2026
+
+**SSR Implementation**
+- Implemented server-side rendering for all 10 cities
+- Added comprehensive SEO metadata and structured data
+- Created 90+ static pages for categories and subcategories
 
 ## 🐛 Known Issues
 

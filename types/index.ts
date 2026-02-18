@@ -31,8 +31,10 @@ export interface BusinessService {
   price: string | null;
   duration: string | null;
   displayOrder: number;
+  parentServiceId: number | null;
   createdAt: string;
   updatedAt: string;
+  children?: BusinessService[]; // Service variations (e.g., parent "Subtle Freestyle" has children "Medium", "Long", "XL")
 }
 
 export interface Business {

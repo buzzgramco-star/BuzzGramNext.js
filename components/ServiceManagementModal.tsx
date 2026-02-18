@@ -10,12 +10,14 @@ interface ServiceManagementModalProps {
   onSuccess: () => void;
   businessId: number;
   service?: BusinessService | null; // If provided, edit mode. Otherwise, create mode
+  availableServices?: BusinessService[]; // All services for this business (for parent selection)
 }
 
-export default function ServiceManagementModal({ isOpen, onClose, onSuccess, businessId, service }: ServiceManagementModalProps) {
+export default function ServiceManagementModal({ isOpen, onClose, onSuccess, businessId, service, availableServices = [] }: ServiceManagementModalProps) {
   const [serviceName, setServiceName] = useState('');
   const [price, setPrice] = useState('');
   const [duration, setDuration] = useState('');
+  const [parentServiceId, setParentServiceId] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
@@ -26,11 +28,13 @@ export default function ServiceManagementModal({ isOpen, onClose, onSuccess, bus
       setServiceName(service.serviceName);
       setPrice(service.price || '');
       setDuration(service.duration || '');
+      setParentServiceId(service.parentServiceId || null);
     } else {
       // Reset form for create mode
       setServiceName('');
       setPrice('');
       setDuration('');
+      setParentServiceId(null);
     }
   }, [service, isOpen]);
 
@@ -44,6 +48,7 @@ export default function ServiceManagementModal({ isOpen, onClose, onSuccess, bus
         serviceName,
         price: price || undefined,
         duration: duration || undefined,
+        parentServiceId: parentServiceId || undefined,
       };
 
       if (service) {
@@ -72,6 +77,7 @@ export default function ServiceManagementModal({ isOpen, onClose, onSuccess, bus
     setServiceName('');
     setPrice('');
     setDuration('');
+    setParentServiceId(null);
     setError('');
     setSuccess(false);
     onClose();
@@ -130,6 +136,33 @@ export default function ServiceManagementModal({ isOpen, onClose, onSuccess, bus
                 className="w-full px-3 py-2 border border-gray-300 dark:border-dark-border rounded-lg bg-white dark:bg-dark-bg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               />
             </div>
+
+            {/* Parent Service (Optional) */}
+            {availableServices.length > 0 && (
+              <div>
+                <label htmlFor="parent-service" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Parent Service (Optional)
+                </label>
+                <select
+                  id="parent-service"
+                  value={parentServiceId || ''}
+                  onChange={(e) => setParentServiceId(e.target.value ? parseInt(e.target.value, 10) : null)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-dark-border rounded-lg bg-white dark:bg-dark-bg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                >
+                  <option value="">None (Standalone Service)</option>
+                  {availableServices
+                    .filter(s => !s.parentServiceId && s.id !== service?.id)
+                    .map(s => (
+                      <option key={s.id} value={s.id}>
+                        {s.serviceName}
+                      </option>
+                    ))}
+                </select>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  Select a parent to create a service variation (e.g., "Medium" under "Subtle Freestyle")
+                </p>
+              </div>
+            )}
 
             {/* Price */}
             <div>
