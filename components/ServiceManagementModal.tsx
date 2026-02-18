@@ -13,11 +13,18 @@ interface ServiceManagementModalProps {
   availableServices?: BusinessService[]; // All services for this business (for parent selection)
 }
 
+interface ServiceVariation {
+  name: string;
+  price: string;
+  duration: string;
+}
+
 export default function ServiceManagementModal({ isOpen, onClose, onSuccess, businessId, service, availableServices = [] }: ServiceManagementModalProps) {
   const [serviceName, setServiceName] = useState('');
   const [price, setPrice] = useState('');
   const [duration, setDuration] = useState('');
   const [parentServiceId, setParentServiceId] = useState<number | null>(null);
+  const [variations, setVariations] = useState<ServiceVariation[]>([]);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
@@ -29,14 +36,30 @@ export default function ServiceManagementModal({ isOpen, onClose, onSuccess, bus
       setPrice(service.price || '');
       setDuration(service.duration || '');
       setParentServiceId(service.parentServiceId || null);
+      setVariations([]); // Variations only for creating new services
     } else {
       // Reset form for create mode
       setServiceName('');
       setPrice('');
       setDuration('');
       setParentServiceId(null);
+      setVariations([]);
     }
   }, [service, isOpen]);
+
+  const addVariation = () => {
+    setVariations([...variations, { name: '', price: '', duration: '' }]);
+  };
+
+  const removeVariation = (index: number) => {
+    setVariations(variations.filter((_, i) => i !== index));
+  };
+
+  const updateVariation = (index: number, field: keyof ServiceVariation, value: string) => {
+    const updated = [...variations];
+    updated[index][field] = value;
+    setVariations(updated);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,19 +67,39 @@ export default function ServiceManagementModal({ isOpen, onClose, onSuccess, bus
     setLoading(true);
 
     try {
-      const serviceData = {
-        serviceName,
-        price: price || undefined,
-        duration: duration || undefined,
-        parentServiceId: parentServiceId || undefined,
-      };
-
       if (service) {
-        // Edit mode
+        // Edit mode - variations not supported in edit mode
+        const serviceData = {
+          serviceName,
+          price: price || undefined,
+          duration: duration || undefined,
+          parentServiceId: parentServiceId || undefined,
+        };
         await updateAdminService(businessId, service.id, serviceData);
       } else {
         // Create mode
-        await addAdminService(businessId, serviceData as any);
+        const serviceData: any = {
+          serviceName,
+          price: price || undefined,
+          duration: duration || undefined,
+        };
+
+        // Add variations if any exist
+        if (variations.length > 0) {
+          // Validate all variations have names
+          const invalidVariation = variations.find(v => !v.name.trim());
+          if (invalidVariation) {
+            setError('All variations must have a name');
+            setLoading(false);
+            return;
+          }
+          serviceData.variations = variations;
+        } else {
+          // Single service - include parentServiceId
+          serviceData.parentServiceId = parentServiceId || undefined;
+        }
+
+        await addAdminService(businessId, serviceData);
       }
 
       setSuccess(true);
@@ -78,6 +121,7 @@ export default function ServiceManagementModal({ isOpen, onClose, onSuccess, bus
     setPrice('');
     setDuration('');
     setParentServiceId(null);
+    setVariations([]);
     setError('');
     setSuccess(false);
     onClose();
@@ -137,8 +181,8 @@ export default function ServiceManagementModal({ isOpen, onClose, onSuccess, bus
               />
             </div>
 
-            {/* Parent Service (Optional) */}
-            {availableServices.length > 0 && (
+            {/* Parent Service (Optional) - Only show when creating single service without variations */}
+            {!service && availableServices.length > 0 && variations.length === 0 && (
               <div>
                 <label htmlFor="parent-service" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Parent Service (Optional)
@@ -161,6 +205,77 @@ export default function ServiceManagementModal({ isOpen, onClose, onSuccess, bus
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                   Select a parent to create a service variation (e.g., "Medium" under "Subtle Freestyle")
                 </p>
+              </div>
+            )}
+
+            {/* Service Variations - Only show when creating new service */}
+            {!service && (
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Service Variations (Optional)
+                  </label>
+                  <button
+                    type="button"
+                    onClick={addVariation}
+                    className="text-sm text-orange-600 hover:text-orange-700 dark:text-orange-400 dark:hover:text-orange-300 font-medium flex items-center gap-1"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
+                    Add Variation
+                  </button>
+                </div>
+                {variations.length > 0 && (
+                  <div className="space-y-3 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-dark-border">
+                    <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">
+                      The main service name above will be the parent. Add variations below (e.g., Short, Medium, Long).
+                    </p>
+                    {variations.map((variation, index) => (
+                      <div key={index} className="flex gap-2 items-start">
+                        <div className="flex-1 grid grid-cols-3 gap-2">
+                          <input
+                            type="text"
+                            required
+                            value={variation.name}
+                            onChange={(e) => updateVariation(index, 'name', e.target.value)}
+                            placeholder="Name (e.g., Short)*"
+                            className="px-3 py-2 text-sm border border-gray-300 dark:border-dark-border rounded-lg bg-white dark:bg-dark-bg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                          />
+                          <input
+                            type="text"
+                            value={variation.price}
+                            onChange={(e) => updateVariation(index, 'price', e.target.value)}
+                            placeholder="Price (e.g., $85)"
+                            className="px-3 py-2 text-sm border border-gray-300 dark:border-dark-border rounded-lg bg-white dark:bg-dark-bg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                          />
+                          <input
+                            type="text"
+                            value={variation.duration}
+                            onChange={(e) => updateVariation(index, 'duration', e.target.value)}
+                            placeholder="Duration"
+                            className="px-3 py-2 text-sm border border-gray-300 dark:border-dark-border rounded-lg bg-white dark:bg-dark-bg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => removeVariation(index)}
+                          className="p-2 text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                          aria-label="Remove variation"
+                        >
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {variations.length === 0 && (
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    Click "Add Variation" to create a parent service with variations (e.g., "Refill" with Short, Medium, Long)
+                  </p>
+                )}
               </div>
             )}
 
