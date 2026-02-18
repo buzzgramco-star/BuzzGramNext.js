@@ -19,12 +19,21 @@ interface ServiceVariation {
   duration: string;
 }
 
+interface SubcategoryWithVariations {
+  name: string;
+  price: string;
+  duration: string;
+  variations: ServiceVariation[];
+}
+
 export default function ServiceManagementModal({ isOpen, onClose, onSuccess, businessId, service, availableServices = [] }: ServiceManagementModalProps) {
   const [serviceName, setServiceName] = useState('');
   const [price, setPrice] = useState('');
   const [duration, setDuration] = useState('');
   const [parentServiceId, setParentServiceId] = useState<number | null>(null);
   const [variations, setVariations] = useState<ServiceVariation[]>([]);
+  const [subcategories, setSubcategories] = useState<SubcategoryWithVariations[]>([]);
+  const [use3Level, setUse3Level] = useState(false);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
@@ -37,6 +46,8 @@ export default function ServiceManagementModal({ isOpen, onClose, onSuccess, bus
       setDuration(service.duration || '');
       setParentServiceId(service.parentServiceId || null);
       setVariations([]); // Variations only for creating new services
+      setSubcategories([]);
+      setUse3Level(false);
     } else {
       // Reset form for create mode
       setServiceName('');
@@ -44,9 +55,12 @@ export default function ServiceManagementModal({ isOpen, onClose, onSuccess, bus
       setDuration('');
       setParentServiceId(null);
       setVariations([]);
+      setSubcategories([]);
+      setUse3Level(false);
     }
   }, [service, isOpen]);
 
+  // 2-Level variation functions
   const addVariation = () => {
     setVariations([...variations, { name: '', price: '', duration: '' }]);
   };
@@ -59,6 +73,39 @@ export default function ServiceManagementModal({ isOpen, onClose, onSuccess, bus
     const updated = [...variations];
     updated[index][field] = value;
     setVariations(updated);
+  };
+
+  // 3-Level subcategory functions
+  const addSubcategory = () => {
+    setSubcategories([...subcategories, { name: '', price: '', duration: '', variations: [] }]);
+  };
+
+  const removeSubcategory = (index: number) => {
+    setSubcategories(subcategories.filter((_, i) => i !== index));
+  };
+
+  const updateSubcategory = (index: number, field: keyof Omit<SubcategoryWithVariations, 'variations'>, value: string) => {
+    const updated = [...subcategories];
+    updated[index][field] = value;
+    setSubcategories(updated);
+  };
+
+  const addSubcategoryVariation = (subcategoryIndex: number) => {
+    const updated = [...subcategories];
+    updated[subcategoryIndex].variations.push({ name: '', price: '', duration: '' });
+    setSubcategories(updated);
+  };
+
+  const removeSubcategoryVariation = (subcategoryIndex: number, variationIndex: number) => {
+    const updated = [...subcategories];
+    updated[subcategoryIndex].variations = updated[subcategoryIndex].variations.filter((_, i) => i !== variationIndex);
+    setSubcategories(updated);
+  };
+
+  const updateSubcategoryVariation = (subcategoryIndex: number, variationIndex: number, field: keyof ServiceVariation, value: string) => {
+    const updated = [...subcategories];
+    updated[subcategoryIndex].variations[variationIndex][field] = value;
+    setSubcategories(updated);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -84,9 +131,27 @@ export default function ServiceManagementModal({ isOpen, onClose, onSuccess, bus
           duration: duration || undefined,
         };
 
-        // Add variations if any exist
-        if (variations.length > 0) {
-          // Validate all variations have names
+        // Add subcategories if any exist (3-level)
+        if (subcategories.length > 0) {
+          // Validate all subcategories have names
+          for (let i = 0; i < subcategories.length; i++) {
+            if (!subcategories[i].name.trim()) {
+              setError(`Subcategory ${i + 1} must have a name`);
+              setLoading(false);
+              return;
+            }
+            // Validate variations within subcategory
+            for (let j = 0; j < subcategories[i].variations.length; j++) {
+              if (!subcategories[i].variations[j].name.trim()) {
+                setError(`Subcategory "${subcategories[i].name}" - Variation ${j + 1} must have a name`);
+                setLoading(false);
+                return;
+              }
+            }
+          }
+          serviceData.subcategories = subcategories;
+        } else if (variations.length > 0) {
+          // Add variations if any exist (2-level)
           const invalidVariation = variations.find(v => !v.name.trim());
           if (invalidVariation) {
             setError('All variations must have a name');
@@ -122,6 +187,8 @@ export default function ServiceManagementModal({ isOpen, onClose, onSuccess, bus
     setDuration('');
     setParentServiceId(null);
     setVariations([]);
+    setSubcategories([]);
+    setUse3Level(false);
     setError('');
     setSuccess(false);
     onClose();
@@ -208,73 +275,208 @@ export default function ServiceManagementModal({ isOpen, onClose, onSuccess, bus
               </div>
             )}
 
-            {/* Service Variations - Only show when creating new service */}
+            {/* Service Structure - Only show when creating new service */}
             {!service && (
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Service Variations (Optional)
+                    Service Structure (Optional)
                   </label>
-                  <button
-                    type="button"
-                    onClick={addVariation}
-                    className="text-sm text-orange-600 hover:text-orange-700 dark:text-orange-400 dark:hover:text-orange-300 font-medium flex items-center gap-1"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                    </svg>
-                    Add Variation
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setUse3Level(false);
+                        setSubcategories([]);
+                      }}
+                      className={`text-sm px-3 py-1 rounded-lg font-medium transition-colors ${!use3Level && (variations.length > 0 || subcategories.length === 0) ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'}`}
+                    >
+                      2-Level
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setUse3Level(true);
+                        setVariations([]);
+                      }}
+                      className={`text-sm px-3 py-1 rounded-lg font-medium transition-colors ${use3Level ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'}`}
+                    >
+                      3-Level
+                    </button>
+                  </div>
                 </div>
-                {variations.length > 0 && (
-                  <div className="space-y-3 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-dark-border">
-                    <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">
-                      The main service name above will be the parent. Add variations below (e.g., Short, Medium, Long).
-                    </p>
-                    {variations.map((variation, index) => (
-                      <div key={index} className="flex gap-2 items-start">
-                        <div className="flex-1 grid grid-cols-3 gap-2">
-                          <input
-                            type="text"
-                            required
-                            value={variation.name}
-                            onChange={(e) => updateVariation(index, 'name', e.target.value)}
-                            placeholder="Name (e.g., Short)*"
-                            className="px-3 py-2 text-sm border border-gray-300 dark:border-dark-border rounded-lg bg-white dark:bg-dark-bg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                          />
-                          <input
-                            type="text"
-                            value={variation.price}
-                            onChange={(e) => updateVariation(index, 'price', e.target.value)}
-                            placeholder="Price (e.g., $85)"
-                            className="px-3 py-2 text-sm border border-gray-300 dark:border-dark-border rounded-lg bg-white dark:bg-dark-bg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                          />
-                          <input
-                            type="text"
-                            value={variation.duration}
-                            onChange={(e) => updateVariation(index, 'duration', e.target.value)}
-                            placeholder="Duration"
-                            className="px-3 py-2 text-sm border border-gray-300 dark:border-dark-border rounded-lg bg-white dark:bg-dark-bg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                          />
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => removeVariation(index)}
-                          className="p-2 text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                          aria-label="Remove variation"
-                        >
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                          </svg>
-                        </button>
+
+                {/* 2-Level Mode: Simple Variations */}
+                {!use3Level && (
+                  <div>
+                    <button
+                      type="button"
+                      onClick={addVariation}
+                      className="w-full text-sm text-orange-600 hover:text-orange-700 dark:text-orange-400 dark:hover:text-orange-300 font-medium flex items-center justify-center gap-1 p-2 border border-dashed border-gray-300 dark:border-dark-border rounded-lg hover:bg-orange-50 dark:hover:bg-orange-900/10 transition-colors"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                      </svg>
+                      Add Variation
+                    </button>
+                    {variations.length > 0 && (
+                      <div className="space-y-2 mt-3">
+                        <p className="text-xs text-gray-600 dark:text-gray-400">
+                          "{serviceName || 'Service'}" → Short, Medium, Long
+                        </p>
+                        {variations.map((variation, index) => (
+                          <div key={index} className="flex gap-2 items-start p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                            <div className="flex-1 grid grid-cols-3 gap-2">
+                              <input
+                                type="text"
+                                required
+                                value={variation.name}
+                                onChange={(e) => updateVariation(index, 'name', e.target.value)}
+                                placeholder="Name*"
+                                className="px-2 py-1.5 text-sm border border-gray-300 dark:border-dark-border rounded bg-white dark:bg-dark-bg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+                              />
+                              <input
+                                type="text"
+                                value={variation.price}
+                                onChange={(e) => updateVariation(index, 'price', e.target.value)}
+                                placeholder="Price"
+                                className="px-2 py-1.5 text-sm border border-gray-300 dark:border-dark-border rounded bg-white dark:bg-dark-bg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+                              />
+                              <input
+                                type="text"
+                                value={variation.duration}
+                                onChange={(e) => updateVariation(index, 'duration', e.target.value)}
+                                placeholder="Duration"
+                                className="px-2 py-1.5 text-sm border border-gray-300 dark:border-dark-border rounded bg-white dark:bg-dark-bg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+                              />
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => removeVariation(index)}
+                              className="p-1.5 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                            </button>
+                          </div>
+                        ))}
                       </div>
-                    ))}
+                    )}
                   </div>
                 )}
-                {variations.length === 0 && (
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                    Click "Add Variation" to create a parent service with variations (e.g., "Refill" with Short, Medium, Long)
-                  </p>
+
+                {/* 3-Level Mode: Subcategories with Variations */}
+                {use3Level && (
+                  <div>
+                    <button
+                      type="button"
+                      onClick={addSubcategory}
+                      className="w-full text-sm text-orange-600 hover:text-orange-700 dark:text-orange-400 dark:hover:text-orange-300 font-medium flex items-center justify-center gap-1 p-2 border border-dashed border-gray-300 dark:border-dark-border rounded-lg hover:bg-orange-50 dark:hover:bg-orange-900/10 transition-colors"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                      </svg>
+                      Add Subcategory
+                    </button>
+                    {subcategories.length > 0 && (
+                      <div className="space-y-3 mt-3">
+                        <p className="text-xs text-gray-600 dark:text-gray-400">
+                          "{serviceName || 'Main Category'}" → Subcategories → Variations
+                        </p>
+                        {subcategories.map((subcategory, subIndex) => (
+                          <div key={subIndex} className="p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-dark-border">
+                            <div className="flex gap-2 items-start mb-2">
+                              <div className="flex-1 grid grid-cols-3 gap-2">
+                                <input
+                                  type="text"
+                                  required
+                                  value={subcategory.name}
+                                  onChange={(e) => updateSubcategory(subIndex, 'name', e.target.value)}
+                                  placeholder="Subcategory Name*"
+                                  className="px-2 py-1.5 text-sm border border-gray-300 dark:border-dark-border rounded bg-white dark:bg-dark-bg text-gray-900 dark:text-white font-medium focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                />
+                                <input
+                                  type="text"
+                                  value={subcategory.price}
+                                  onChange={(e) => updateSubcategory(subIndex, 'price', e.target.value)}
+                                  placeholder="Price"
+                                  className="px-2 py-1.5 text-sm border border-gray-300 dark:border-dark-border rounded bg-white dark:bg-dark-bg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                />
+                                <input
+                                  type="text"
+                                  value={subcategory.duration}
+                                  onChange={(e) => updateSubcategory(subIndex, 'duration', e.target.value)}
+                                  placeholder="Duration"
+                                  className="px-2 py-1.5 text-sm border border-gray-300 dark:border-dark-border rounded bg-white dark:bg-dark-bg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                />
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => removeSubcategory(subIndex)}
+                                className="p-1.5 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                              </button>
+                            </div>
+
+                            {/* Variations for this subcategory */}
+                            <div className="ml-4 mt-2 space-y-2">
+                              <button
+                                type="button"
+                                onClick={() => addSubcategoryVariation(subIndex)}
+                                className="text-xs text-orange-600 dark:text-orange-400 hover:underline flex items-center gap-1"
+                              >
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                </svg>
+                                Add Variation
+                              </button>
+                              {subcategory.variations.map((variation, varIndex) => (
+                                <div key={varIndex} className="flex gap-2 items-start p-2 bg-white dark:bg-dark-bg rounded border border-gray-200 dark:border-dark-border">
+                                  <div className="flex-1 grid grid-cols-3 gap-2">
+                                    <input
+                                      type="text"
+                                      required
+                                      value={variation.name}
+                                      onChange={(e) => updateSubcategoryVariation(subIndex, varIndex, 'name', e.target.value)}
+                                      placeholder="Name*"
+                                      className="px-2 py-1 text-xs border border-gray-300 dark:border-dark-border rounded bg-white dark:bg-dark-bg text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-orange-500"
+                                    />
+                                    <input
+                                      type="text"
+                                      value={variation.price}
+                                      onChange={(e) => updateSubcategoryVariation(subIndex, varIndex, 'price', e.target.value)}
+                                      placeholder="Price"
+                                      className="px-2 py-1 text-xs border border-gray-300 dark:border-dark-border rounded bg-white dark:bg-dark-bg text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-orange-500"
+                                    />
+                                    <input
+                                      type="text"
+                                      value={variation.duration}
+                                      onChange={(e) => updateSubcategoryVariation(subIndex, varIndex, 'duration', e.target.value)}
+                                      placeholder="Duration"
+                                      className="px-2 py-1 text-xs border border-gray-300 dark:border-dark-border rounded bg-white dark:bg-dark-bg text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-orange-500"
+                                    />
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() => removeSubcategoryVariation(subIndex, varIndex)}
+                                    className="p-1 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
+                                  >
+                                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
             )}
