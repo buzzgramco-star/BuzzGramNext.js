@@ -195,7 +195,7 @@ export default function ServiceManagementModal({ isOpen, onClose, onSuccess, bus
                 >
                   <option value="">None (Standalone Service)</option>
                   {availableServices
-                    .filter(s => !s.parentServiceId && s.id !== service?.id)
+                    .filter(s => !s.parentServiceId)
                     .map(s => (
                       <option key={s.id} value={s.id}>
                         {s.serviceName}
