@@ -332,19 +332,26 @@ export default function ServiceManagementModal({ isOpen, onClose, onSuccess, bus
               </div>
             )}
 
-            {/* Info message when editing service with children or child service */}
-            {service && (service.parentServiceId || (service.children && service.children.length > 0)) && (
+            {/* Info message when editing a child service (variation) */}
+            {service && service.parentServiceId && (
               <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
                 <p className="text-sm text-blue-800 dark:text-blue-200">
-                  {service.parentServiceId
-                    ? 'ℹ️ This is a variation. Edit its parent service to manage the hierarchy.'
-                    : 'ℹ️ This service already has variations/subcategories. Edit or delete them individually if needed.'}
+                  ℹ️ This is a variation. Edit its parent service to manage the hierarchy.
                 </p>
               </div>
             )}
 
-            {/* Service Structure - Show when creating OR editing top-level service without children */}
-            {(!service || (service && !service.parentServiceId && (!service.children || service.children.length === 0))) && (
+            {/* Info message when editing parent with existing children - informational only */}
+            {service && !service.parentServiceId && service.children && service.children.length > 0 && (
+              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+                <p className="text-sm text-blue-800 dark:text-blue-200">
+                  ℹ️ This service has {service.children.length} existing variation{service.children.length > 1 ? 's' : ''}. You can add more below.
+                </p>
+              </div>
+            )}
+
+            {/* Service Structure - Show when creating OR editing top-level service (not a child) */}
+            {(!service || (service && !service.parentServiceId)) && (
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
