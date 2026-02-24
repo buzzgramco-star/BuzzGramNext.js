@@ -75,6 +75,14 @@ export default function ServiceManagementModal({ isOpen, onClose, onSuccess, bus
     setVariations(updated);
   };
 
+  const duplicateVariation = (index: number) => {
+    const original = variations[index];
+    const duplicate = { ...original }; // Shallow copy is fine for flat object
+    const updated = [...variations];
+    updated.splice(index + 1, 0, duplicate); // Insert right after original
+    setVariations(updated);
+  };
+
   // 3-Level subcategory functions
   const addSubcategory = () => {
     setSubcategories([...subcategories, { name: '', price: '', duration: '', variations: [] }]);
@@ -105,6 +113,28 @@ export default function ServiceManagementModal({ isOpen, onClose, onSuccess, bus
   const updateSubcategoryVariation = (subcategoryIndex: number, variationIndex: number, field: keyof ServiceVariation, value: string) => {
     const updated = [...subcategories];
     updated[subcategoryIndex].variations[variationIndex][field] = value;
+    setSubcategories(updated);
+  };
+
+  const duplicateSubcategory = (index: number) => {
+    const original = subcategories[index];
+    // Deep copy: copy subcategory and all nested variations
+    const duplicate: SubcategoryWithVariations = {
+      name: original.name,
+      price: original.price,
+      duration: original.duration,
+      variations: original.variations.map(v => ({ ...v })), // Deep copy variations array
+    };
+    const updated = [...subcategories];
+    updated.splice(index + 1, 0, duplicate); // Insert right after original
+    setSubcategories(updated);
+  };
+
+  const duplicateSubcategoryVariation = (subcategoryIndex: number, variationIndex: number) => {
+    const original = subcategories[subcategoryIndex].variations[variationIndex];
+    const duplicate = { ...original };
+    const updated = [...subcategories];
+    updated[subcategoryIndex].variations.splice(variationIndex + 1, 0, duplicate);
     setSubcategories(updated);
   };
 
@@ -427,8 +457,19 @@ export default function ServiceManagementModal({ isOpen, onClose, onSuccess, bus
                             </div>
                             <button
                               type="button"
+                              onClick={() => duplicateVariation(index)}
+                              className="p-1.5 text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700 rounded"
+                              title="Duplicate variation"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                              </svg>
+                            </button>
+                            <button
+                              type="button"
                               onClick={() => removeVariation(index)}
                               className="p-1.5 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
+                              title="Delete variation"
                             >
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -488,8 +529,19 @@ export default function ServiceManagementModal({ isOpen, onClose, onSuccess, bus
                               </div>
                               <button
                                 type="button"
+                                onClick={() => duplicateSubcategory(subIndex)}
+                                className="p-1.5 text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700 rounded"
+                                title="Duplicate subcategory"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                </svg>
+                              </button>
+                              <button
+                                type="button"
                                 onClick={() => removeSubcategory(subIndex)}
                                 className="p-1.5 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
+                                title="Delete subcategory"
                               >
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -537,8 +589,19 @@ export default function ServiceManagementModal({ isOpen, onClose, onSuccess, bus
                                   </div>
                                   <button
                                     type="button"
+                                    onClick={() => duplicateSubcategoryVariation(subIndex, varIndex)}
+                                    className="p-1 text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700 rounded"
+                                    title="Duplicate variation"
+                                  >
+                                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                    </svg>
+                                  </button>
+                                  <button
+                                    type="button"
                                     onClick={() => removeSubcategoryVariation(subIndex, varIndex)}
                                     className="p-1 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
+                                    title="Delete variation"
                                   >
                                     <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
