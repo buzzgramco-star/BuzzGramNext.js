@@ -9,7 +9,7 @@ import Link from 'next/link';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { getAdminStats, getAllUsers, getGeneralQuotes, getAllBusinessQuotes, getBusinesses, deleteBusiness, updateBusinessStatus, deleteUser, updateUserStatus, getBusinessClaims, approveBusinessClaim, rejectBusinessClaim, getBusinessRegistrations, approveBusinessRegistration, rejectBusinessRegistration, getAllReviews, toggleReviewVisibility, deleteReview, deleteAdminService } from '@/lib/api';
+import { getAdminStats, getAllUsers, getGeneralQuotes, getAllBusinessQuotes, getBusinesses, deleteBusiness, updateBusinessStatus, deleteUser, updateUserStatus, getBusinessClaims, approveBusinessClaim, rejectBusinessClaim, getBusinessRegistrations, approveBusinessRegistration, rejectBusinessRegistration, getAllReviews, toggleReviewVisibility, deleteReview, deleteAdminService, duplicateAdminService } from '@/lib/api';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import StarRating from '@/components/StarRating';
 import BlogManagement from '@/components/BlogManagement';
@@ -46,6 +46,7 @@ function AdminDashboardContent() {
   const [selectedBusinessId, setSelectedBusinessId] = useState<number | null>(null);
   const [showingServicesForBusiness, setShowingServicesForBusiness] = useState<number | null>(null);
   const [deletingServiceId, setDeletingServiceId] = useState<number | null>(null);
+  const [duplicatingServiceId, setDuplicatingServiceId] = useState<number | null>(null);
   const [expandedParentServices, setExpandedParentServices] = useState<Set<number>>(new Set());
 
   const { data: stats, isLoading, error: statsError } = useQuery({
@@ -324,6 +325,25 @@ function AdminDashboardContent() {
       setDeletingServiceId(serviceId);
       deleteServiceMutation.mutate({ businessId, serviceId });
     }
+  };
+
+  // Duplicate service mutation
+  const duplicateServiceMutation = useMutation({
+    mutationFn: ({ businessId, serviceId }: { businessId: number; serviceId: number }) =>
+      duplicateAdminService(businessId, serviceId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['businessSearch'] });
+      setDuplicatingServiceId(null);
+    },
+    onError: (error: any) => {
+      alert(error.response?.data?.message || 'Failed to duplicate service');
+      setDuplicatingServiceId(null);
+    },
+  });
+
+  const handleDuplicateService = (businessId: number, serviceId: number, serviceName: string) => {
+    setDuplicatingServiceId(serviceId);
+    duplicateServiceMutation.mutate({ businessId, serviceId });
   };
 
   if (isLoading) return <LoadingSpinner />;
@@ -776,6 +796,22 @@ function AdminDashboardContent() {
                                                 </svg>
                                               </button>
                                               <button
+                                                onClick={() => handleDuplicateService(business.id, service.id, service.serviceName)}
+                                                disabled={duplicatingServiceId === service.id}
+                                                className="px-2 py-1 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-xs font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                                title="Duplicate service"
+                                              >
+                                                {duplicatingServiceId === service.id ? (
+                                                  <svg className="w-3 h-3 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                                  </svg>
+                                                ) : (
+                                                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                                  </svg>
+                                                )}
+                                              </button>
+                                              <button
                                                 onClick={() => handleDeleteService(business.id, service.id, service.serviceName)}
                                                 disabled={deletingServiceId === service.id}
                                                 className="px-2 py-1 bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/30 rounded text-xs font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
@@ -827,6 +863,22 @@ function AdminDashboardContent() {
                                                       <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                                       </svg>
+                                                    </button>
+                                                    <button
+                                                      onClick={() => handleDuplicateService(business.id, child.id, child.serviceName)}
+                                                      disabled={duplicatingServiceId === child.id}
+                                                      className="px-2 py-1 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-xs font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                                      title="Duplicate variation"
+                                                    >
+                                                      {duplicatingServiceId === child.id ? (
+                                                        <svg className="w-3 h-3 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                                        </svg>
+                                                      ) : (
+                                                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                                        </svg>
+                                                      )}
                                                     </button>
                                                     <button
                                                       onClick={() => handleDeleteService(business.id, child.id, child.serviceName)}

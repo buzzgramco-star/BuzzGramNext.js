@@ -238,6 +238,12 @@ export const deleteAdminService = async (businessId: number, serviceId: number) 
   return data;
 };
 
+// Admin: Duplicate service with all children
+export const duplicateAdminService = async (businessId: number, serviceId: number) => {
+  const { data } = await api.post(`/admin/businesses/${businessId}/services/${serviceId}/duplicate`);
+  return data;
+};
+
 // Admin: Delete a user
 export const deleteUser = async (userId: number) => {
   const { data } = await api.delete(`/admin/users/${userId}`);
