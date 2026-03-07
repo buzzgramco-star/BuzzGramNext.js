@@ -6,13 +6,20 @@ import type { BlogPost } from '@/types';
 
 type Props = {
   blog: BlogPost;
-  formatDate: (dateString: string) => string;
 };
 
-export default function BlogDetailClient({ blog, formatDate }: Props) {
+export default function BlogDetailClient({ blog }: Props) {
   const [activeSection, setActiveSection] = useState('');
   const [readProgress, setReadProgress] = useState(0);
   const [showFAQ, setShowFAQ] = useState(false);
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+  };
 
   // Extract headings for TOC
   useEffect(() => {

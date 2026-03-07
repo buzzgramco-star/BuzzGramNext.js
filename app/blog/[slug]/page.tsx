@@ -43,14 +43,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 // Server Component - SSR for SEO
 export default async function BlogDetailPage({ params }: Props) {
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
-  };
-
   try {
     const { slug } = await params;
     const blog = await getBlogBySlug(slug);
@@ -85,7 +77,7 @@ export default async function BlogDetailPage({ params }: Props) {
         />
 
         <div className="min-h-screen bg-white dark:bg-dark-bg flex flex-col">
-          <BlogDetailClient blog={blog} formatDate={formatDate} />
+          <BlogDetailClient blog={blog} />
           <Footer />
         </div>
       </>
