@@ -4,6 +4,9 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import BlogListClient from './BlogListClient';
 
+// Revalidate every 60 seconds to show new published blogs
+export const revalidate = 60;
+
 // Server Component - SSR for SEO
 export default async function BlogListingPage() {
   try {

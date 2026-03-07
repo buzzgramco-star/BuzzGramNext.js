@@ -7,6 +7,7 @@ import Footer from '@/components/Footer';
 
 const BLOG_CATEGORIES = [
   'All',
+  'Platform Guide',
   'Tips & Guides',
   'Platform Updates',
   'Local Spotlights',

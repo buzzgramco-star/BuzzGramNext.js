@@ -146,20 +146,23 @@ export default async function BlogDetailPage({ params }: Props) {
             </div>
 
             {/* Content */}
-            <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
               <div
-                className="prose prose-lg dark:prose-invert max-w-none text-gray-700 dark:text-gray-300
-                  prose-headings:font-bold prose-headings:text-gray-900 dark:prose-headings:text-white
-                  prose-p:text-gray-700 dark:prose-p:text-gray-300 prose-p:leading-relaxed
-                  prose-a:text-orange-600 dark:prose-a:text-orange-400 prose-a:no-underline hover:prose-a:underline
-                  prose-strong:text-gray-900 dark:prose-strong:text-white
-                  prose-ul:text-gray-700 dark:prose-ul:text-gray-300
-                  prose-ol:text-gray-700 dark:prose-ol:text-gray-300
-                  prose-blockquote:border-orange-500 prose-blockquote:bg-orange-50 dark:prose-blockquote:bg-orange-900/20 prose-blockquote:p-4 prose-blockquote:rounded-r-lg
-                  prose-code:text-orange-600 dark:prose-code:text-orange-400 prose-code:bg-gray-100 dark:prose-code:bg-gray-800 prose-code:px-1 prose-code:rounded
-                  prose-pre:bg-gray-900 dark:prose-pre:bg-gray-950
-                  prose-img:rounded-xl prose-img:shadow-lg
-                  whitespace-pre-wrap break-words"
+                className="prose prose-lg dark:prose-invert max-w-none
+                  prose-headings:scroll-mt-20
+                  prose-h2:text-2xl prose-h2:font-extrabold prose-h2:text-gray-900 dark:prose-h2:text-white prose-h2:mt-12 prose-h2:mb-6 prose-h2:leading-tight prose-h2:border-b prose-h2:border-gray-200 dark:prose-h2:border-gray-700 prose-h2:pb-3
+                  prose-h3:text-xl prose-h3:font-bold prose-h3:text-gray-900 dark:prose-h3:text-white prose-h3:mt-8 prose-h3:mb-4
+                  prose-p:text-gray-700 dark:prose-p:text-gray-300 prose-p:leading-relaxed prose-p:mb-6
+                  prose-a:text-orange-600 dark:prose-a:text-orange-400 prose-a:font-medium prose-a:no-underline hover:prose-a:underline prose-a:transition-colors
+                  prose-strong:text-gray-900 dark:prose-strong:text-white prose-strong:font-semibold
+                  prose-ul:my-6 prose-ul:space-y-2 prose-li:text-gray-700 dark:prose-li:text-gray-300 prose-li:leading-relaxed
+                  prose-ol:my-6 prose-ol:space-y-2
+                  prose-blockquote:border-l-4 prose-blockquote:border-orange-500 prose-blockquote:bg-orange-50 dark:prose-blockquote:bg-orange-900/20 prose-blockquote:p-4 prose-blockquote:rounded-r-lg prose-blockquote:my-6
+                  prose-code:text-orange-600 dark:prose-code:text-orange-400 prose-code:bg-gray-100 dark:prose-code:bg-gray-800 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-sm prose-code:font-mono
+                  prose-pre:bg-gray-900 dark:prose-pre:bg-gray-950 prose-pre:rounded-lg prose-pre:my-6
+                  prose-img:rounded-xl prose-img:shadow-lg prose-img:my-8
+                  prose-hr:border-gray-200 dark:prose-hr:border-gray-700 prose-hr:my-12
+                  break-words"
                 dangerouslySetInnerHTML={{ __html: blog.content }}
               />
             </div>
