@@ -20,6 +20,7 @@ frontend-nextjs/
 ├── app/                          # Next.js App Router
 │   ├── page.tsx                  # Homepage
 │   ├── layout.tsx                # Root layout
+│   ├── globals.css               # Global styles + .blog-content CSS rules
 │   ├── city/                     # City pages
 │   │   ├── toronto/              # Toronto SSR pages (category/subcategory)
 │   │   ├── vancouver/            # Vancouver SSR pages
@@ -32,8 +33,13 @@ frontend-nextjs/
 │   │   ├── chicago/              # Chicago SSR pages
 │   │   └── phoenix/              # Phoenix SSR pages
 │   ├── business/[slug]/          # Business detail pages (dynamic)
+│   ├── blog/                     # Blog pages
+│   │   ├── page.tsx              # Blog listing (SSR, 60s revalidate)
+│   │   └── [slug]/
+│   │       ├── page.tsx          # Blog detail SSR page (structured data, metadata)
+│   │       └── BlogDetailClient.tsx # Client component (progress bar, TOC sidebar)
 │   ├── admin/                    # Admin dashboard
-│   ├── business-dashboard/       # Business owner dashboard
+│   ├── business-dashboard/       # Business owner dashboard (includes service management)
 │   ├── quote/                    # Quote request pages
 │   ├── login/                    # Login page
 │   ├── register/                 # Registration page
@@ -43,7 +49,7 @@ frontend-nextjs/
 │   ├── Footer.tsx                # Footer with links
 │   ├── BusinessCard.tsx          # Business listing card
 │   ├── BusinessFormModal.tsx     # Create/edit business modal
-│   ├── ServiceManagementModal.tsx # Add/edit service modal
+│   ├── ServiceManagementModal.tsx # Add/edit service modal (supports optional owner callbacks)
 │   ├── GeneralQuoteModal.tsx     # General quote request modal
 │   ├── ThemeToggle.tsx           # Dark mode toggle
 │   └── GoogleAuthButton.tsx      # Google OAuth button
@@ -146,11 +152,13 @@ export async function generateMetadata() {
 - **IMPORTANT**: Strips @ prefix when loading Instagram handle for editing
 - Validates and adds @ prefix on submit
 
-**ServiceManagementModal.tsx** (NEW - Feb 17, 2026)
-- Add/edit service modal
-- Fields: serviceName (required), price (optional), duration (optional)
-- Used by admin to manage services for any business
-- Edit mode pre-populates form with service data
+**ServiceManagementModal.tsx**
+- Add/edit service modal with full hierarchy support (2-level variations, 3-level subcategories)
+- Fields: serviceName (required), price (optional), duration (optional), parentServiceId
+- Duplicate service/subcategory/variation functionality
+- **Accepts optional callback props** `onAddService` and `onUpdateService` — when provided, used instead of admin API functions. This allows the same modal to serve both admin and business owner contexts.
+- Default behaviour (no callbacks): uses `addAdminService` / `updateAdminService` — admin dashboard unchanged
+- Business owner usage: pass `handleOwnerAddService` / `handleOwnerUpdateService` callbacks that call owner endpoints
 
 **GeneralQuoteModal.tsx**
 - General quote request form
@@ -317,20 +325,72 @@ if (isAdmin) {
 ### My Business
 - View owned business details
 - Edit business profile (description, address, Instagram)
-- Manage services (add, edit, delete, reorder)
 - View quote requests
+- View and reply to customer reviews
 
-### Service Management
-- Add new services
-- Edit service details (name, price, duration)
-- Delete services
-- Reorder services with drag-and-drop
+### Service Management (Services & Pricing section)
+- Collapsible "Services & Pricing" section showing all services including admin-created ones
+- 3-level hierarchy display: parent → children (expand/collapse) → grandchildren
+- Add new services using `ServiceManagementModal` with owner callbacks
+- Edit any service (name, price, duration) — including services added by admin
+- Delete services (cascade deletes all children)
+- Service count shown in section header
+- Uses `getOwnerBusiness` query (includes flat services list with `parentServiceId`)
+- Hierarchy built client-side by filtering `parentServiceId === null` for parents
+- **Scoped strictly to own business** — backend enforces `ownerId = userId` on every call
 
 ### Quote Requests
 - View quote requests for owned business
 - Contact information for follow-up
 
+## Blog Styling (globals.css)
+Blog content is stored as HTML in the database and rendered via `dangerouslySetInnerHTML`. Styling is applied via direct CSS class selectors in `globals.css` — **do NOT use Tailwind prose modifier classes** for blog content as they are unreliable.
+
+```css
+/* Key blog content rules in globals.css */
+.blog-content { color: #374151; line-height: 1.8; font-size: 1.125rem; }
+.blog-content h2 { font-size: 1.875rem; font-weight: 800; margin-top: 3.5rem; border-bottom: 2px solid #e5e7eb; }
+.blog-content h3 { font-size: 1.5rem; font-weight: 700; margin-top: 2.5rem; }
+.blog-content strong { font-weight: 700; color: #111827; }
+.dark .blog-content h2 { color: #ffffff; border-bottom-color: #374151; }
+```
+
+`@plugin "@tailwindcss/typography"` is imported in `globals.css` but blog content styling uses `.blog-content` selectors, not prose classes.
+
+## Blog Detail Page (app/blog/[slug]/)
+
+### page.tsx (Server Component)
+- Fetches blog by slug server-side
+- Generates metadata (title, description, Open Graph)
+- Injects JSON-LD structured data (Article schema)
+- Renders `<BlogDetailClient blog={blog} />` — passes only serializable data, no functions
+
+### BlogDetailClient.tsx (Client Component)
+- Reading progress bar (fixed top, orange → pink gradient)
+- Article header with breadcrumb, category badge, title, excerpt, author, date, read time
+- Main content area: `<div className="blog-content" dangerouslySetInnerHTML={{ __html: blog.content }} />`
+- Sidebar TOC (desktop only, xl breakpoint) — populated from h2 headings via IntersectionObserver
+- CTA section at bottom linking to homepage and blog listing
+- Contains `formatDate` internally — **never pass functions as props from Server to Client Component**
+
+## Recent Changes (March 2026)
+
+### Business Owner Service Management (Mar 8, 2026)
+- Added "Services & Pricing" collapsible section to business owner dashboard
+- Business owners can view, add, edit, and delete all services including admin-created ones
+- Full 3-level hierarchy display with expand/collapse per parent service
+- `ServiceManagementModal` refactored to accept optional `onAddService`/`onUpdateService` callbacks
+- Admin dashboard behaviour unchanged (no callbacks = uses admin functions as default)
+- New API functions: `getOwnerBusiness`, updated `addBusinessService`, `updateBusinessService`, `deleteBusinessService`
+
 ## Recent Changes (February 2026)
+
+### Blog Detail Page (Feb 2026)
+- Added `app/blog/[slug]/page.tsx` — SSR with metadata, Open Graph, Article JSON-LD structured data
+- Added `app/blog/[slug]/BlogDetailClient.tsx` — reading progress bar, TOC sidebar, full-width hero layout
+- `@tailwindcss/typography` installed; blog content styled via `.blog-content` CSS selectors in globals.css
+- **Key lesson**: Never pass functions as props from Server Components to Client Components in Next.js 15
+- Blog listing page (`app/blog/page.tsx`) uses 60s revalidation
 
 ### Instagram Handle Display Fix (Feb 17, 2026)
 - **Bug**: Business cards showed `@@hairbycle0` instead of `@hairbycle0`
@@ -487,6 +547,12 @@ export default function ProtectedPage() {
 - **Issue**: API calls failing with CORS errors
 - **Solution**: Verify `FRONTEND_URL` in backend matches Vercel deployment URL
 - **URL**: `https://buzzgram-frontend.vercel.app` (NOT `buzz-gram-next-js.vercel.app`)
+
+### Blog Content Not Styled (No Spacing, No Bold, Dark Mode Invisible)
+- **Issue**: Blog content renders as unstyled text
+- **Solution**: Use `.blog-content` CSS selectors in `globals.css`, NOT Tailwind prose modifier classes
+- **Root cause history**: `@tailwindcss/typography` was missing; prose modifier classes generated zero CSS
+- Blog content div must have `className="blog-content"` — styling is applied via globals.css rules
 
 ### Dark Mode Not Persisting
 - **Issue**: Dark mode resets on page refresh
