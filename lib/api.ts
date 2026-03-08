@@ -330,6 +330,14 @@ export const addBusinessService = async (serviceData: {
   serviceName: string;
   price?: string;
   duration?: string;
+  parentServiceId?: number;
+  variations?: Array<{ name: string; price?: string; duration?: string }>;
+  subcategories?: Array<{
+    name: string;
+    price?: string;
+    duration?: string;
+    variations?: Array<{ name: string; price?: string; duration?: string }>;
+  }>;
 }) => {
   const { data } = await api.post('/owner/business/services', serviceData);
   return data;
@@ -340,6 +348,7 @@ export const updateBusinessService = async (serviceId: number, serviceData: {
   serviceName?: string;
   price?: string;
   duration?: string;
+  parentServiceId?: number;
 }) => {
   const { data } = await api.put(`/owner/business/services/${serviceId}`, serviceData);
   return data;

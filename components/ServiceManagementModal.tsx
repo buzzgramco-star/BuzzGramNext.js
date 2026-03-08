@@ -11,6 +11,10 @@ interface ServiceManagementModalProps {
   businessId: number;
   service?: BusinessService | null; // If provided, edit mode. Otherwise, create mode
   availableServices?: BusinessService[]; // All services for this business (for parent selection)
+  // Optional overrides — when provided, used instead of admin API functions
+  // Allows the modal to be reused for business owner context
+  onAddService?: (businessId: number, serviceData: any) => Promise<any>;
+  onUpdateService?: (businessId: number, serviceId: number, serviceData: any) => Promise<any>;
 }
 
 interface ServiceVariation {
@@ -26,7 +30,10 @@ interface SubcategoryWithVariations {
   variations: ServiceVariation[];
 }
 
-export default function ServiceManagementModal({ isOpen, onClose, onSuccess, businessId, service, availableServices = [] }: ServiceManagementModalProps) {
+export default function ServiceManagementModal({ isOpen, onClose, onSuccess, businessId, service, availableServices = [], onAddService, onUpdateService }: ServiceManagementModalProps) {
+  // Use provided callbacks or fall back to admin API functions
+  const addServiceFn = onAddService ?? addAdminService;
+  const updateServiceFn = onUpdateService ?? updateAdminService;
   const [serviceName, setServiceName] = useState('');
   const [price, setPrice] = useState('');
   const [duration, setDuration] = useState('');
@@ -154,7 +161,7 @@ export default function ServiceManagementModal({ isOpen, onClose, onSuccess, bus
         };
 
         // Update the parent service first
-        await updateAdminService(businessId, service.id, serviceData);
+        await updateServiceFn(businessId, service.id, serviceData);
 
         // Add subcategories if any (3-level)
         if (subcategories.length > 0) {
@@ -189,7 +196,7 @@ export default function ServiceManagementModal({ isOpen, onClose, onSuccess, bus
               subcategoryData.variations = subcategory.variations;
             }
 
-            await addAdminService(businessId, subcategoryData);
+            await addServiceFn(businessId, subcategoryData);
           }
         } else if (variations.length > 0) {
           // Add variations (2-level)
@@ -202,7 +209,7 @@ export default function ServiceManagementModal({ isOpen, onClose, onSuccess, bus
 
           // Create each variation as a child service
           for (const variation of variations) {
-            await addAdminService(businessId, {
+            await addServiceFn(businessId, {
               serviceName: variation.name,
               price: variation.price || undefined,
               duration: variation.duration || undefined,
@@ -251,7 +258,7 @@ export default function ServiceManagementModal({ isOpen, onClose, onSuccess, bus
           serviceData.parentServiceId = parentServiceId || undefined;
         }
 
-        await addAdminService(businessId, serviceData);
+        await addServiceFn(businessId, serviceData);
       }
 
       setSuccess(true);

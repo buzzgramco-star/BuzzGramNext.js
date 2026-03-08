@@ -8,20 +8,25 @@ import Footer from '@/components/Footer';
 import { useState } from 'react';
 import Link from 'next/link';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getOwnedBusinesses, getMyQuoteRequests, getOwnerReviews, createReviewReply, updateReviewReply, deleteReviewReply } from '@/lib/api';
+import { getOwnedBusinesses, getMyQuoteRequests, getOwnerReviews, createReviewReply, updateReviewReply, deleteReviewReply, getOwnerBusiness, addBusinessService, updateBusinessService, deleteBusinessService } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import StarRating from '@/components/StarRating';
 import VerifiedBadge from '@/components/VerifiedBadge';
-import type { Review } from '@/types';
+import ServiceManagementModal from '@/components/ServiceManagementModal';
+import type { Review, BusinessService } from '@/types';
 
 function BusinessOwnerDashboardContent() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [showBusiness, setShowBusiness] = useState(true);
+  const [showServices, setShowServices] = useState(true);
   const [showQuotes, setShowQuotes] = useState(true);
   const [showReviews, setShowReviews] = useState(true);
   const [replyingTo, setReplyingTo] = useState<number | null>(null);
+  const [serviceModalOpen, setServiceModalOpen] = useState(false);
+  const [editingService, setEditingService] = useState<BusinessService | null>(null);
+  const [expandedParentServices, setExpandedParentServices] = useState<Set<number>>(new Set());
   const [editingReply, setEditingReply] = useState<number | null>(null);
   const [replyText, setReplyText] = useState('');
 
@@ -39,6 +44,51 @@ function BusinessOwnerDashboardContent() {
     queryKey: ['ownerReviews'],
     queryFn: getOwnerReviews,
   });
+
+  const { data: ownerBusiness } = useQuery({
+    queryKey: ['ownerBusiness'],
+    queryFn: getOwnerBusiness,
+  });
+
+  // Services helpers
+  const allServices: BusinessService[] = ownerBusiness?.services || [];
+  const parentServices = allServices.filter((s: BusinessService) => !s.parentServiceId);
+  const getServiceChildren = (parentId: number) => allServices.filter((s: BusinessService) => s.parentServiceId === parentId);
+
+  const toggleParentExpanded = (serviceId: number) => {
+    setExpandedParentServices(prev => {
+      const next = new Set(prev);
+      if (next.has(serviceId)) {
+        next.delete(serviceId);
+      } else {
+        next.add(serviceId);
+      }
+      return next;
+    });
+  };
+
+  // Owner service API callbacks (owner endpoints don't need businessId — derived from JWT)
+  const handleOwnerAddService = async (_businessId: number, serviceData: any) => {
+    return addBusinessService(serviceData);
+  };
+
+  const handleOwnerUpdateService = async (_businessId: number, serviceId: number, serviceData: any) => {
+    return updateBusinessService(serviceId, serviceData);
+  };
+
+  // Delete service mutation
+  const deleteServiceMutation = useMutation({
+    mutationFn: (serviceId: number) => deleteBusinessService(serviceId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['ownerBusiness'] });
+    },
+  });
+
+  const handleDeleteService = (serviceId: number, serviceName: string) => {
+    if (confirm(`Delete "${serviceName}"? This will also delete all its variations.`)) {
+      deleteServiceMutation.mutate(serviceId);
+    }
+  };
 
   // Reply mutations
   const createReplyMutation = useMutation({
@@ -110,6 +160,7 @@ function BusinessOwnerDashboardContent() {
   const hasBusinesses = businesses && businesses.length > 0;
 
   return (
+    <>
     <div className="min-h-screen bg-gray-50 dark:bg-dark-bg py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
@@ -298,6 +349,207 @@ function BusinessOwnerDashboardContent() {
                 </div>
               )}
             </div>
+
+            {/* Services Section - Collapsible */}
+            {ownerBusiness && (
+              <div>
+                <button
+                  onClick={() => setShowServices(!showServices)}
+                  className="w-full bg-white dark:bg-dark-card rounded-xl border border-gray-200 dark:border-dark-border p-6 hover:border-orange-500 dark:hover:border-orange-500 transition-all cursor-pointer text-left"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/20 rounded-lg flex items-center justify-center">
+                        <svg className="w-5 h-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                        </svg>
+                      </div>
+                      <div className="ml-4">
+                        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                          Services & Pricing
+                        </h2>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          {allServices.length} {allServices.length === 1 ? 'service' : 'services'} · Manage what you offer and how much you charge
+                        </p>
+                      </div>
+                    </div>
+                    <svg
+                      className={`w-6 h-6 text-gray-400 transition-transform ${showServices ? 'rotate-180' : ''}`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                </button>
+
+                {showServices && (
+                  <div className="mt-4 bg-white dark:bg-dark-card rounded-xl border border-gray-200 dark:border-dark-border p-6">
+                    {/* Add Service Button */}
+                    <div className="flex justify-end mb-4">
+                      <button
+                        onClick={() => { setEditingService(null); setServiceModalOpen(true); }}
+                        className="flex items-center gap-2 px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white text-sm font-medium rounded-lg transition-colors"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                        </svg>
+                        Add Service
+                      </button>
+                    </div>
+
+                    {parentServices.length === 0 ? (
+                      <div className="text-center py-8">
+                        <div className="w-12 h-12 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-3">
+                          <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                          </svg>
+                        </div>
+                        <p className="text-gray-500 dark:text-gray-400 text-sm">No services added yet. Add your first service above.</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        {parentServices.map((parent: BusinessService) => {
+                          const children = getServiceChildren(parent.id);
+                          const isExpanded = expandedParentServices.has(parent.id);
+
+                          return (
+                            <div key={parent.id}>
+                              {/* Parent service row */}
+                              <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-dark-border">
+                                <div className="flex items-center gap-2 flex-1 min-w-0">
+                                  {children.length > 0 && (
+                                    <button
+                                      onClick={() => toggleParentExpanded(parent.id)}
+                                      className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 flex-shrink-0"
+                                    >
+                                      <svg className={`w-4 h-4 transition-transform ${isExpanded ? 'rotate-90' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                      </svg>
+                                    </button>
+                                  )}
+                                  {children.length === 0 && <div className="w-4 flex-shrink-0" />}
+                                  <span className="font-medium text-gray-900 dark:text-white truncate">{parent.serviceName}</span>
+                                  {children.length > 0 && (
+                                    <span className="text-xs text-gray-400 dark:text-gray-500 flex-shrink-0">({children.length})</span>
+                                  )}
+                                  {parent.price && (
+                                    <span className="text-sm text-orange-600 dark:text-orange-400 flex-shrink-0">{parent.price}</span>
+                                  )}
+                                  {parent.duration && (
+                                    <span className="text-sm text-gray-500 dark:text-gray-400 flex-shrink-0">{parent.duration}</span>
+                                  )}
+                                </div>
+                                <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+                                  <button
+                                    onClick={() => { setEditingService(parent); setServiceModalOpen(true); }}
+                                    className="text-sm text-orange-600 dark:text-orange-400 hover:underline"
+                                  >
+                                    Edit
+                                  </button>
+                                  <button
+                                    onClick={() => handleDeleteService(parent.id, parent.serviceName)}
+                                    disabled={deleteServiceMutation.isPending}
+                                    className="text-sm text-red-600 dark:text-red-400 hover:underline disabled:opacity-50"
+                                  >
+                                    Delete
+                                  </button>
+                                </div>
+                              </div>
+
+                              {/* Children (level 2) */}
+                              {isExpanded && children.map((child: BusinessService) => {
+                                const grandchildren = getServiceChildren(child.id);
+                                const isChildExpanded = expandedParentServices.has(child.id);
+
+                                return (
+                                  <div key={child.id} className="ml-6 mt-1">
+                                    <div className="flex items-center justify-between p-3 bg-white dark:bg-dark-bg rounded-lg border border-gray-200 dark:border-dark-border">
+                                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                                        {grandchildren.length > 0 && (
+                                          <button
+                                            onClick={() => toggleParentExpanded(child.id)}
+                                            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 flex-shrink-0"
+                                          >
+                                            <svg className={`w-3 h-3 transition-transform ${isChildExpanded ? 'rotate-90' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                            </svg>
+                                          </button>
+                                        )}
+                                        {grandchildren.length === 0 && <div className="w-3 flex-shrink-0" />}
+                                        <span className="text-sm text-gray-800 dark:text-gray-200 truncate">{child.serviceName}</span>
+                                        {grandchildren.length > 0 && (
+                                          <span className="text-xs text-gray-400 dark:text-gray-500 flex-shrink-0">({grandchildren.length})</span>
+                                        )}
+                                        {child.price && (
+                                          <span className="text-sm text-orange-600 dark:text-orange-400 flex-shrink-0">{child.price}</span>
+                                        )}
+                                        {child.duration && (
+                                          <span className="text-sm text-gray-500 dark:text-gray-400 flex-shrink-0">{child.duration}</span>
+                                        )}
+                                      </div>
+                                      <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+                                        <button
+                                          onClick={() => { setEditingService(child); setServiceModalOpen(true); }}
+                                          className="text-sm text-orange-600 dark:text-orange-400 hover:underline"
+                                        >
+                                          Edit
+                                        </button>
+                                        <button
+                                          onClick={() => handleDeleteService(child.id, child.serviceName)}
+                                          disabled={deleteServiceMutation.isPending}
+                                          className="text-sm text-red-600 dark:text-red-400 hover:underline disabled:opacity-50"
+                                        >
+                                          Delete
+                                        </button>
+                                      </div>
+                                    </div>
+
+                                    {/* Grandchildren (level 3) */}
+                                    {isChildExpanded && grandchildren.map((grandchild: BusinessService) => (
+                                      <div key={grandchild.id} className="ml-6 mt-1">
+                                        <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800/30 rounded-lg border border-gray-100 dark:border-dark-border">
+                                          <div className="flex items-center gap-2 flex-1 min-w-0">
+                                            <div className="w-3 flex-shrink-0" />
+                                            <span className="text-sm text-gray-700 dark:text-gray-300 truncate">{grandchild.serviceName}</span>
+                                            {grandchild.price && (
+                                              <span className="text-sm text-orange-600 dark:text-orange-400 flex-shrink-0">{grandchild.price}</span>
+                                            )}
+                                            {grandchild.duration && (
+                                              <span className="text-sm text-gray-500 dark:text-gray-400 flex-shrink-0">{grandchild.duration}</span>
+                                            )}
+                                          </div>
+                                          <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+                                            <button
+                                              onClick={() => { setEditingService(grandchild); setServiceModalOpen(true); }}
+                                              className="text-sm text-orange-600 dark:text-orange-400 hover:underline"
+                                            >
+                                              Edit
+                                            </button>
+                                            <button
+                                              onClick={() => handleDeleteService(grandchild.id, grandchild.serviceName)}
+                                              disabled={deleteServiceMutation.isPending}
+                                              className="text-sm text-red-600 dark:text-red-400 hover:underline disabled:opacity-50"
+                                            >
+                                              Delete
+                                            </button>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Quote Requests Section - Collapsible */}
             {quoteRequests && quoteRequests.length > 0 && (
@@ -692,6 +944,23 @@ function BusinessOwnerDashboardContent() {
         )}
       </div>
     </div>
+
+    {/* Service Management Modal */}
+    <ServiceManagementModal
+      isOpen={serviceModalOpen}
+      onClose={() => { setServiceModalOpen(false); setEditingService(null); }}
+      onSuccess={() => {
+        queryClient.invalidateQueries({ queryKey: ['ownerBusiness'] });
+        setServiceModalOpen(false);
+        setEditingService(null);
+      }}
+      businessId={ownerBusiness?.id || 0}
+      service={editingService}
+      availableServices={allServices}
+      onAddService={handleOwnerAddService}
+      onUpdateService={handleOwnerUpdateService}
+    />
+    </>
   );
 }
 
