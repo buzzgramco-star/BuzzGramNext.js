@@ -1,25 +1,13 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import AIChatSearch from '@/components/AIChatSearch';
 
 interface HeroSectionProps {
   detectedCity: string;
 }
 
 export default function HeroSection({ detectedCity }: HeroSectionProps) {
-  const router = useRouter();
-  const [searchQuery, setSearchQuery] = useState('');
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      // Redirect to detected city with search query
-      router.push(`/city/${detectedCity}?search=${encodeURIComponent(searchQuery.trim())}`);
-    }
-  };
-
   return (
     <div className="bg-gradient-to-b from-gray-50 to-white dark:from-dark-card dark:to-dark-bg border-b border-gray-200 dark:border-dark-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
@@ -33,28 +21,9 @@ export default function HeroSection({ detectedCity }: HeroSectionProps) {
           </p>
         </div>
 
-        {/* Search Bar */}
+        {/* AI Search */}
         <div className="max-w-2xl mx-auto mb-8">
-          <form onSubmit={handleSearch} className="relative">
-            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-              <svg className="h-6 w-6 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-            </div>
-            <input
-              type="text"
-              placeholder="Search for nails, bakery, event planning..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full px-4 py-4 pl-12 pr-32 text-lg border-2 border-gray-300 dark:border-dark-border rounded-xl bg-white dark:bg-dark-bg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all shadow-sm"
-            />
-            <button
-              type="submit"
-              className="absolute inset-y-0 right-0 px-6 bg-orange-600 hover:bg-orange-700 text-white font-semibold rounded-r-xl transition-colors"
-            >
-              Search
-            </button>
-          </form>
+          <AIChatSearch />
         </div>
 
         {/* Business Owner Link - Subtle */}

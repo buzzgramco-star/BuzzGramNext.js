@@ -11,6 +11,7 @@ import Breadcrumbs, { BreadcrumbItem } from '@/components/Breadcrumbs';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { cityContent } from '@/lib/seoContent';
+import AIChatSearch from '@/components/AIChatSearch';
 
 type Props = {
   city: City;
@@ -29,35 +30,6 @@ export default function CityPageClient({ city, businesses, categories, subcatego
 
   // Get search term from URL for filtering
   const searchTerm = searchParams?.get('search') || '';
-
-  // Local state for input (updates immediately for responsive typing)
-  const [searchInput, setSearchInput] = useState(searchTerm);
-
-  // Sync local input with URL when searchTerm changes externally (e.g., navigation)
-  useEffect(() => {
-    setSearchInput(searchTerm);
-  }, [searchTerm]);
-
-  // Debounced URL update: only runs when searchInput changes, waits 500ms after user stops typing
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      const newParams = new URLSearchParams(searchParams?.toString() || '');
-      if (searchInput) {
-        newParams.set('search', searchInput);
-      } else {
-        newParams.delete('search');
-      }
-      const newUrl = `?${newParams.toString()}`;
-      const currentUrl = `?${searchParams?.toString()}`;
-
-      // Only update if URL actually changed
-      if (newUrl !== currentUrl) {
-        router.replace(newUrl, { scroll: false });
-      }
-    }, 500);
-
-    return () => clearTimeout(timeoutId);
-  }, [searchInput]); // ONLY depends on searchInput, NOT searchParams or router
 
   // Navigate to category page instead of filtering
   const handleCategorySelect = (categoryId: number | null) => {
@@ -198,26 +170,15 @@ export default function CityPageClient({ city, businesses, categories, subcatego
           )}
         </div>
 
+        {/* AI Search */}
+        <div className="w-full md:max-w-7xl md:mx-auto px-4 md:px-6 lg:px-8 py-6">
+          <AIChatSearch initialCitySlug={city.slug} />
+        </div>
+
         {/* Filters */}
         <div className="bg-white dark:bg-dark-card border-b border-gray-200 dark:border-dark-border">
           <div className="w-full md:max-w-7xl md:mx-auto px-2 md:px-6 lg:px-8 py-6 sm:py-8">
             <div className="space-y-6">
-              {/* Search Bar - Mobile Only */}
-              <div className="relative md:hidden">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <svg className="h-5 w-5 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                </div>
-                <input
-                  type="text"
-                  placeholder="Search businesses..."
-                  value={searchInput}
-                  onChange={(e) => setSearchInput(e.target.value)}
-                  className="w-full px-4 py-3 pl-11 border border-gray-300 dark:border-dark-border rounded-lg bg-white dark:bg-dark-bg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-                />
-              </div>
-
               {/* Category Pills */}
               {categories && (
                 <CategoryFilter
