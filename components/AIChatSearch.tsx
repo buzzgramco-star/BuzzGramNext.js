@@ -72,11 +72,11 @@ function groupBusinesses(businesses: Business[]): BusinessGroup[] {
 
 // ── Compact business card for carousel ────────────────────────────────────────
 
-function MiniBusinessCard({ business }: { business: Business }) {
+function MiniBusinessCard({ business, onSelect }: { business: Business; onSelect: (name: string) => void }) {
   return (
-    <Link
-      href={`/business/${business.slug}`}
-      className="block bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-xl p-3 hover:shadow-md hover:border-orange-300 dark:hover:border-orange-500 transition-all group"
+    <div
+      onClick={() => onSelect(business.name)}
+      className="cursor-pointer bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-xl p-3 hover:shadow-md hover:border-orange-300 dark:hover:border-orange-500 transition-all group flex flex-col"
     >
       <p className="text-sm font-semibold text-gray-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors line-clamp-2 leading-snug mb-2">
         {business.name}
@@ -87,20 +87,30 @@ function MiniBusinessCard({ business }: { business: Business }) {
         </p>
       )}
       {business.city && (
-        <p className="text-xs text-gray-400 dark:text-gray-500 truncate flex items-center gap-1">
+        <p className="text-xs text-gray-400 dark:text-gray-500 truncate flex items-center gap-1 mb-2">
           <svg className="w-3 h-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
           </svg>
           {business.city.name}
         </p>
       )}
-    </Link>
+      <Link
+        href={`/business/${business.slug}`}
+        onClick={e => e.stopPropagation()}
+        className="mt-auto text-xs text-orange-500 dark:text-orange-400 hover:underline flex items-center gap-0.5"
+      >
+        View profile
+        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+        </svg>
+      </Link>
+    </div>
   );
 }
 
 // ── Carousel row ──────────────────────────────────────────────────────────────
 
-function CarouselRow({ group }: { group: BusinessGroup }) {
+function CarouselRow({ group, onSelect }: { group: BusinessGroup; onSelect: (name: string) => void }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canLeft, setCanLeft] = useState(false);
   const [canRight, setCanRight] = useState(false);
@@ -158,7 +168,7 @@ function CarouselRow({ group }: { group: BusinessGroup }) {
         >
           {group.items.map(business => (
             <div key={business.id} className="flex-shrink-0 w-48 snap-start">
-              <MiniBusinessCard business={business} />
+              <MiniBusinessCard business={business} onSelect={onSelect} />
             </div>
           ))}
         </div>
@@ -478,7 +488,11 @@ export default function AIChatSearch({ initialCitySlug }: AIChatSearchProps) {
                     {!msg.isLoading && msg.showCards !== false && msg.businesses && msg.businesses.length > 0 && (
                       <div className="mb-3">
                         {groupBusinesses(msg.businesses).map(group => (
-                          <CarouselRow key={group.label} group={group} />
+                          <CarouselRow
+                            key={group.label}
+                            group={group}
+                            onSelect={(name) => sendMessage(`What can you tell me about ${name}?`)}
+                          />
                         ))}
                       </div>
                     )}
