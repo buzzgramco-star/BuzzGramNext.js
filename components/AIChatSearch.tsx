@@ -204,6 +204,7 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
   const [cityError, setCityError] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  const [activeFocusedSlug, setActiveFocusedSlug] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -306,7 +307,7 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
     el.style.height = `${Math.min(el.scrollHeight, 160)}px`;
   };
 
-  const sendMessage = useCallback(async (text: string, focusedSlug?: string) => {
+  const sendMessage = useCallback(async (text: string, explicitSlug?: string) => {
     const trimmed = text.trim();
     if (!trimmed || isLoading) return;
 
@@ -329,12 +330,26 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
       .slice(-8)
       .map(m => ({ role: m.role, content: m.content }));
 
+    // Explicit slug (card/chip click) takes priority; fall back to active state
+    // so typed follow-up messages stay anchored to the current vendor automatically.
+    const slugToSend = explicitSlug !== undefined ? explicitSlug : (activeFocusedSlug ?? undefined);
+
     try {
       const { data } = await api.post<AISearchResponse>(
         '/ai-search',
-        { messages: historyForAPI, cityId: selectedCity.id, ...(focusedSlug ? { focusedSlug } : {}) },
+        { messages: historyForAPI, cityId: selectedCity.id, ...(slugToSend ? { focusedSlug: slugToSend } : {}) },
         { timeout: 35000 }
       );
+
+      // Update active focused slug based on AI response:
+      // - Single vendor response → lock in that vendor
+      // - Multiple results → back to discovery, clear focus
+      // - Question / 0 results → keep current focus (still about same vendor)
+      if (data.showCards === false && data.data?.length === 1) {
+        setActiveFocusedSlug(data.data[0].slug);
+      } else if ((data.data?.length ?? 0) > 1) {
+        setActiveFocusedSlug(null);
+      }
 
       const assistantMsg: ChatMessage = {
         id: loadingId,
@@ -345,15 +360,12 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
         checklist: data.checklist || [],
         type: data.type as any,
         showCards: data.showCards !== false,
-        // Persist the focused slug so follow-up chips can pass it directly
-        // without relying on text detection (which breaks on short business names)
         focusedSlug: data.showCards === false && data.data?.length === 1 ? data.data[0].slug : undefined,
         isLoading: false,
       };
 
       setMessages(prev => {
         const updated = prev.map(m => m.id === loadingId ? assistantMsg : m);
-        // Persist immediately after AI replies (save effect also runs but this is faster)
         if (selectedCity) {
           const toSave = updated.filter(m => !m.isLoading);
           if (user) {
@@ -380,7 +392,7 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
     } finally {
       setIsLoading(false);
     }
-  }, [messages, selectedCity, isLoading, user, showToast]);
+  }, [messages, selectedCity, isLoading, user, showToast, activeFocusedSlug]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -428,7 +440,7 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
                 <button
                   key={city.id}
                   type="button"
-                  onClick={() => { setSelectedCity(city); setCityError(false); setDropdownOpen(false); }}
+                  onClick={() => { setSelectedCity(city); setCityError(false); setDropdownOpen(false); setActiveFocusedSlug(null); }}
                   className="w-full flex items-center justify-between px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-dark-bg transition-colors"
                 >
                   <span>{city.name}</span>
@@ -588,6 +600,7 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
                 type="button"
                 onClick={() => {
                   setMessages([]);
+                  setActiveFocusedSlug(null);
                   if (selectedCity) {
                     if (user) {
                       deleteAIConversation(selectedCity.slug).catch(() => {});
