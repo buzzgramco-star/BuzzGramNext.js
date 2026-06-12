@@ -18,6 +18,7 @@ interface ChatMessage {
   followUps?: string[];
   checklist?: string[];
   type?: 'search' | 'planning' | 'question';
+  showCards?: boolean;
   isLoading?: boolean;
   isError?: boolean;
 }
@@ -30,6 +31,7 @@ interface AISearchResponse {
   followUps: string[];
   checklist: string[];
   detectedCity: string | null;
+  showCards: boolean;
   aiUnavailable: boolean;
 }
 
@@ -324,6 +326,7 @@ export default function AIChatSearch({ initialCitySlug }: AIChatSearchProps) {
         followUps: data.followUps || [],
         checklist: data.checklist || [],
         type: data.type as any,
+        showCards: data.showCards !== false,
         isLoading: false,
       };
 
@@ -452,7 +455,7 @@ export default function AIChatSearch({ initialCitySlug }: AIChatSearchProps) {
 
                     {/* Message text */}
                     {!msg.isLoading && msg.content && (
-                      <p className={`text-sm leading-relaxed ${msg.isError ? 'text-red-500 dark:text-red-400' : 'text-gray-700 dark:text-gray-300'} ${(msg.checklist?.length || msg.businesses?.length) ? 'mb-4' : ''}`}>
+                      <p className={`text-sm leading-relaxed whitespace-pre-line ${msg.isError ? 'text-red-500 dark:text-red-400' : 'text-gray-700 dark:text-gray-300'} ${(msg.checklist?.length || msg.businesses?.length) ? 'mb-4' : ''}`}>
                         {msg.isError ? msg.content : renderMarkdown(msg.content)}
                       </p>
                     )}
@@ -471,13 +474,26 @@ export default function AIChatSearch({ initialCitySlug }: AIChatSearchProps) {
                       </div>
                     )}
 
-                    {/* Business results — grouped by subcategory, each as a carousel */}
-                    {!msg.isLoading && msg.businesses && msg.businesses.length > 0 && (
+                    {/* Business results — grouped carousel (only when AI signals showCards) */}
+                    {!msg.isLoading && msg.showCards !== false && msg.businesses && msg.businesses.length > 0 && (
                       <div className="mb-3">
                         {groupBusinesses(msg.businesses).map(group => (
                           <CarouselRow key={group.label} group={group} />
                         ))}
                       </div>
+                    )}
+
+                    {/* Subtle profile link when focused on a single vendor (no card needed) */}
+                    {!msg.isLoading && msg.showCards === false && msg.businesses && msg.businesses.length === 1 && (
+                      <Link
+                        href={`/business/${msg.businesses[0].slug}`}
+                        className="inline-flex items-center gap-1 text-xs text-orange-600 dark:text-orange-400 hover:underline mb-3"
+                      >
+                        View {msg.businesses[0].name} profile
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </Link>
                     )}
 
                     {/* Follow-up suggestion chips */}
