@@ -39,6 +39,7 @@ export default function AIChatSearch({ initialCitySlug }: AIChatSearchProps) {
   const [hasSearched, setHasSearched] = useState(false);
   const [cityError, setCityError] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [submittedQuery, setSubmittedQuery] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -126,6 +127,7 @@ export default function AIChatSearch({ initialCitySlug }: AIChatSearchProps) {
 
     setLoading(true);
     setHasSearched(true);
+    setSubmittedQuery(query.trim());
     setSummary(null);
     setDetectedCity(null);
     setLimitMessage(null);
@@ -332,49 +334,63 @@ export default function AIChatSearch({ initialCitySlug }: AIChatSearchProps) {
         </div>
       )}
 
-      {/* AI response bubble */}
-      {!loading && summary && mode === 'ai' && (
-        <div className="mt-4 p-4 bg-gray-50 dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-2xl flex gap-3">
-          <div className="w-7 h-7 rounded-lg bg-orange-600 flex items-center justify-center flex-shrink-0 mt-0.5">
-            <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.347.347a3.75 3.75 0 00-1.1 2.028l-.3 1.5a.75.75 0 01-.734.598H8.741a.75.75 0 01-.734-.598l-.3-1.5a3.75 3.75 0 00-1.1-2.028l-.347-.347z" />
-            </svg>
-          </div>
-          <div>
-            <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 mb-1 uppercase tracking-wide">BuzzGram AI</p>
-            <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{summary}</p>
-          </div>
-        </div>
-      )}
-
-      {/* Loading skeleton */}
-      {loading && (
-        <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[...Array(6)].map((_, i) => (
-            <div key={i} className="bg-white dark:bg-dark-card rounded-xl border border-gray-200 dark:border-dark-border p-6 animate-pulse">
-              <div className="h-5 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-3" />
-              <div className="h-4 bg-gray-100 dark:bg-gray-700 rounded w-1/3 mb-4" />
-              <div className="h-4 bg-gray-100 dark:bg-gray-700 rounded w-1/2 mb-2" />
-              <div className="h-4 bg-gray-100 dark:bg-gray-700 rounded w-2/3" />
+      {/* Chat thread — only shown after first search */}
+      {hasSearched && (
+        <div className="mt-5 space-y-4">
+          {/* User message bubble */}
+          {submittedQuery && (
+            <div className="flex justify-end">
+              <div className="max-w-[80%] bg-orange-600 text-white px-4 py-3 rounded-2xl rounded-tr-sm text-sm leading-relaxed">
+                {submittedQuery}
+              </div>
             </div>
-          ))}
-        </div>
-      )}
+          )}
 
-      {/* Results */}
-      {!loading && hasSearched && results.length > 0 && (
-        <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {results.map(business => (
-            <BusinessCard key={business.id} business={business} />
-          ))}
-        </div>
-      )}
+          {/* AI response */}
+          <div className="flex gap-3">
+            <div className="w-8 h-8 rounded-xl bg-orange-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.347.347a3.75 3.75 0 00-1.1 2.028l-.3 1.5a.75.75 0 01-.734.598H8.741a.75.75 0 01-.734-.598l-.3-1.5a3.75 3.75 0 00-1.1-2.028l-.347-.347z" />
+              </svg>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 mb-1.5 uppercase tracking-wide">BuzzGram AI</p>
 
-      {/* Zero results */}
-      {!loading && hasSearched && results.length === 0 && (
-        <div className="mt-6 text-center py-12 text-gray-500 dark:text-gray-400">
-          <p className="text-lg font-medium">No businesses found</p>
-          <p className="text-sm mt-1">Try a different search or select another city.</p>
+              {/* Loading state inside AI bubble */}
+              {loading && (
+                <div className="space-y-2">
+                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded-full w-3/4 animate-pulse" />
+                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded-full w-1/2 animate-pulse" />
+                </div>
+              )}
+
+              {/* AI summary */}
+              {!loading && summary && mode === 'ai' && (
+                <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{summary}</p>
+              )}
+
+              {/* Standard search mode — no AI summary */}
+              {!loading && mode === 'search' && !limitMessage && (
+                <p className="text-sm text-gray-500 dark:text-gray-400">Here are the closest matches I found.</p>
+              )}
+
+              {/* Zero results */}
+              {!loading && results.length === 0 && (
+                <p className="text-sm text-gray-500 dark:text-gray-400">No businesses found. Try a different search or city.</p>
+              )}
+            </div>
+          </div>
+
+          {/* Results — horizontal scroll on mobile, grid on desktop */}
+          {!loading && results.length > 0 && (
+            <div className="flex gap-3 overflow-x-auto pb-3 snap-x snap-mandatory md:grid md:grid-cols-2 lg:grid-cols-3 md:overflow-visible md:pb-0 md:gap-4 -mx-1 px-1">
+              {results.map(business => (
+                <div key={business.id} className="flex-shrink-0 w-[260px] snap-start md:w-auto">
+                  <BusinessCard business={business} />
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>
