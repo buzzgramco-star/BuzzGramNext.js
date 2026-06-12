@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
+import Link from 'next/link';
 import type { City, Business } from '@/types';
 import { api, getCities } from '@/lib/api';
-import BusinessCard from '@/components/BusinessCard';
 import { useAuth } from '@/hooks/useAuth';
 
 interface AIChatSearchProps {
@@ -61,6 +61,34 @@ function groupBusinesses(businesses: Business[]): BusinessGroup[] {
   return Object.values(map);
 }
 
+// ── Compact business card for carousel ────────────────────────────────────────
+
+function MiniBusinessCard({ business }: { business: Business }) {
+  return (
+    <Link
+      href={`/business/${business.slug}`}
+      className="block bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-xl p-3 hover:shadow-md hover:border-orange-300 dark:hover:border-orange-500 transition-all group"
+    >
+      <p className="text-sm font-semibold text-gray-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors line-clamp-2 leading-snug mb-2">
+        {business.name}
+      </p>
+      {business.instagramHandle && (
+        <p className="text-xs text-gray-500 dark:text-gray-400 truncate mb-1.5">
+          {business.instagramHandle}
+        </p>
+      )}
+      {business.city && (
+        <p className="text-xs text-gray-400 dark:text-gray-500 truncate flex items-center gap-1">
+          <svg className="w-3 h-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+          </svg>
+          {business.city.name}
+        </p>
+      )}
+    </Link>
+  );
+}
+
 // ── Carousel row ──────────────────────────────────────────────────────────────
 
 function CarouselRow({ group }: { group: BusinessGroup }) {
@@ -83,7 +111,7 @@ function CarouselRow({ group }: { group: BusinessGroup }) {
   }, [group.items]);
 
   const scroll = (dir: 'left' | 'right') => {
-    scrollRef.current?.scrollBy({ left: dir === 'left' ? -296 : 296, behavior: 'smooth' });
+    scrollRef.current?.scrollBy({ left: dir === 'left' ? -220 : 220, behavior: 'smooth' });
   };
 
   return (
@@ -120,8 +148,8 @@ function CarouselRow({ group }: { group: BusinessGroup }) {
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
           {group.items.map(business => (
-            <div key={business.id} className="flex-shrink-0 w-72 snap-start">
-              <BusinessCard business={business} />
+            <div key={business.id} className="flex-shrink-0 w-48 snap-start">
+              <MiniBusinessCard business={business} />
             </div>
           ))}
         </div>
