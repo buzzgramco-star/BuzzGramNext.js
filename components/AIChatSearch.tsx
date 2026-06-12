@@ -8,6 +8,7 @@ import { useAuth } from '@/hooks/useAuth';
 
 interface AIChatSearchProps {
   initialCitySlug?: string;
+  compact?: boolean; // caps message area height and scrolls internally (homepage use)
 }
 
 interface ChatMessage {
@@ -192,7 +193,7 @@ function CarouselRow({ group, onSelect }: { group: BusinessGroup; onSelect: (nam
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-export default function AIChatSearch({ initialCitySlug }: AIChatSearchProps) {
+export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchProps) {
   const { user } = useAuth();
   const [cities, setCities] = useState<City[]>([]);
   const [selectedCity, setSelectedCity] = useState<City | null>(null);
@@ -205,6 +206,7 @@ export default function AIChatSearch({ initialCitySlug }: AIChatSearchProps) {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const loadedCityRef = useRef<string | null>(null);
 
   const showToast = (msg: string) => {
@@ -290,8 +292,13 @@ export default function AIChatSearch({ initialCitySlug }: AIChatSearchProps) {
   }, []);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+    if (compact && messagesContainerRef.current) {
+      // Scroll within the capped container — page stays still
+      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+    } else {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages, compact]);
 
   const resizeTextarea = (el: HTMLTextAreaElement) => {
     el.style.height = 'auto';
@@ -436,7 +443,10 @@ export default function AIChatSearch({ initialCitySlug }: AIChatSearchProps) {
 
       {/* Conversation thread */}
       {messages.length > 0 && (
-        <div className="space-y-5">
+        <div
+          ref={messagesContainerRef}
+          className={`space-y-5 ${compact ? 'max-h-[420px] overflow-y-auto pr-1' : ''}`}
+        >
           {messages.map(msg => (
             <div key={msg.id}>
               {msg.role === 'user' ? (

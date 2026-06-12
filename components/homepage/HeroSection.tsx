@@ -39,7 +39,7 @@ export default function HeroSection({ detectedCity }: HeroSectionProps) {
 
         {/* AI Chat — the hero */}
         <div className="bg-gray-50 dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-2xl p-5 sm:p-6 shadow-sm mb-6">
-          <AIChatSearch />
+          <AIChatSearch compact />
         </div>
 
         {/* Social proof strip */}
