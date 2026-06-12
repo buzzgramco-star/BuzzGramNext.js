@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import type { City, Business } from '@/types';
-import { api, getCities } from '@/lib/api';
+import { api, getCities, getAIConversation, saveAIConversation, deleteAIConversation } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
 
 interface AIChatSearchProps {
@@ -182,9 +182,55 @@ export default function AIChatSearch({ initialCitySlug }: AIChatSearchProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [cityError, setCityError] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const loadedCityRef = useRef<string | null>(null);
+
+  const showToast = (msg: string) => {
+    setToast(msg);
+    setTimeout(() => setToast(null), 4000);
+  };
+
+  const storageKey = (slug: string) => `buzzgram-chat-${slug}`;
+
+  // Load conversation when city is resolved
+  useEffect(() => {
+    if (!selectedCity) return;
+    const slug = selectedCity.slug;
+    if (loadedCityRef.current === slug) return; // already loaded for this city
+    loadedCityRef.current = slug;
+
+    if (user) {
+      getAIConversation(slug)
+        .then(msgs => { if (msgs.length > 0) setMessages(msgs); })
+        .catch(() => {});
+    } else {
+      try {
+        const saved = sessionStorage.getItem(storageKey(slug));
+        if (saved) setMessages(JSON.parse(saved));
+      } catch { /* silent */ }
+    }
+  }, [selectedCity, user]);
+
+  // Save conversation after each completed AI reply
+  useEffect(() => {
+    if (!selectedCity) return;
+    const finished = messages.filter(m => !m.isLoading);
+    if (finished.length === 0) return;
+    const slug = selectedCity.slug;
+
+    if (user) {
+      saveAIConversation(slug, finished)
+        .then(res => { if (res.autoDeleted) showToast('Your oldest conversation was cleared to make room.'); })
+        .catch(() => {});
+    } else {
+      try { sessionStorage.setItem(storageKey(slug), JSON.stringify(finished)); } catch { /* silent */ }
+    }
+  // Only run when messages settle (not on every keypress)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [messages]);
 
   useEffect(() => {
     getCities().then(async (fetchedCities) => {
@@ -274,7 +320,21 @@ export default function AIChatSearch({ initialCitySlug }: AIChatSearchProps) {
         isLoading: false,
       };
 
-      setMessages(prev => prev.map(m => m.id === loadingId ? assistantMsg : m));
+      setMessages(prev => {
+        const updated = prev.map(m => m.id === loadingId ? assistantMsg : m);
+        // Persist immediately after AI replies (save effect also runs but this is faster)
+        if (selectedCity) {
+          const toSave = updated.filter(m => !m.isLoading);
+          if (user) {
+            saveAIConversation(selectedCity.slug, toSave)
+              .then(res => { if (res.autoDeleted) showToast('Your oldest conversation was cleared to make room.'); })
+              .catch(() => {});
+          } else {
+            try { sessionStorage.setItem(storageKey(selectedCity.slug), JSON.stringify(toSave)); } catch { /* silent */ }
+          }
+        }
+        return updated;
+      });
     } catch (error: any) {
       const errorText =
         error?.response?.status === 429
@@ -289,7 +349,7 @@ export default function AIChatSearch({ initialCitySlug }: AIChatSearchProps) {
     } finally {
       setIsLoading(false);
     }
-  }, [messages, selectedCity, isLoading, user]);
+  }, [messages, selectedCity, isLoading, user, showToast]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -475,7 +535,16 @@ export default function AIChatSearch({ initialCitySlug }: AIChatSearchProps) {
             {messages.length > 0 && (
               <button
                 type="button"
-                onClick={() => setMessages([])}
+                onClick={() => {
+                  setMessages([]);
+                  if (selectedCity) {
+                    if (user) {
+                      deleteAIConversation(selectedCity.slug).catch(() => {});
+                    } else {
+                      try { sessionStorage.removeItem(storageKey(selectedCity.slug)); } catch { /* silent */ }
+                    }
+                  }
+                }}
                 className="text-xs text-gray-400 hover:text-gray-600 dark:text-gray-600 dark:hover:text-gray-400 transition-colors px-2 py-1"
               >
                 Clear chat
@@ -501,6 +570,13 @@ export default function AIChatSearch({ initialCitySlug }: AIChatSearchProps) {
           </div>
         </div>
       </form>
+
+      {/* Toast notification */}
+      {toast && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-gray-800 dark:bg-gray-700 text-white text-sm px-4 py-2.5 rounded-xl shadow-lg animate-fade-in">
+          {toast}
+        </div>
+      )}
 
     </div>
   );

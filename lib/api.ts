@@ -502,6 +502,21 @@ export const deleteBlog = async (id: number): Promise<void> => {
   await api.delete(`/blogs/admin/${id}`);
 };
 
+// AI Conversations
+export const getAIConversation = async (citySlug: string): Promise<any[]> => {
+  const { data } = await api.get(`/ai-conversations/${citySlug}`);
+  return data.messages ?? [];
+};
+
+export const saveAIConversation = async (citySlug: string, messages: any[]): Promise<{ autoDeleted: boolean }> => {
+  const { data } = await api.put(`/ai-conversations/${citySlug}`, { messages });
+  return data;
+};
+
+export const deleteAIConversation = async (citySlug: string): Promise<void> => {
+  await api.delete(`/ai-conversations/${citySlug}`);
+};
+
 // Contact Form
 export const submitContactForm = async (formData: {
   name: string;
