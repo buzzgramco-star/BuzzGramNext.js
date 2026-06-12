@@ -20,6 +20,7 @@ interface ChatMessage {
   checklist?: string[];
   type?: 'search' | 'planning' | 'question';
   showCards?: boolean;
+  focusedSlug?: string; // slug of the single vendor this message is about
   isLoading?: boolean;
   isError?: boolean;
 }
@@ -344,6 +345,9 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
         checklist: data.checklist || [],
         type: data.type as any,
         showCards: data.showCards !== false,
+        // Persist the focused slug so follow-up chips can pass it directly
+        // without relying on text detection (which breaks on short business names)
+        focusedSlug: data.showCards === false && data.data?.length === 1 ? data.data[0].slug : undefined,
         isLoading: false,
       };
 
@@ -527,7 +531,7 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
                           <button
                             key={i}
                             type="button"
-                            onClick={() => sendMessage(suggestion)}
+                            onClick={() => sendMessage(suggestion, msg.focusedSlug)}
                             disabled={isLoading}
                             className="px-3 py-1.5 rounded-full text-xs font-medium border border-gray-200 dark:border-dark-border text-gray-600 dark:text-gray-400 hover:border-orange-400 hover:text-orange-600 dark:hover:border-orange-500 dark:hover:text-orange-400 bg-white dark:bg-dark-card transition-all disabled:opacity-40"
                           >
