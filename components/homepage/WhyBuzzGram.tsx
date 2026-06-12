@@ -1,179 +1,75 @@
+const features = [
+  {
+    icon: (
+      <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+        <polyline points="9 22 9 12 15 12 15 22" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    ),
+    title: 'Hidden gems, finally found',
+    description: 'BuzzGram specializes in home-based and Instagram businesses — talented nail techs, bakers, photographers, and event planners who operate outside the traditional listings. The kind of vendors your friends rave about but you can never find on Google.',
+    highlight: 'Home-based & Instagram businesses',
+  },
+  {
+    icon: (
+      <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+      </svg>
+    ),
+    title: 'Your city, fully covered',
+    description: 'We\'re live across 10 major cities in Canada and the US — Toronto, Vancouver, Calgary, Montreal, Ottawa, New York, Los Angeles, Miami, Chicago, and Phoenix. More cities coming soon.',
+    highlight: '10 cities across North America',
+  },
+  {
+    icon: (
+      <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.347.347a3.75 3.75 0 00-1.1 2.028l-.3 1.5a.75.75 0 01-.734.598H8.741a.75.75 0 01-.734-.598l-.3-1.5a3.75 3.75 0 00-1.1-2.028l-.347-.347z" />
+      </svg>
+    ),
+    title: 'AI that actually understands',
+    description: 'Unlike a search bar, our AI understands what you mean. Planning an event? It builds a checklist. Looking for a vendor? It ranks by relevance, budget, and vibe. Ask follow-ups, refine results, and keep the conversation going.',
+    highlight: 'Conversational AI discovery',
+  },
+];
+
 export default function WhyBuzzGram() {
   return (
-    <div className="bg-gray-50 dark:bg-dark-card py-16 sm:py-20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Section Header */}
-        <div className="text-center mb-12">
+    <div className="bg-gray-50 dark:bg-dark-card py-16 sm:py-24 border-t border-gray-100 dark:border-dark-border">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+
+        {/* Header */}
+        <div className="text-center mb-14">
+          <p className="text-xs font-semibold tracking-widest uppercase text-orange-600 dark:text-orange-500 mb-3">About BuzzGram</p>
           <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-            Why Choose BuzzGram?
+            A smarter way to find local vendors
           </h2>
-          <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-            The first platform designed specifically for home-based and Instagram businesses
+          <p className="text-base text-gray-500 dark:text-gray-400 max-w-2xl mx-auto leading-relaxed">
+            We built BuzzGram because the best local vendors — the ones your friends rave about — were impossible to find online. We changed that.
           </p>
         </div>
 
-        {/* Two Column Benefits */}
-        <div className="grid md:grid-cols-2 gap-12">
-          {/* For Customers */}
-          <div>
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                <svg className="w-6 h-6 text-orange-600 dark:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
+        {/* Feature cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {features.map((f, i) => (
+            <div
+              key={i}
+              className="bg-white dark:bg-dark-bg border border-gray-200 dark:border-dark-border rounded-2xl p-6 flex flex-col gap-4 hover:shadow-md hover:border-orange-200 dark:hover:border-orange-800 transition-all"
+            >
+              <div className="w-12 h-12 rounded-xl bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 flex items-center justify-center flex-shrink-0">
+                {f.icon}
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
-                For Customers
-              </h3>
-            </div>
-
-            <div className="space-y-4">
-              <div className="flex gap-3">
-                <div className="flex-shrink-0 w-6 h-6 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center mt-0.5">
-                  <svg className="w-4 h-4 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                </div>
-                <div>
-                  <h4 className="font-semibold text-gray-900 dark:text-white mb-1">
-                    One request, multiple quotes
-                  </h4>
-                  <p className="text-gray-600 dark:text-gray-300 text-sm">
-                    No more DMing dozens of Instagram accounts. Send one request and get responses from multiple businesses.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex gap-3">
-                <div className="flex-shrink-0 w-6 h-6 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center mt-0.5">
-                  <svg className="w-4 h-4 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                </div>
-                <div>
-                  <h4 className="font-semibold text-gray-900 dark:text-white mb-1">
-                    Home-based & Instagram businesses
-                  </h4>
-                  <p className="text-gray-600 dark:text-gray-300 text-sm">
-                    Discover talented entrepreneurs operating from home or primarily through Instagram all in one place.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex gap-3">
-                <div className="flex-shrink-0 w-6 h-6 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center mt-0.5">
-                  <svg className="w-4 h-4 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                </div>
-                <div>
-                  <h4 className="font-semibold text-gray-900 dark:text-white mb-1">
-                    View portfolios before booking
-                  </h4>
-                  <p className="text-gray-600 dark:text-gray-300 text-sm">
-                    Every business profile links to their Instagram so you can see their work and style before reaching out.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex gap-3">
-                <div className="flex-shrink-0 w-6 h-6 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center mt-0.5">
-                  <svg className="w-4 h-4 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                </div>
-                <div>
-                  <h4 className="font-semibold text-gray-900 dark:text-white mb-1">
-                    Completely free
-                  </h4>
-                  <p className="text-gray-600 dark:text-gray-300 text-sm">
-                    Browse businesses, submit quote requests, and connect with service providers at no cost to you.
-                  </p>
-                </div>
+              <div>
+                <span className="inline-block text-xs font-semibold text-orange-600 dark:text-orange-500 bg-orange-50 dark:bg-orange-900/20 px-2.5 py-1 rounded-full mb-3">
+                  {f.highlight}
+                </span>
+                <h3 className="text-base font-bold text-gray-900 dark:text-white mb-2">{f.title}</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">{f.description}</p>
               </div>
             </div>
-          </div>
-
-          {/* For Business Owners */}
-          <div>
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                <svg className="w-6 h-6 text-orange-600 dark:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                </svg>
-              </div>
-              <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
-                For Business Owners
-              </h3>
-            </div>
-
-            <div className="space-y-4">
-              <div className="flex gap-3">
-                <div className="flex-shrink-0 w-6 h-6 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center mt-0.5">
-                  <svg className="w-4 h-4 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                </div>
-                <div>
-                  <h4 className="font-semibold text-gray-900 dark:text-white mb-1">
-                    100% FREE forever
-                  </h4>
-                  <p className="text-gray-600 dark:text-gray-300 text-sm">
-                    List your business, receive quote requests, and connect with customers. No credit card required, ever.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex gap-3">
-                <div className="flex-shrink-0 w-6 h-6 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center mt-0.5">
-                  <svg className="w-4 h-4 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                </div>
-                <div>
-                  <h4 className="font-semibold text-gray-900 dark:text-white mb-1">
-                    Reach local customers
-                  </h4>
-                  <p className="text-gray-600 dark:text-gray-300 text-sm">
-                    Appear in searches when customers in your area are actively looking for services you offer.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex gap-3">
-                <div className="flex-shrink-0 w-6 h-6 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center mt-0.5">
-                  <svg className="w-4 h-4 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                </div>
-                <div>
-                  <h4 className="font-semibold text-gray-900 dark:text-white mb-1">
-                    Turn followers into customers
-                  </h4>
-                  <p className="text-gray-600 dark:text-gray-300 text-sm">
-                    Integrate your Instagram profile and convert social followers into paying clients through quote requests.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex gap-3">
-                <div className="flex-shrink-0 w-6 h-6 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center mt-0.5">
-                  <svg className="w-4 h-4 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                </div>
-                <div>
-                  <h4 className="font-semibold text-gray-900 dark:text-white mb-1">
-                    Perfect for side hustles
-                  </h4>
-                  <p className="text-gray-600 dark:text-gray-300 text-sm">
-                    Whether you're a home baker, freelance makeup artist, or event planner, grow your side business with BuzzGram.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
+          ))}
         </div>
+
       </div>
     </div>
   );
