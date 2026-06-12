@@ -33,6 +33,12 @@ interface AISearchResponse {
   aiUnavailable: boolean;
 }
 
+interface BusinessGroup {
+  label: string;
+  icon: string;
+  items: Business[];
+}
+
 const EXAMPLE_PROMPTS = [
   "I'm getting married this summer, help me plan",
   'Nail tech under $80',
@@ -43,6 +49,101 @@ const EXAMPLE_PROMPTS = [
 function uid() {
   return Math.random().toString(36).slice(2, 9);
 }
+
+function groupBusinesses(businesses: Business[]): BusinessGroup[] {
+  const map: Record<string, BusinessGroup> = {};
+  businesses.forEach(b => {
+    const label = b.subcategory?.name || b.category?.name || 'Other';
+    const icon = b.subcategory?.icon || b.category?.icon || '';
+    if (!map[label]) map[label] = { label, icon, items: [] };
+    map[label].items.push(b);
+  });
+  return Object.values(map);
+}
+
+// ── Carousel row ──────────────────────────────────────────────────────────────
+
+function CarouselRow({ group }: { group: BusinessGroup }) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [canLeft, setCanLeft] = useState(false);
+  const [canRight, setCanRight] = useState(false);
+
+  const sync = () => {
+    const el = scrollRef.current;
+    if (!el) return;
+    setCanLeft(el.scrollLeft > 2);
+    setCanRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 2);
+  };
+
+  useEffect(() => {
+    // Check after paint so clientWidth / scrollWidth are accurate
+    const id = setTimeout(sync, 50);
+    window.addEventListener('resize', sync);
+    return () => { clearTimeout(id); window.removeEventListener('resize', sync); };
+  }, [group.items]);
+
+  const scroll = (dir: 'left' | 'right') => {
+    scrollRef.current?.scrollBy({ left: dir === 'left' ? -296 : 296, behavior: 'smooth' });
+  };
+
+  return (
+    <div className="mb-5">
+      {/* Group header */}
+      <div className="flex items-center gap-2 mb-2.5">
+        {group.icon && <span className="text-base leading-none">{group.icon}</span>}
+        <span className="text-sm font-semibold text-gray-800 dark:text-white">{group.label}</span>
+        <span className="text-xs text-gray-400 dark:text-gray-500 font-normal">
+          · {group.items.length} {group.items.length === 1 ? 'business' : 'businesses'}
+        </span>
+      </div>
+
+      {/* Scrollable row + arrows */}
+      <div className="relative group/carousel">
+        {/* Left arrow */}
+        {canLeft && (
+          <button
+            type="button"
+            onClick={() => scroll('left')}
+            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10 hidden sm:flex w-8 h-8 bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-full shadow-md items-center justify-center hover:bg-gray-50 dark:hover:bg-dark-bg transition-colors"
+          >
+            <svg className="w-4 h-4 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+        )}
+
+        {/* Cards */}
+        <div
+          ref={scrollRef}
+          onScroll={sync}
+          className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory"
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        >
+          {group.items.map(business => (
+            <div key={business.id} className="flex-shrink-0 w-72 snap-start">
+              <BusinessCard business={business} />
+            </div>
+          ))}
+        </div>
+
+        {/* Right arrow */}
+        {canRight && (
+          <button
+            type="button"
+            onClick={() => scroll('right')}
+            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-10 hidden sm:flex w-8 h-8 bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-full shadow-md items-center justify-center hover:bg-gray-50 dark:hover:bg-dark-bg transition-colors"
+          >
+            <svg className="w-4 h-4 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── Main component ────────────────────────────────────────────────────────────
 
 export default function AIChatSearch({ initialCitySlug }: AIChatSearchProps) {
   const { user } = useAuth();
@@ -60,14 +161,11 @@ export default function AIChatSearch({ initialCitySlug }: AIChatSearchProps) {
   useEffect(() => {
     getCities().then(async (fetchedCities) => {
       setCities(fetchedCities);
-
       if (initialCitySlug) {
         const match = fetchedCities.find(c => c.slug === initialCitySlug);
         if (match) setSelectedCity(match);
         return;
       }
-
-      // Auto-detect city from IP on homepage
       try {
         const res = await fetch('https://ipapi.co/json/', { signal: AbortSignal.timeout(3000) });
         const geo = await res.json();
@@ -84,7 +182,6 @@ export default function AIChatSearch({ initialCitySlug }: AIChatSearchProps) {
     }).catch(() => {});
   }, [initialCitySlug]);
 
-  // Close dropdown on outside click/touch
   useEffect(() => {
     const handleOutside = (e: MouseEvent | TouchEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
@@ -99,7 +196,6 @@ export default function AIChatSearch({ initialCitySlug }: AIChatSearchProps) {
     };
   }, []);
 
-  // Scroll to bottom when messages update
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
@@ -128,7 +224,6 @@ export default function AIChatSearch({ initialCitySlug }: AIChatSearchProps) {
     if (textareaRef.current) textareaRef.current.style.height = 'auto';
     setIsLoading(true);
 
-    // Send conversation history (role + content only) to backend — cap at 8 messages
     const historyForAPI = [...messages, userMsg]
       .slice(-8)
       .map(m => ({ role: m.role, content: m.content }));
@@ -152,7 +247,6 @@ export default function AIChatSearch({ initialCitySlug }: AIChatSearchProps) {
       };
 
       setMessages(prev => prev.map(m => m.id === loadingId ? assistantMsg : m));
-
     } catch (error: any) {
       const errorText =
         error?.response?.status === 429
@@ -270,7 +364,7 @@ export default function AIChatSearch({ initialCitySlug }: AIChatSearchProps) {
 
                     {/* Planning checklist */}
                     {!msg.isLoading && msg.checklist && msg.checklist.length > 0 && (
-                      <div className="mb-4 space-y-2">
+                      <div className="mb-5 space-y-2">
                         {msg.checklist.map((item, i) => (
                           <div key={i} className="flex items-start gap-2.5 text-sm text-gray-700 dark:text-gray-300">
                             <div className="w-5 h-5 rounded-full border-2 border-orange-400 flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -282,20 +376,18 @@ export default function AIChatSearch({ initialCitySlug }: AIChatSearchProps) {
                       </div>
                     )}
 
-                    {/* Business results — horizontal scroll on mobile, grid on desktop */}
+                    {/* Business results — grouped by subcategory, each as a carousel */}
                     {!msg.isLoading && msg.businesses && msg.businesses.length > 0 && (
-                      <div className="flex gap-3 overflow-x-auto pb-3 snap-x snap-mandatory md:grid md:grid-cols-2 lg:grid-cols-3 md:overflow-visible md:pb-0 md:gap-4 -mx-1 px-1 mb-3">
-                        {msg.businesses.map(business => (
-                          <div key={business.id} className="flex-shrink-0 w-[260px] snap-start md:w-auto">
-                            <BusinessCard business={business} />
-                          </div>
+                      <div className="mb-3">
+                        {groupBusinesses(msg.businesses).map(group => (
+                          <CarouselRow key={group.label} group={group} />
                         ))}
                       </div>
                     )}
 
                     {/* Follow-up suggestion chips */}
                     {!msg.isLoading && msg.followUps && msg.followUps.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mt-2">
+                      <div className="flex flex-wrap gap-2 mt-1">
                         {msg.followUps.map((suggestion, i) => (
                           <button
                             key={i}
