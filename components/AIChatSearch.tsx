@@ -72,10 +72,10 @@ function groupBusinesses(businesses: Business[]): BusinessGroup[] {
 
 // ── Compact business card for carousel ────────────────────────────────────────
 
-function MiniBusinessCard({ business, onSelect }: { business: Business; onSelect: (name: string) => void }) {
+function MiniBusinessCard({ business, onSelect }: { business: Business; onSelect: (name: string, slug: string) => void }) {
   return (
     <div
-      onClick={() => onSelect(business.name)}
+      onClick={() => onSelect(business.name, business.slug)}
       className="cursor-pointer bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-xl p-3 hover:shadow-md hover:border-orange-300 dark:hover:border-orange-500 transition-all group flex flex-col"
     >
       <p className="text-sm font-semibold text-gray-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors line-clamp-2 leading-snug mb-2">
@@ -110,7 +110,7 @@ function MiniBusinessCard({ business, onSelect }: { business: Business; onSelect
 
 // ── Carousel row ──────────────────────────────────────────────────────────────
 
-function CarouselRow({ group, onSelect }: { group: BusinessGroup; onSelect: (name: string) => void }) {
+function CarouselRow({ group, onSelect }: { group: BusinessGroup; onSelect: (name: string, slug: string) => void }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canLeft, setCanLeft] = useState(false);
   const [canRight, setCanRight] = useState(false);
@@ -298,7 +298,7 @@ export default function AIChatSearch({ initialCitySlug }: AIChatSearchProps) {
     el.style.height = `${Math.min(el.scrollHeight, 160)}px`;
   };
 
-  const sendMessage = useCallback(async (text: string) => {
+  const sendMessage = useCallback(async (text: string, focusedSlug?: string) => {
     const trimmed = text.trim();
     if (!trimmed || isLoading) return;
 
@@ -324,7 +324,7 @@ export default function AIChatSearch({ initialCitySlug }: AIChatSearchProps) {
     try {
       const { data } = await api.post<AISearchResponse>(
         '/ai-search',
-        { messages: historyForAPI, cityId: selectedCity.id },
+        { messages: historyForAPI, cityId: selectedCity.id, ...(focusedSlug ? { focusedSlug } : {}) },
         { timeout: 35000 }
       );
 
@@ -491,7 +491,7 @@ export default function AIChatSearch({ initialCitySlug }: AIChatSearchProps) {
                           <CarouselRow
                             key={group.label}
                             group={group}
-                            onSelect={(name) => sendMessage(`What can you tell me about ${name}?`)}
+                            onSelect={(name, slug) => sendMessage(`What can you tell me about ${name}?`, slug)}
                           />
                         ))}
                       </div>
