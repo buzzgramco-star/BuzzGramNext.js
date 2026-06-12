@@ -5,6 +5,7 @@ import HeroSection from '@/components/homepage/HeroSection';
 import HowItWorks from '@/components/homepage/HowItWorks';
 import WhyBuzzGram from '@/components/homepage/WhyBuzzGram';
 import QuickValueProps from '@/components/homepage/QuickValueProps';
+import BrowseCategories from '@/components/homepage/BrowseCategories';
 import FAQ from '@/components/homepage/FAQ';
 import FinalCTA from '@/components/homepage/FinalCTA';
 
@@ -71,10 +72,13 @@ export default async function HomePage() {
         {/* 3. Platform overview — what BuzzGram is */}
         <WhyBuzzGram />
 
-        {/* 4. OneQuote value prop */}
+        {/* 4. OneQuote slim banner */}
         <QuickValueProps />
 
-        {/* 5. FAQ — SEO */}
+        {/* 5. Browse by category */}
+        <BrowseCategories />
+
+        {/* 6. FAQ — SEO */}
         <FAQ />
 
         {/* 6. Final CTA */}
