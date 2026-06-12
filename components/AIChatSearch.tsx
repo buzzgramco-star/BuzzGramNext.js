@@ -54,11 +54,36 @@ function uid() {
   return Math.random().toString(36).slice(2, 9);
 }
 
-// Render **bold** markdown inline — AI responses use this pattern
+// Render **bold** and [text](url) markdown inline
 function renderMarkdown(text: string): React.ReactNode[] {
-  return text.split(/\*\*(.*?)\*\*/g).map((part, i) =>
-    i % 2 === 1 ? <strong key={i} className="font-semibold text-gray-900 dark:text-white">{part}</strong> : part
-  );
+  const parts: React.ReactNode[] = [];
+  const re = /\*\*(.*?)\*\*|\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g;
+  let last = 0;
+  let match;
+  let key = 0;
+  while ((match = re.exec(text)) !== null) {
+    if (match.index > last) parts.push(text.slice(last, match.index));
+    if (match[1] !== undefined) {
+      parts.push(
+        <strong key={key++} className="font-semibold text-gray-900 dark:text-white">{match[1]}</strong>
+      );
+    } else {
+      parts.push(
+        <a
+          key={key++}
+          href={match[3]}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-orange-600 dark:text-orange-400 hover:underline font-medium"
+        >
+          {match[2]}
+        </a>
+      );
+    }
+    last = match.index + match[0].length;
+  }
+  if (last < text.length) parts.push(text.slice(last));
+  return parts;
 }
 
 function groupBusinesses(businesses: Business[]): BusinessGroup[] {

@@ -8,6 +8,7 @@ import SubcategoryFilter from '@/components/SubcategoryFilter';
 import PromotionalBanner from '@/components/PromotionalBanner';
 import Breadcrumbs, { BreadcrumbItem } from '@/components/Breadcrumbs';
 import Footer from '@/components/Footer';
+import FloatingAIChat from '@/components/FloatingAIChat';
 import { categoryContent } from '@/lib/seoContent';
 
 type Props = {
@@ -157,6 +158,7 @@ export default function CategoryClient({ citySlug, categorySlug, categoryName, b
         )}
       </div>
 
+      <FloatingAIChat citySlug={citySlug} />
       <Footer />
     </div>
   );

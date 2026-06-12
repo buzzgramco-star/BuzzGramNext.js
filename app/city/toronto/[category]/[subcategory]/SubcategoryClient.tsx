@@ -7,6 +7,7 @@ import BusinessCard from '@/components/BusinessCard';
 import PromotionalBanner from '@/components/PromotionalBanner';
 import Breadcrumbs, { BreadcrumbItem } from '@/components/Breadcrumbs';
 import Footer from '@/components/Footer';
+import FloatingAIChat from '@/components/FloatingAIChat';
 import { subcategoryContent } from '@/lib/seoContent';
 
 type Props = {
@@ -131,6 +132,7 @@ export default function SubcategoryClient({ businesses, subcategoryName, categor
         )}
       </div>
 
+      <FloatingAIChat citySlug={citySlug} />
       <Footer />
     </div>
   );
