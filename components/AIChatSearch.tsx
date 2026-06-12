@@ -201,11 +201,8 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [cityError, setCityError] = useState(false);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [activeFocusedSlug, setActiveFocusedSlug] = useState<string | null>(null);
-  const dropdownRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -279,19 +276,6 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
     }).catch(() => {});
   }, [initialCitySlug]);
 
-  useEffect(() => {
-    const handleOutside = (e: MouseEvent | TouchEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setDropdownOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleOutside);
-    document.addEventListener('touchstart', handleOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleOutside);
-      document.removeEventListener('touchstart', handleOutside);
-    };
-  }, []);
 
   useEffect(() => {
     if (compact && messagesContainerRef.current) {
@@ -312,10 +296,9 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
     if (!trimmed || isLoading) return;
 
     if (!selectedCity) {
-      setCityError(true);
+      showToast('Select your city first — pick one below or mention it in chat.');
       return;
     }
-    setCityError(false);
 
     const userMsg: ChatMessage = { id: uid(), role: 'user', content: trimmed };
     const loadingId = uid();
@@ -349,6 +332,17 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
         setActiveFocusedSlug(data.data[0].slug);
       } else if ((data.data?.length ?? 0) > 1) {
         setActiveFocusedSlug(null);
+      }
+
+      // Mid-conversation city switch — backend detected user asking about a different city
+      // and already fetched that city's data. Update selected city so future messages use it.
+      if (data.detectedCity) {
+        const switched = cities.find(c => c.slug === data.detectedCity);
+        if (switched && switched.id !== selectedCity.id) {
+          loadedCityRef.current = switched.slug; // prevent load effect from overwriting current messages
+          setSelectedCity(switched);
+          setActiveFocusedSlug(null);
+        }
       }
 
       const assistantMsg: ChatMessage = {
@@ -392,7 +386,7 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
     } finally {
       setIsLoading(false);
     }
-  }, [messages, selectedCity, isLoading, user, showToast, activeFocusedSlug]);
+  }, [messages, selectedCity, isLoading, user, showToast, activeFocusedSlug, cities]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -408,54 +402,6 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
 
   return (
     <div className="w-full flex flex-col gap-4">
-
-      {/* City dropdown */}
-      <div className="flex items-center gap-2">
-        <div className="relative" ref={dropdownRef}>
-          <button
-            type="button"
-            onClick={() => setDropdownOpen(prev => !prev)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-sm font-medium transition-all ${
-              cityError
-                ? 'border-red-400 text-red-600 bg-red-50 dark:bg-red-900/20'
-                : 'border-gray-200 dark:border-dark-border text-gray-700 dark:text-gray-300 bg-white dark:bg-dark-card hover:bg-gray-50 dark:hover:bg-dark-bg'
-            }`}
-          >
-            <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-            <span>{selectedCity?.name || 'Select city'}</span>
-            <svg
-              className={`w-3.5 h-3.5 flex-shrink-0 transition-transform duration-150 ${dropdownOpen ? 'rotate-180' : ''}`}
-              fill="none" stroke="currentColor" viewBox="0 0 24 24"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-          </button>
-
-          {dropdownOpen && (
-            <div className="absolute top-full left-0 mt-1.5 bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-xl shadow-lg z-50 min-w-[180px] py-1 overflow-hidden">
-              {cities.map(city => (
-                <button
-                  key={city.id}
-                  type="button"
-                  onClick={() => { setSelectedCity(city); setCityError(false); setDropdownOpen(false); setActiveFocusedSlug(null); }}
-                  className="w-full flex items-center justify-between px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-dark-bg transition-colors"
-                >
-                  <span>{city.name}</span>
-                  {selectedCity?.id === city.id && (
-                    <svg className="w-4 h-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                    </svg>
-                  )}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-        {cityError && <span className="text-red-500 text-xs">Please select a city</span>}
-      </div>
 
       {/* Conversation thread */}
       {messages.length > 0 && (
@@ -561,20 +507,43 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
         </div>
       )}
 
-      {/* Example prompts — only on empty state */}
+      {/* Empty state — city picker (no city detected) or example prompts */}
       {messages.length === 0 && (
-        <div className="flex flex-wrap gap-2">
-          {EXAMPLE_PROMPTS.map(prompt => (
-            <button
-              key={prompt}
-              type="button"
-              onClick={() => sendMessage(prompt)}
-              className="px-3 py-1.5 rounded-full text-xs font-medium border border-gray-200 dark:border-dark-border text-gray-500 dark:text-gray-400 hover:border-orange-400 hover:text-orange-600 dark:hover:border-orange-500 dark:hover:text-orange-400 bg-white dark:bg-dark-card transition-all"
-            >
-              {prompt}
-            </button>
-          ))}
-        </div>
+        !selectedCity ? (
+          <div>
+            <p className="text-xs text-gray-400 dark:text-gray-500 mb-2.5 flex items-center gap-1.5">
+              <svg className="w-3 h-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+              </svg>
+              Where are you? Pick your city to get started.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {cities.map(city => (
+                <button
+                  key={city.id}
+                  type="button"
+                  onClick={() => { setSelectedCity(city); setActiveFocusedSlug(null); }}
+                  className="px-3 py-1.5 rounded-full text-xs font-medium border border-gray-200 dark:border-dark-border text-gray-600 dark:text-gray-400 hover:border-orange-400 hover:text-orange-600 dark:hover:border-orange-500 dark:hover:text-orange-400 bg-white dark:bg-dark-card transition-all"
+                >
+                  {city.name}
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div className="flex flex-wrap gap-2">
+            {EXAMPLE_PROMPTS.map(prompt => (
+              <button
+                key={prompt}
+                type="button"
+                onClick={() => sendMessage(prompt)}
+                className="px-3 py-1.5 rounded-full text-xs font-medium border border-gray-200 dark:border-dark-border text-gray-500 dark:text-gray-400 hover:border-orange-400 hover:text-orange-600 dark:hover:border-orange-500 dark:hover:text-orange-400 bg-white dark:bg-dark-card transition-all"
+              >
+                {prompt}
+              </button>
+            ))}
+          </div>
+        )
       )}
 
       {/* Input — always at bottom */}
@@ -583,9 +552,11 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
           <textarea
             ref={textareaRef}
             placeholder={
-              messages.length === 0
-                ? "Ask anything... e.g. I'm getting married this summer, help me plan"
-                : 'Ask a follow-up...'
+              !selectedCity
+                ? 'Pick your city above, or just ask — e.g. "Show me nail techs in Toronto"'
+                : messages.length === 0
+                  ? "Ask anything... e.g. I'm getting married this summer, help me plan"
+                  : 'Ask a follow-up...'
             }
             value={input}
             onChange={e => { setInput(e.target.value); resizeTextarea(e.target); }}
@@ -594,43 +565,57 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
             className="w-full px-5 pt-4 pb-14 text-base bg-transparent text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none resize-none leading-relaxed"
             style={{ minHeight: '60px', maxHeight: '160px' }}
           />
-          <div className="absolute bottom-3 right-3 flex items-center gap-2">
-            {messages.length > 0 && (
-              <button
-                type="button"
-                onClick={() => {
-                  setMessages([]);
-                  setActiveFocusedSlug(null);
-                  if (selectedCity) {
-                    if (user) {
-                      deleteAIConversation(selectedCity.slug).catch(() => {});
-                    } else {
-                      try { sessionStorage.removeItem(storageKey(selectedCity.slug)); } catch { /* silent */ }
-                    }
-                  }
-                }}
-                className="text-xs text-gray-400 hover:text-gray-600 dark:text-gray-600 dark:hover:text-gray-400 transition-colors px-2 py-1"
-              >
-                Clear chat
-              </button>
+          <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
+            {/* City indicator — subtle, non-interactive */}
+            {selectedCity ? (
+              <span className="flex items-center gap-1 text-xs text-gray-400 dark:text-gray-500 pointer-events-none select-none">
+                <svg className="w-3 h-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+                </svg>
+                {selectedCity.name}
+              </span>
+            ) : (
+              <span className="text-xs text-gray-300 dark:text-gray-600 pointer-events-none select-none">Detecting city…</span>
             )}
-            <span className="text-xs text-gray-400 dark:text-gray-600 hidden sm:block">Enter to send</span>
-            <button
-              type="submit"
-              disabled={isLoading || !input.trim()}
-              className="w-9 h-9 rounded-xl bg-orange-600 hover:bg-orange-700 disabled:bg-gray-200 dark:disabled:bg-gray-700 text-white disabled:text-gray-400 dark:disabled:text-gray-500 flex items-center justify-center transition-all"
-            >
-              {isLoading ? (
-                <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                </svg>
-              ) : (
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 10l7-7m0 0l7 7m-7-7v18" />
-                </svg>
+            {/* Actions */}
+            <div className="flex items-center gap-2">
+              {messages.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMessages([]);
+                    setActiveFocusedSlug(null);
+                    if (selectedCity) {
+                      if (user) {
+                        deleteAIConversation(selectedCity.slug).catch(() => {});
+                      } else {
+                        try { sessionStorage.removeItem(storageKey(selectedCity.slug)); } catch { /* silent */ }
+                      }
+                    }
+                  }}
+                  className="text-xs text-gray-400 hover:text-gray-600 dark:text-gray-600 dark:hover:text-gray-400 transition-colors px-2 py-1"
+                >
+                  Clear chat
+                </button>
               )}
-            </button>
+              <span className="text-xs text-gray-400 dark:text-gray-600 hidden sm:block">Enter to send</span>
+              <button
+                type="submit"
+                disabled={isLoading || !input.trim()}
+                className="w-9 h-9 rounded-xl bg-orange-600 hover:bg-orange-700 disabled:bg-gray-200 dark:disabled:bg-gray-700 text-white disabled:text-gray-400 dark:disabled:text-gray-500 flex items-center justify-center transition-all"
+              >
+                {isLoading ? (
+                  <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                ) : (
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 10l7-7m0 0l7 7m-7-7v18" />
+                  </svg>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       </form>
