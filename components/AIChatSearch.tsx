@@ -43,15 +43,39 @@ export default function AIChatSearch({ initialCitySlug }: AIChatSearchProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
-    getCities().then(setCities).catch(() => {});
-  }, []);
+    getCities().then(async (fetchedCities) => {
+      setCities(fetchedCities);
 
-  useEffect(() => {
-    if (initialCitySlug && cities.length > 0) {
-      const match = cities.find(c => c.slug === initialCitySlug);
-      if (match) setSelectedCity(match);
-    }
-  }, [initialCitySlug, cities]);
+      // If a city slug is passed (city pages), use that — skip IP detection
+      if (initialCitySlug) {
+        const match = fetchedCities.find(c => c.slug === initialCitySlug);
+        if (match) setSelectedCity(match);
+        return;
+      }
+
+      // Auto-detect city from IP for homepage
+      try {
+        const res = await fetch('https://ipapi.co/json/', {
+          signal: AbortSignal.timeout(3000),
+        });
+        const geo = await res.json();
+        const detected = (geo.city || '').toLowerCase();
+        if (!detected) return;
+
+        const match =
+          fetchedCities.find(c => c.name.toLowerCase() === detected) ||
+          fetchedCities.find(c => c.slug === detected.replace(/\s+/g, '-')) ||
+          fetchedCities.find(
+            c =>
+              c.name.toLowerCase().includes(detected) ||
+              detected.includes(c.name.toLowerCase())
+          );
+        if (match) setSelectedCity(match);
+      } catch {
+        // IP detection failed silently — user picks manually
+      }
+    }).catch(() => {});
+  }, [initialCitySlug]);
 
   // Close dropdown on outside click or touch
   useEffect(() => {
