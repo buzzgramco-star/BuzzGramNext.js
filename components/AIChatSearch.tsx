@@ -50,6 +50,13 @@ function uid() {
   return Math.random().toString(36).slice(2, 9);
 }
 
+// Render **bold** markdown inline — AI responses use this pattern
+function renderMarkdown(text: string): React.ReactNode[] {
+  return text.split(/\*\*(.*?)\*\*/g).map((part, i) =>
+    i % 2 === 1 ? <strong key={i} className="font-semibold text-gray-900 dark:text-white">{part}</strong> : part
+  );
+}
+
 function groupBusinesses(businesses: Business[]): BusinessGroup[] {
   const map: Record<string, BusinessGroup> = {};
   businesses.forEach(b => {
@@ -446,7 +453,7 @@ export default function AIChatSearch({ initialCitySlug }: AIChatSearchProps) {
                     {/* Message text */}
                     {!msg.isLoading && msg.content && (
                       <p className={`text-sm leading-relaxed ${msg.isError ? 'text-red-500 dark:text-red-400' : 'text-gray-700 dark:text-gray-300'} ${(msg.checklist?.length || msg.businesses?.length) ? 'mb-4' : ''}`}>
-                        {msg.content}
+                        {msg.isError ? msg.content : renderMarkdown(msg.content)}
                       </p>
                     )}
 
