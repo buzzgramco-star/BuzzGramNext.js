@@ -373,6 +373,46 @@ Blog content is stored as HTML in the database and rendered via `dangerouslySetI
 - CTA section at bottom linking to homepage and blog listing
 - Contains `formatDate` internally — **never pass functions as props from Server to Client Component**
 
+## Recent Changes (June 2026)
+
+### AI Chat Search Feature — feature/ai-search branch (Jun 11, 2026)
+
+#### New Component: `components/AIChatSearch.tsx`
+- Full LLM-style multi-turn chatbot for discovering local businesses
+- **City selector**: dropdown (chevron rotation, checkmark on selected, closes on outside click/touch). Auto-detects city from IP via `ipapi.co/json/` (3s timeout, silent fail) on homepage. On city pages, `initialCitySlug` prop pre-selects the city.
+- **Conversation thread**: user bubbles (orange, right-aligned) + AI bubbles (icon + label + text + checklist + carousels + follow-up chips)
+- **Grouped results**: `groupBusinesses()` groups AI results by `subcategory.name` → fallback to `category.name`. Each group renders as a `CarouselRow`.
+- **CarouselRow**: horizontally scrollable row of `MiniBusinessCard` tiles. Left/right arrow buttons (`hidden sm:flex`), auto-hide at scroll ends via `onScroll` + `setTimeout(sync, 50)`. `scrollBy(±220)`, cards fixed `w-48`.
+- **MiniBusinessCard**: compact inline card (not `BusinessCard`) — `w-48`, `p-3`, shows name + Instagram handle + city. Links to `/business/[slug]`.
+- **Conversation persistence**:
+  - Logged-in users: saved to DB via `GET/PUT/DELETE /api/ai-conversations/:citySlug`. Max 5 conversations × 20 messages per user. Auto-deletes oldest when cap hit — shows toast notification.
+  - Guests: `sessionStorage` keyed by `buzzgram-chat-[citySlug]`. Survives back-navigation within the tab.
+  - Load triggered when `selectedCity` resolves (guarded by `loadedCityRef` to prevent double-load).
+  - Save triggered immediately after each AI reply inside `setMessages` callback.
+  - Clear chat: wipes DB (logged-in) or sessionStorage (guest).
+- **Toast**: fixed bottom-center, 4s auto-dismiss, shown when oldest conversation is auto-deleted.
+- **Textarea**: auto-resizes up to 160px, Enter submits, Shift+Enter newlines.
+- **Rate limit handling**: 429 response shows appropriate message (different for guest vs logged-in).
+- **Example prompts**: shown on empty state as clickable chips.
+- **Follow-up chips**: AI returns `followUps[]` — clicking sends the suggestion as a new message.
+- **Planning checklist**: shown for `type: "planning"` responses (e.g. wedding planning).
+- **Clear chat**: resets messages + deletes stored conversation.
+
+#### Modified: `components/homepage/HeroSection.tsx`
+- Removed old search bar (`useState`, `useRouter`, `handleSearch`, `<form>`)
+- Added `<AIChatSearch />` in a `max-w-2xl mx-auto mb-8` wrapper
+
+#### Modified: `app/city/[slug]/CityPageClient.tsx`
+- Removed `searchInput` state, sync useEffect, debounced URL update useEffect, mobile search input
+- Added `<AIChatSearch initialCitySlug={city.slug} />` between breadcrumbs and filters
+
+#### New API functions in `lib/api.ts`
+```typescript
+getAIConversation(citySlug)      // GET /api/ai-conversations/:citySlug → messages[]
+saveAIConversation(citySlug, messages)  // PUT → { autoDeleted: boolean }
+deleteAIConversation(citySlug)   // DELETE
+```
+
 ## Recent Changes (March 2026)
 
 ### Business Owner Service Management (Mar 8, 2026)
