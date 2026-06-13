@@ -502,19 +502,36 @@ export const deleteBlog = async (id: number): Promise<void> => {
   await api.delete(`/blogs/admin/${id}`);
 };
 
-// AI Conversations
-export const getAIConversation = async (citySlug: string): Promise<any[]> => {
-  const { data } = await api.get(`/ai-conversations/${citySlug}`);
-  return data.messages ?? [];
+// User-scoped conversations
+export interface ConversationSummary {
+  id: number;
+  title: string;
+  messageCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export const getConversations = async (): Promise<ConversationSummary[]> => {
+  const { data } = await api.get('/conversations');
+  return data.conversations ?? [];
 };
 
-export const saveAIConversation = async (citySlug: string, messages: any[]): Promise<{ autoDeleted: boolean }> => {
-  const { data } = await api.put(`/ai-conversations/${citySlug}`, { messages });
+export const getConversationById = async (id: number): Promise<{ id: number; title: string; messages: any[]; createdAt: string; updatedAt: string }> => {
+  const { data } = await api.get(`/conversations/${id}`);
+  return data.conversation;
+};
+
+export const createConversation = async (title: string, messages: any[]): Promise<{ id: number; autoDeleted: boolean }> => {
+  const { data } = await api.post('/conversations', { title, messages });
   return data;
 };
 
-export const deleteAIConversation = async (citySlug: string): Promise<void> => {
-  await api.delete(`/ai-conversations/${citySlug}`);
+export const updateConversation = async (id: number, messages: any[]): Promise<void> => {
+  await api.put(`/conversations/${id}`, { messages });
+};
+
+export const deleteConversation = async (id: number): Promise<void> => {
+  await api.delete(`/conversations/${id}`);
 };
 
 // Contact Form

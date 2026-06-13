@@ -3,12 +3,16 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import type { City, Business } from '@/types';
-import { api, getCities, getAIConversation, saveAIConversation, deleteAIConversation } from '@/lib/api';
+import {
+  api, getCities,
+  getConversations, getConversationById, createConversation, updateConversation, deleteConversation,
+} from '@/lib/api';
+import type { ConversationSummary } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
 
 interface AIChatSearchProps {
   initialCitySlug?: string;
-  compact?: boolean; // caps message area height and scrolls internally (homepage use)
+  compact?: boolean;
 }
 
 interface ChatMessage {
@@ -20,7 +24,7 @@ interface ChatMessage {
   checklist?: string[];
   type?: 'search' | 'planning' | 'question';
   showCards?: boolean;
-  focusedSlug?: string; // slug of the single vendor this message is about
+  focusedSlug?: string;
   isLoading?: boolean;
   isError?: boolean;
 }
@@ -50,11 +54,22 @@ const EXAMPLE_PROMPTS = [
   'Event planner for a party',
 ];
 
+const GUEST_KEY = 'buzzgram-chat';
+
 function uid() {
   return Math.random().toString(36).slice(2, 9);
 }
 
-// Render **bold** and [text](url) markdown inline
+function formatDate(dateStr: string): string {
+  const date = new Date(dateStr);
+  const now = new Date();
+  const days = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+  if (days === 0) return 'Today';
+  if (days === 1) return 'Yesterday';
+  if (days < 7) return `${days} days ago`;
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
 function renderMarkdown(text: string): React.ReactNode[] {
   const parts: React.ReactNode[] = [];
   const re = /\*\*(.*?)\*\*|\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g;
@@ -97,8 +112,6 @@ function groupBusinesses(businesses: Business[]): BusinessGroup[] {
   return Object.values(map);
 }
 
-// ── Compact business card for carousel ────────────────────────────────────────
-
 function MiniBusinessCard({ business, onSelect }: { business: Business; onSelect: (name: string, slug: string) => void }) {
   return (
     <div
@@ -135,8 +148,6 @@ function MiniBusinessCard({ business, onSelect }: { business: Business; onSelect
   );
 }
 
-// ── Carousel row ──────────────────────────────────────────────────────────────
-
 function CarouselRow({ group, onSelect }: { group: BusinessGroup; onSelect: (name: string, slug: string) => void }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canLeft, setCanLeft] = useState(false);
@@ -150,7 +161,6 @@ function CarouselRow({ group, onSelect }: { group: BusinessGroup; onSelect: (nam
   };
 
   useEffect(() => {
-    // Check after paint so clientWidth / scrollWidth are accurate
     const id = setTimeout(sync, 50);
     window.addEventListener('resize', sync);
     return () => { clearTimeout(id); window.removeEventListener('resize', sync); };
@@ -162,7 +172,6 @@ function CarouselRow({ group, onSelect }: { group: BusinessGroup; onSelect: (nam
 
   return (
     <div className="mb-5">
-      {/* Group header */}
       <div className="flex items-center gap-2 mb-2.5">
         {group.icon && <span className="text-base leading-none">{group.icon}</span>}
         <span className="text-sm font-semibold text-gray-800 dark:text-white">{group.label}</span>
@@ -171,9 +180,7 @@ function CarouselRow({ group, onSelect }: { group: BusinessGroup; onSelect: (nam
         </span>
       </div>
 
-      {/* Scrollable row + arrows */}
       <div className="relative group/carousel">
-        {/* Left arrow */}
         {canLeft && (
           <button
             type="button"
@@ -186,7 +193,6 @@ function CarouselRow({ group, onSelect }: { group: BusinessGroup; onSelect: (nam
           </button>
         )}
 
-        {/* Cards */}
         <div
           ref={scrollRef}
           onScroll={sync}
@@ -200,7 +206,6 @@ function CarouselRow({ group, onSelect }: { group: BusinessGroup; onSelect: (nam
           ))}
         </div>
 
-        {/* Right arrow */}
         {canRight && (
           <button
             type="button"
@@ -228,55 +233,31 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
   const [isLoading, setIsLoading] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [activeFocusedSlug, setActiveFocusedSlug] = useState<string | null>(null);
+  const [activeConversationId, setActiveConversationId] = useState<number | null>(null);
+  const [showHistory, setShowHistory] = useState(false);
+  const [conversations, setConversations] = useState<ConversationSummary[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
-  const loadedCityRef = useRef<string | null>(null);
 
   const showToast = (msg: string) => {
     setToast(msg);
     setTimeout(() => setToast(null), 4000);
   };
 
-  const storageKey = (slug: string) => `buzzgram-chat-${slug}`;
-
-  // Load conversation when city is resolved
+  // Guests: load single session from sessionStorage on mount
   useEffect(() => {
-    if (!selectedCity) return;
-    const slug = selectedCity.slug;
-    if (loadedCityRef.current === slug) return; // already loaded for this city
-    loadedCityRef.current = slug;
-
-    if (user) {
-      getAIConversation(slug)
-        .then(msgs => { if (msgs.length > 0) setMessages(msgs); })
-        .catch(() => {});
-    } else {
+    if (!user) {
       try {
-        const saved = sessionStorage.getItem(storageKey(slug));
+        const saved = sessionStorage.getItem(GUEST_KEY);
         if (saved) setMessages(JSON.parse(saved));
       } catch { /* silent */ }
     }
-  }, [selectedCity, user]);
-
-  // Save conversation after each completed AI reply
-  useEffect(() => {
-    if (!selectedCity) return;
-    const finished = messages.filter(m => !m.isLoading);
-    if (finished.length === 0) return;
-    const slug = selectedCity.slug;
-
-    if (user) {
-      saveAIConversation(slug, finished)
-        .then(res => { if (res.autoDeleted) showToast('Your oldest conversation was cleared to make room.'); })
-        .catch(() => {});
-    } else {
-      try { sessionStorage.setItem(storageKey(slug), JSON.stringify(finished)); } catch { /* silent */ }
-    }
-  // Only run when messages settle (not on every keypress)
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [messages]);
+  }, []);
 
+  // City detection
   useEffect(() => {
     getCities().then(async (fetchedCities) => {
       setCities(fetchedCities);
@@ -301,15 +282,24 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
     }).catch(() => {});
   }, [initialCitySlug]);
 
-
+  // Auto-scroll messages
   useEffect(() => {
     if (compact && messagesContainerRef.current) {
-      // Scroll within the capped container — page stays still
       messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
     } else {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
   }, [messages, compact]);
+
+  const fetchHistory = useCallback(async () => {
+    if (!user) return;
+    setHistoryLoading(true);
+    try {
+      const convs = await getConversations();
+      setConversations(convs);
+    } catch { /* silent */ }
+    finally { setHistoryLoading(false); }
+  }, [user]);
 
   const resizeTextarea = (el: HTMLTextAreaElement) => {
     el.style.height = 'auto';
@@ -338,8 +328,6 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
       .slice(-8)
       .map(m => ({ role: m.role, content: m.content }));
 
-    // Explicit slug (card/chip click) takes priority; fall back to active state
-    // so typed follow-up messages stay anchored to the current vendor automatically.
     const slugToSend = explicitSlug !== undefined ? explicitSlug : (activeFocusedSlug ?? undefined);
 
     try {
@@ -349,22 +337,15 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
         { timeout: 35000 }
       );
 
-      // Update active focused slug based on AI response:
-      // - Single vendor response → lock in that vendor
-      // - Multiple results → back to discovery, clear focus
-      // - Question / 0 results → keep current focus (still about same vendor)
       if (data.showCards === false && data.data?.length === 1) {
         setActiveFocusedSlug(data.data[0].slug);
       } else if ((data.data?.length ?? 0) > 1) {
         setActiveFocusedSlug(null);
       }
 
-      // Mid-conversation city switch — backend detected user asking about a different city
-      // and already fetched that city's data. Update selected city so future messages use it.
       if (data.detectedCity) {
         const switched = cities.find(c => c.slug === data.detectedCity);
         if (switched && switched.id !== selectedCity.id) {
-          loadedCityRef.current = switched.slug; // prevent load effect from overwriting current messages
           setSelectedCity(switched);
           setActiveFocusedSlug(null);
         }
@@ -383,20 +364,26 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
         isLoading: false,
       };
 
-      setMessages(prev => {
-        const updated = prev.map(m => m.id === loadingId ? assistantMsg : m);
-        if (selectedCity) {
-          const toSave = updated.filter(m => !m.isLoading);
-          if (user) {
-            saveAIConversation(selectedCity.slug, toSave)
-              .then(res => { if (res.autoDeleted) showToast('Your oldest conversation was cleared to make room.'); })
-              .catch(() => {});
-          } else {
-            try { sessionStorage.setItem(storageKey(selectedCity.slug), JSON.stringify(toSave)); } catch { /* silent */ }
-          }
+      setMessages(prev => prev.map(m => m.id === loadingId ? assistantMsg : m));
+
+      // Persist conversation
+      const toSave = [...messages, userMsg, assistantMsg];
+      if (user) {
+        if (activeConversationId) {
+          updateConversation(activeConversationId, toSave).catch(() => {});
+        } else {
+          const firstUser = toSave.find(m => m.role === 'user');
+          const title = (firstUser?.content || 'Chat').slice(0, 60);
+          createConversation(title, toSave)
+            .then(res => {
+              setActiveConversationId(res.id);
+              if (res.autoDeleted) showToast('Your oldest chat was auto-removed to make room.');
+            })
+            .catch(() => {});
         }
-        return updated;
-      });
+      } else {
+        try { sessionStorage.setItem(GUEST_KEY, JSON.stringify(toSave)); } catch { /* silent */ }
+      }
     } catch (error: any) {
       const errorText =
         error?.response?.status === 429
@@ -411,7 +398,7 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
     } finally {
       setIsLoading(false);
     }
-  }, [messages, selectedCity, isLoading, user, showToast, activeFocusedSlug, cities]);
+  }, [messages, selectedCity, isLoading, user, activeFocusedSlug, cities, activeConversationId]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -425,225 +412,338 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
     }
   };
 
+  const handleClearChat = () => {
+    setMessages([]);
+    setActiveFocusedSlug(null);
+    setActiveConversationId(null);
+    if (!user) {
+      try { sessionStorage.removeItem(GUEST_KEY); } catch { /* silent */ }
+    }
+  };
+
+  const handleNewChat = () => {
+    setMessages([]);
+    setActiveFocusedSlug(null);
+    setActiveConversationId(null);
+    setShowHistory(false);
+  };
+
+  const handleShowHistory = () => {
+    fetchHistory();
+    setShowHistory(true);
+  };
+
+  const handleLoadConversation = async (id: number) => {
+    try {
+      const conv = await getConversationById(id);
+      setMessages(conv.messages || []);
+      setActiveConversationId(id);
+      setActiveFocusedSlug(null);
+      setShowHistory(false);
+    } catch { /* silent */ }
+  };
+
+  const handleDeleteConversation = async (id: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      await deleteConversation(id);
+      setConversations(prev => prev.filter(c => c.id !== id));
+      if (activeConversationId === id) {
+        setMessages([]);
+        setActiveConversationId(null);
+      }
+    } catch { /* silent */ }
+  };
+
   return (
     <div className="w-full flex flex-col gap-4">
 
-      {/* Conversation thread */}
-      {messages.length > 0 && (
-        <div
-          ref={messagesContainerRef}
-          className={`space-y-5 ${compact ? 'max-h-[420px] overflow-y-auto pr-1' : ''}`}
-        >
-          {messages.map(msg => (
-            <div key={msg.id}>
-              {msg.role === 'user' ? (
-                <div className="flex justify-end">
-                  <div className="max-w-[80%] bg-orange-600 text-white px-4 py-3 rounded-2xl rounded-tr-sm text-sm leading-relaxed">
-                    {msg.content}
-                  </div>
-                </div>
-              ) : (
-                <div className="flex gap-3">
-                  <div className="w-8 h-8 rounded-xl bg-orange-600 flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.347.347a3.75 3.75 0 00-1.1 2.028l-.3 1.5a.75.75 0 01-.734.598H8.741a.75.75 0 01-.734-.598l-.3-1.5a3.75 3.75 0 00-1.1-2.028l-.347-.347z" />
-                    </svg>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 mb-2 uppercase tracking-wide">BuzzGram AI</p>
-
-                    {/* Loading skeleton */}
-                    {msg.isLoading && (
-                      <div className="space-y-2">
-                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded-full w-3/4 animate-pulse" />
-                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded-full w-1/2 animate-pulse" />
-                      </div>
-                    )}
-
-                    {/* Message text */}
-                    {!msg.isLoading && msg.content && (
-                      <p className={`text-sm leading-relaxed whitespace-pre-line ${msg.isError ? 'text-red-500 dark:text-red-400' : 'text-gray-700 dark:text-gray-300'} ${(msg.checklist?.length || msg.businesses?.length) ? 'mb-4' : ''}`}>
-                        {msg.isError ? msg.content : renderMarkdown(msg.content)}
-                      </p>
-                    )}
-
-                    {/* Planning checklist */}
-                    {!msg.isLoading && msg.checklist && msg.checklist.length > 0 && (
-                      <div className="mb-5 space-y-2">
-                        {msg.checklist.map((item, i) => (
-                          <div key={i} className="flex items-start gap-2.5 text-sm text-gray-700 dark:text-gray-300">
-                            <div className="w-5 h-5 rounded-full border-2 border-orange-400 flex items-center justify-center flex-shrink-0 mt-0.5">
-                              <div className="w-2 h-2 rounded-full bg-orange-400" />
-                            </div>
-                            <span>{item}</span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    {/* Business results — grouped carousel (only when AI signals showCards) */}
-                    {!msg.isLoading && msg.showCards !== false && msg.businesses && msg.businesses.length > 0 && (
-                      <div className="mb-3">
-                        {groupBusinesses(msg.businesses).map(group => (
-                          <CarouselRow
-                            key={group.label}
-                            group={group}
-                            onSelect={(name, slug) => sendMessage(`What can you tell me about ${name}?`, slug)}
-                          />
-                        ))}
-                      </div>
-                    )}
-
-                    {/* Subtle profile link when focused on a single vendor (no card needed) */}
-                    {!msg.isLoading && msg.showCards === false && msg.businesses && msg.businesses.length === 1 && (
-                      <Link
-                        href={`/business/${msg.businesses[0].slug}`}
-                        className="inline-flex items-center gap-1 text-xs text-orange-600 dark:text-orange-400 hover:underline mb-3"
-                      >
-                        View {msg.businesses[0].name} profile
-                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-                        </svg>
-                      </Link>
-                    )}
-
-                    {/* Follow-up suggestion chips */}
-                    {!msg.isLoading && msg.followUps && msg.followUps.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mt-1">
-                        {msg.followUps.map((suggestion, i) => (
-                          <button
-                            key={i}
-                            type="button"
-                            onClick={() => sendMessage(suggestion, msg.focusedSlug)}
-                            disabled={isLoading}
-                            className="px-3 py-1.5 rounded-full text-xs font-medium border border-gray-200 dark:border-dark-border text-gray-600 dark:text-gray-400 hover:border-orange-400 hover:text-orange-600 dark:hover:border-orange-500 dark:hover:text-orange-400 bg-white dark:bg-dark-card transition-all disabled:opacity-40"
-                          >
-                            {suggestion}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
+      {showHistory ? (
+        /* ── History panel ── */
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Chat History</h3>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={handleNewChat}
+                className="text-xs font-medium text-orange-600 dark:text-orange-400 hover:underline"
+              >
+                + New chat
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowHistory(false)}
+                className="text-xs text-gray-400 hover:text-gray-600 dark:text-gray-600 dark:hover:text-gray-400 transition-colors"
+              >
+                Back
+              </button>
             </div>
-          ))}
-          <div ref={messagesEndRef} />
-        </div>
-      )}
+          </div>
 
-      {/* Empty state — city picker (no city detected) or example prompts */}
-      {messages.length === 0 && (
-        !selectedCity ? (
-          <div>
-            <p className="text-xs text-gray-400 dark:text-gray-500 mb-2.5 flex items-center gap-1.5">
-              <svg className="w-3 h-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
-              </svg>
-              Where are you? Pick your city to get started.
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {cities.map(city => (
-                <button
-                  key={city.id}
-                  type="button"
-                  onClick={() => { setSelectedCity(city); setActiveFocusedSlug(null); }}
-                  className="px-3 py-1.5 rounded-full text-xs font-medium border border-gray-200 dark:border-dark-border text-gray-600 dark:text-gray-400 hover:border-orange-400 hover:text-orange-600 dark:hover:border-orange-500 dark:hover:text-orange-400 bg-white dark:bg-dark-card transition-all"
-                >
-                  {city.name}
-                </button>
+          {historyLoading ? (
+            <div className="space-y-2">
+              {[1, 2, 3].map(i => (
+                <div key={i} className="h-14 bg-gray-100 dark:bg-gray-800 rounded-xl animate-pulse" />
               ))}
             </div>
-          </div>
-        ) : (
-          <div className="flex flex-wrap gap-2">
-            {EXAMPLE_PROMPTS.map(prompt => (
-              <button
-                key={prompt}
-                type="button"
-                onClick={() => sendMessage(prompt)}
-                className="px-3 py-1.5 rounded-full text-xs font-medium border border-gray-200 dark:border-dark-border text-gray-500 dark:text-gray-400 hover:border-orange-400 hover:text-orange-600 dark:hover:border-orange-500 dark:hover:text-orange-400 bg-white dark:bg-dark-card transition-all"
-              >
-                {prompt}
-              </button>
-            ))}
-          </div>
-        )
+          ) : conversations.length === 0 ? (
+            <p className="text-sm text-gray-400 dark:text-gray-500 text-center py-8">
+              No saved conversations yet.
+            </p>
+          ) : (
+            <div className={`space-y-1.5 ${compact ? 'max-h-[420px] overflow-y-auto pr-1' : ''}`}>
+              {conversations.map(conv => (
+                <div
+                  key={conv.id}
+                  onClick={() => handleLoadConversation(conv.id)}
+                  className={`flex items-center justify-between gap-3 p-3 rounded-xl cursor-pointer border transition-all ${
+                    conv.id === activeConversationId
+                      ? 'border-orange-300 dark:border-orange-700 bg-orange-50 dark:bg-orange-900/20'
+                      : 'border-gray-100 dark:border-dark-border hover:border-gray-200 dark:hover:border-gray-600 bg-white dark:bg-dark-card hover:bg-gray-50 dark:hover:bg-dark-bg'
+                  }`}
+                >
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{conv.title}</p>
+                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+                      {conv.messageCount} messages · {formatDate(conv.updatedAt)}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={(e) => handleDeleteConversation(conv.id, e)}
+                    title="Delete"
+                    className="flex-shrink-0 p-1.5 rounded-lg text-gray-300 hover:text-red-500 dark:text-gray-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all"
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      ) : (
+        <>
+          {/* ── Conversation thread ── */}
+          {messages.length > 0 && (
+            <div
+              ref={messagesContainerRef}
+              className={`space-y-5 ${compact ? 'max-h-[420px] overflow-y-auto pr-1' : ''}`}
+            >
+              {messages.map(msg => (
+                <div key={msg.id}>
+                  {msg.role === 'user' ? (
+                    <div className="flex justify-end">
+                      <div className="max-w-[80%] bg-orange-600 text-white px-4 py-3 rounded-2xl rounded-tr-sm text-sm leading-relaxed">
+                        {msg.content}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex gap-3">
+                      <div className="w-8 h-8 rounded-xl bg-orange-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.347.347a3.75 3.75 0 00-1.1 2.028l-.3 1.5a.75.75 0 01-.734.598H8.741a.75.75 0 01-.734-.598l-.3-1.5a3.75 3.75 0 00-1.1-2.028l-.347-.347z" />
+                        </svg>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 mb-2 uppercase tracking-wide">BuzzGram AI</p>
+
+                        {msg.isLoading && (
+                          <div className="space-y-2">
+                            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded-full w-3/4 animate-pulse" />
+                            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded-full w-1/2 animate-pulse" />
+                          </div>
+                        )}
+
+                        {!msg.isLoading && msg.content && (
+                          <p className={`text-sm leading-relaxed whitespace-pre-line ${msg.isError ? 'text-red-500 dark:text-red-400' : 'text-gray-700 dark:text-gray-300'} ${(msg.checklist?.length || msg.businesses?.length) ? 'mb-4' : ''}`}>
+                            {msg.isError ? msg.content : renderMarkdown(msg.content)}
+                          </p>
+                        )}
+
+                        {!msg.isLoading && msg.checklist && msg.checklist.length > 0 && (
+                          <div className="mb-5 space-y-2">
+                            {msg.checklist.map((item, i) => (
+                              <div key={i} className="flex items-start gap-2.5 text-sm text-gray-700 dark:text-gray-300">
+                                <div className="w-5 h-5 rounded-full border-2 border-orange-400 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                  <div className="w-2 h-2 rounded-full bg-orange-400" />
+                                </div>
+                                <span>{item}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {!msg.isLoading && msg.showCards !== false && msg.businesses && msg.businesses.length > 0 && (
+                          <div className="mb-3">
+                            {groupBusinesses(msg.businesses).map(group => (
+                              <CarouselRow
+                                key={group.label}
+                                group={group}
+                                onSelect={(name, slug) => sendMessage(`What can you tell me about ${name}?`, slug)}
+                              />
+                            ))}
+                          </div>
+                        )}
+
+                        {!msg.isLoading && msg.showCards === false && msg.businesses && msg.businesses.length === 1 && (
+                          <Link
+                            href={`/business/${msg.businesses[0].slug}`}
+                            className="inline-flex items-center gap-1 text-xs text-orange-600 dark:text-orange-400 hover:underline mb-3"
+                          >
+                            View {msg.businesses[0].name} profile
+                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                            </svg>
+                          </Link>
+                        )}
+
+                        {!msg.isLoading && msg.followUps && msg.followUps.length > 0 && (
+                          <div className="flex flex-wrap gap-2 mt-1">
+                            {msg.followUps.map((suggestion, i) => (
+                              <button
+                                key={i}
+                                type="button"
+                                onClick={() => sendMessage(suggestion, msg.focusedSlug)}
+                                disabled={isLoading}
+                                className="px-3 py-1.5 rounded-full text-xs font-medium border border-gray-200 dark:border-dark-border text-gray-600 dark:text-gray-400 hover:border-orange-400 hover:text-orange-600 dark:hover:border-orange-500 dark:hover:text-orange-400 bg-white dark:bg-dark-card transition-all disabled:opacity-40"
+                              >
+                                {suggestion}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+              <div ref={messagesEndRef} />
+            </div>
+          )}
+
+          {/* ── Empty state ── */}
+          {messages.length === 0 && (
+            !selectedCity ? (
+              <div>
+                <p className="text-xs text-gray-400 dark:text-gray-500 mb-2.5 flex items-center gap-1.5">
+                  <svg className="w-3 h-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+                  </svg>
+                  Where are you? Pick your city to get started.
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {cities.map(city => (
+                    <button
+                      key={city.id}
+                      type="button"
+                      onClick={() => { setSelectedCity(city); setActiveFocusedSlug(null); }}
+                      className="px-3 py-1.5 rounded-full text-xs font-medium border border-gray-200 dark:border-dark-border text-gray-600 dark:text-gray-400 hover:border-orange-400 hover:text-orange-600 dark:hover:border-orange-500 dark:hover:text-orange-400 bg-white dark:bg-dark-card transition-all"
+                    >
+                      {city.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {EXAMPLE_PROMPTS.map(prompt => (
+                  <button
+                    key={prompt}
+                    type="button"
+                    onClick={() => sendMessage(prompt)}
+                    className="px-3 py-1.5 rounded-full text-xs font-medium border border-gray-200 dark:border-dark-border text-gray-500 dark:text-gray-400 hover:border-orange-400 hover:text-orange-600 dark:hover:border-orange-500 dark:hover:text-orange-400 bg-white dark:bg-dark-card transition-all"
+                  >
+                    {prompt}
+                  </button>
+                ))}
+              </div>
+            )
+          )}
+        </>
       )}
 
-      {/* Input — always at bottom */}
-      <form onSubmit={handleSubmit}>
-        <div className="relative border-2 border-gray-200 dark:border-dark-border rounded-2xl bg-white dark:bg-dark-card shadow-sm focus-within:border-orange-500 focus-within:shadow-md transition-all">
-          <textarea
-            ref={textareaRef}
-            placeholder={
-              !selectedCity
-                ? 'Pick your city above, or just ask — e.g. "Show me nail techs in Toronto"'
-                : messages.length === 0
-                  ? "Ask anything... e.g. I'm getting married this summer, help me plan"
-                  : 'Ask a follow-up...'
-            }
-            value={input}
-            onChange={e => { setInput(e.target.value); resizeTextarea(e.target); }}
-            onKeyDown={handleKeyDown}
-            rows={1}
-            className="w-full px-5 pt-4 pb-14 text-base bg-transparent text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none resize-none leading-relaxed"
-            style={{ minHeight: '60px', maxHeight: '160px' }}
-          />
-          <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
-            {/* City indicator — subtle, non-interactive */}
-            {selectedCity ? (
-              <span className="flex items-center gap-1 text-xs text-gray-400 dark:text-gray-500 pointer-events-none select-none">
-                <svg className="w-3 h-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
-                </svg>
-                {selectedCity.name}
-              </span>
-            ) : (
-              <span className="text-xs text-gray-300 dark:text-gray-600 pointer-events-none select-none">Detecting city…</span>
-            )}
-            {/* Actions */}
-            <div className="flex items-center gap-2">
-              {messages.length > 0 && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMessages([]);
-                    setActiveFocusedSlug(null);
-                    if (selectedCity) {
-                      if (user) {
-                        deleteAIConversation(selectedCity.slug).catch(() => {});
-                      } else {
-                        try { sessionStorage.removeItem(storageKey(selectedCity.slug)); } catch { /* silent */ }
-                      }
-                    }
-                  }}
-                  className="text-xs text-gray-400 hover:text-gray-600 dark:text-gray-600 dark:hover:text-gray-400 transition-colors px-2 py-1"
-                >
-                  Clear chat
-                </button>
+      {/* ── Input bar — hidden when browsing history ── */}
+      {!showHistory && (
+        <form onSubmit={handleSubmit}>
+          <div className="relative border-2 border-gray-200 dark:border-dark-border rounded-2xl bg-white dark:bg-dark-card shadow-sm focus-within:border-orange-500 focus-within:shadow-md transition-all">
+            <textarea
+              ref={textareaRef}
+              placeholder={
+                !selectedCity
+                  ? 'Pick your city above, or just ask — e.g. "Show me nail techs in Toronto"'
+                  : messages.length === 0
+                    ? "Ask anything... e.g. I'm getting married this summer, help me plan"
+                    : 'Ask a follow-up...'
+              }
+              value={input}
+              onChange={e => { setInput(e.target.value); resizeTextarea(e.target); }}
+              onKeyDown={handleKeyDown}
+              rows={1}
+              className="w-full px-5 pt-4 pb-14 text-base bg-transparent text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none resize-none leading-relaxed"
+              style={{ minHeight: '60px', maxHeight: '160px' }}
+            />
+            <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
+              {/* City indicator */}
+              {selectedCity ? (
+                <span className="flex items-center gap-1 text-xs text-gray-400 dark:text-gray-500 pointer-events-none select-none">
+                  <svg className="w-3 h-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+                  </svg>
+                  {selectedCity.name}
+                </span>
+              ) : (
+                <span className="text-xs text-gray-300 dark:text-gray-600 pointer-events-none select-none">Detecting city…</span>
               )}
-              <span className="text-xs text-gray-400 dark:text-gray-600 hidden sm:block">Enter to send</span>
-              <button
-                type="submit"
-                disabled={isLoading || !input.trim()}
-                className="w-9 h-9 rounded-xl bg-orange-600 hover:bg-orange-700 disabled:bg-gray-200 dark:disabled:bg-gray-700 text-white disabled:text-gray-400 dark:disabled:text-gray-500 flex items-center justify-center transition-all"
-              >
-                {isLoading ? (
-                  <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                  </svg>
-                ) : (
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 10l7-7m0 0l7 7m-7-7v18" />
-                  </svg>
+
+              {/* Actions */}
+              <div className="flex items-center gap-2">
+                {messages.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={handleClearChat}
+                    className="text-xs text-gray-400 hover:text-gray-600 dark:text-gray-600 dark:hover:text-gray-400 transition-colors px-2 py-1"
+                  >
+                    Clear chat
+                  </button>
                 )}
-              </button>
+                {/* History icon — logged-in users only */}
+                {user && (
+                  <button
+                    type="button"
+                    onClick={handleShowHistory}
+                    title="Chat history"
+                    className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 dark:text-gray-600 dark:hover:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </button>
+                )}
+                <span className="text-xs text-gray-400 dark:text-gray-600 hidden sm:block">Enter to send</span>
+                <button
+                  type="submit"
+                  disabled={isLoading || !input.trim()}
+                  className="w-9 h-9 rounded-xl bg-orange-600 hover:bg-orange-700 disabled:bg-gray-200 dark:disabled:bg-gray-700 text-white disabled:text-gray-400 dark:disabled:text-gray-500 flex items-center justify-center transition-all"
+                >
+                  {isLoading ? (
+                    <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                  ) : (
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 10l7-7m0 0l7 7m-7-7v18" />
+                    </svg>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      </form>
+        </form>
+      )}
 
       {/* Toast notification */}
       {toast && (
