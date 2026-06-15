@@ -363,7 +363,7 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
     el.style.height = `${Math.min(el.scrollHeight, 160)}px`;
   };
 
-  const sendMessage = useCallback(async (text: string, explicitSlug?: string) => {
+  const sendMessage = useCallback(async (text: string, explicitSlug?: string | null) => {
     const trimmed = text.trim();
     if (!trimmed || isLoading) return;
 
@@ -380,13 +380,16 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
     setInput('');
     if (textareaRef.current) textareaRef.current.style.height = 'auto';
     setIsLoading(true);
+    // null = user typed a new intent — drop the focused-business context
+    if (explicitSlug === null) setActiveFocusedSlug(null);
 
     const historyForAPI = [...messages, userMsg]
       .filter(m => !m.isError && !m.isLoading)
       .slice(-8)
       .map(m => ({ role: m.role, content: m.content }));
 
-    const slugToSend = explicitSlug !== undefined ? explicitSlug : (activeFocusedSlug ?? undefined);
+    // null = user typed manually (no focused slug); undefined = not specified (keep active); string = chip/explicit
+    const slugToSend = explicitSlug === null ? undefined : explicitSlug ?? (activeFocusedSlug ?? undefined);
 
     try {
       const { data } = await api.post<AISearchResponse>(
@@ -553,13 +556,13 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    sendMessage(input);
+    sendMessage(input, null);  // null clears activeFocusedSlug — user typed a new intent
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      sendMessage(input);
+      sendMessage(input, null);
     }
   };
 
