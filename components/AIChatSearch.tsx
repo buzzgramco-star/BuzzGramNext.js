@@ -293,7 +293,6 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
 
   const fetchHistory = useCallback(async () => {
     if (!user) return;
-    setHistoryLoading(true);
     try {
       const convs = await getConversations();
       setConversations(convs);
@@ -429,8 +428,9 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
   };
 
   const handleShowHistory = () => {
-    fetchHistory();
+    setHistoryLoading(true);  // loading skeleton shows immediately, no "no chats" flash
     setShowHistory(true);
+    fetchHistory();
   };
 
   const handleLoadConversation = async (id: number) => {
@@ -665,85 +665,109 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
         </>
       )}
 
-      {/* ── Input bar — hidden when browsing history ── */}
-      {!showHistory && (
-        <form onSubmit={handleSubmit}>
-          <div className="relative border-2 border-gray-200 dark:border-dark-border rounded-2xl bg-white dark:bg-dark-card shadow-sm focus-within:border-orange-500 focus-within:shadow-md transition-all">
-            <textarea
-              ref={textareaRef}
-              placeholder={
-                !selectedCity
+      {/* ── Input bar — always visible ── */}
+      <form onSubmit={handleSubmit}>
+        <div className="relative border-2 border-gray-200 dark:border-dark-border rounded-2xl bg-white dark:bg-dark-card shadow-sm focus-within:border-orange-500 focus-within:shadow-md transition-all">
+          <textarea
+            ref={textareaRef}
+            placeholder={
+              showHistory
+                ? 'Select a conversation above or start a new one'
+                : !selectedCity
                   ? 'Pick your city above, or just ask — e.g. "Show me nail techs in Toronto"'
                   : messages.length === 0
                     ? "Ask anything... e.g. I'm getting married this summer, help me plan"
                     : 'Ask a follow-up...'
-              }
-              value={input}
-              onChange={e => { setInput(e.target.value); resizeTextarea(e.target); }}
-              onKeyDown={handleKeyDown}
-              rows={1}
-              className="w-full px-5 pt-4 pb-14 text-base bg-transparent text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none resize-none leading-relaxed"
-              style={{ minHeight: '60px', maxHeight: '160px' }}
-            />
-            <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
-              {/* City indicator */}
-              {selectedCity ? (
-                <span className="flex items-center gap-1 text-xs text-gray-400 dark:text-gray-500 pointer-events-none select-none">
-                  <svg className="w-3 h-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
-                  </svg>
-                  {selectedCity.name}
-                </span>
-              ) : (
-                <span className="text-xs text-gray-300 dark:text-gray-600 pointer-events-none select-none">Detecting city…</span>
-              )}
-
-              {/* Actions */}
-              <div className="flex items-center gap-2">
-                {messages.length > 0 && (
+            }
+            value={input}
+            onChange={e => { if (!showHistory) { setInput(e.target.value); resizeTextarea(e.target); } }}
+            onKeyDown={handleKeyDown}
+            disabled={showHistory}
+            rows={1}
+            className="w-full px-5 pt-4 pb-14 text-base bg-transparent text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none resize-none leading-relaxed disabled:opacity-60"
+            style={{ minHeight: '60px', maxHeight: '160px' }}
+          />
+          <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
+            {showHistory ? (
+              /* History mode bottom bar */
+              <>
+                <span className="text-xs text-gray-400 dark:text-gray-500 pointer-events-none select-none">Browsing history</span>
+                <div className="flex items-center gap-2">
                   <button
                     type="button"
-                    onClick={handleClearChat}
+                    onClick={handleNewChat}
+                    className="text-xs font-medium text-orange-600 dark:text-orange-400 hover:underline px-2 py-1"
+                  >
+                    New chat
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowHistory(false)}
                     className="text-xs text-gray-400 hover:text-gray-600 dark:text-gray-600 dark:hover:text-gray-400 transition-colors px-2 py-1"
                   >
-                    Clear chat
+                    Back to chat
                   </button>
+                </div>
+              </>
+            ) : (
+              /* Normal mode bottom bar */
+              <>
+                {selectedCity ? (
+                  <span className="flex items-center gap-1 text-xs text-gray-400 dark:text-gray-500 pointer-events-none select-none">
+                    <svg className="w-3 h-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+                    </svg>
+                    {selectedCity.name}
+                  </span>
+                ) : (
+                  <span className="text-xs text-gray-300 dark:text-gray-600 pointer-events-none select-none">Detecting city…</span>
                 )}
-                {/* History icon — logged-in users only */}
-                {user && (
-                  <button
-                    type="button"
-                    onClick={handleShowHistory}
-                    title="Chat history"
-                    className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 dark:text-gray-600 dark:hover:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </button>
-                )}
-                <span className="text-xs text-gray-400 dark:text-gray-600 hidden sm:block">Enter to send</span>
-                <button
-                  type="submit"
-                  disabled={isLoading || !input.trim()}
-                  className="w-9 h-9 rounded-xl bg-orange-600 hover:bg-orange-700 disabled:bg-gray-200 dark:disabled:bg-gray-700 text-white disabled:text-gray-400 dark:disabled:text-gray-500 flex items-center justify-center transition-all"
-                >
-                  {isLoading ? (
-                    <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                    </svg>
-                  ) : (
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 10l7-7m0 0l7 7m-7-7v18" />
-                    </svg>
+
+                <div className="flex items-center gap-2">
+                  {messages.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={handleClearChat}
+                      className="text-xs text-gray-400 hover:text-gray-600 dark:text-gray-600 dark:hover:text-gray-400 transition-colors px-2 py-1"
+                    >
+                      Clear chat
+                    </button>
                   )}
-                </button>
-              </div>
-            </div>
+                  {user && (
+                    <button
+                      type="button"
+                      onClick={handleShowHistory}
+                      title="Chat history"
+                      className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 dark:text-gray-600 dark:hover:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </button>
+                  )}
+                  <span className="text-xs text-gray-400 dark:text-gray-600 hidden sm:block">Enter to send</span>
+                  <button
+                    type="submit"
+                    disabled={isLoading || !input.trim() || showHistory}
+                    className="w-9 h-9 rounded-xl bg-orange-600 hover:bg-orange-700 disabled:bg-gray-200 dark:disabled:bg-gray-700 text-white disabled:text-gray-400 dark:disabled:text-gray-500 flex items-center justify-center transition-all"
+                  >
+                    {isLoading ? (
+                      <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                      </svg>
+                    ) : (
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 10l7-7m0 0l7 7m-7-7v18" />
+                      </svg>
+                    )}
+                  </button>
+                </div>
+              </>
+            )}
           </div>
-        </form>
-      )}
+        </div>
+      </form>
 
       {/* Toast notification */}
       {toast && (
