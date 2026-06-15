@@ -56,6 +56,55 @@ const EXAMPLE_PROMPTS = [
 
 const GUEST_KEY = 'buzzgram-chat';
 
+// Suburbs / metro-area neighbourhoods → supported city slug
+const METRO_ALIASES: Record<string, string> = {
+  // Toronto metro
+  'north york': 'toronto', 'scarborough': 'toronto', 'etobicoke': 'toronto',
+  'mississauga': 'toronto', 'brampton': 'toronto', 'markham': 'toronto',
+  'richmond hill': 'toronto', 'vaughan': 'toronto', 'oakville': 'toronto',
+  'burlington': 'toronto', 'ajax': 'toronto', 'pickering': 'toronto',
+  // NYC metro
+  'brooklyn': 'new-york-city', 'queens': 'new-york-city', 'bronx': 'new-york-city',
+  'manhattan': 'new-york-city', 'staten island': 'new-york-city',
+  'jersey city': 'new-york-city', 'hoboken': 'new-york-city',
+  'long island city': 'new-york-city', 'astoria': 'new-york-city',
+  // LA metro
+  'burbank': 'los-angeles', 'pasadena': 'los-angeles', 'santa monica': 'los-angeles',
+  'glendale': 'los-angeles', 'west hollywood': 'los-angeles', 'beverly hills': 'los-angeles',
+  'culver city': 'los-angeles', 'inglewood': 'los-angeles', 'compton': 'los-angeles',
+  'long beach': 'los-angeles', 'torrance': 'los-angeles',
+  // Miami metro
+  'north miami': 'miami', 'miami beach': 'miami', 'coral gables': 'miami',
+  'hialeah': 'miami', 'doral': 'miami', 'aventura': 'miami',
+  // Chicago metro
+  'evanston': 'chicago', 'oak park': 'chicago', 'cicero': 'chicago',
+  'berwyn': 'chicago', 'skokie': 'chicago',
+  // Phoenix metro
+  'scottsdale': 'phoenix', 'tempe': 'phoenix', 'mesa': 'phoenix',
+  'chandler': 'phoenix', 'gilbert': 'phoenix', 'peoria': 'phoenix',
+  // Vancouver metro
+  'burnaby': 'vancouver', 'surrey': 'vancouver', 'richmond': 'vancouver',
+  'north vancouver': 'vancouver', 'west vancouver': 'vancouver', 'coquitlam': 'vancouver',
+  // Ottawa / Calgary
+  'gatineau': 'ottawa', 'nepean': 'ottawa', 'kanata': 'ottawa',
+  'airdrie': 'calgary', 'cochrane': 'calgary',
+};
+
+function matchCityFromDetected(detected: string, fetchedCities: City[]): City | null {
+  const d = detected.toLowerCase().trim();
+  if (!d) return null;
+  // Direct name / slug match
+  const direct =
+    fetchedCities.find(c => c.name.toLowerCase() === d) ||
+    fetchedCities.find(c => c.slug === d.replace(/\s+/g, '-')) ||
+    fetchedCities.find(c => c.name.toLowerCase().includes(d) || d.includes(c.name.toLowerCase()));
+  if (direct) return direct;
+  // Metro alias lookup
+  const aliasSlug = METRO_ALIASES[d];
+  if (aliasSlug) return fetchedCities.find(c => c.slug === aliasSlug) ?? null;
+  return null;
+}
+
 function uid() {
   return Math.random().toString(36).slice(2, 9);
 }
@@ -257,7 +306,7 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // City detection
+  // City detection — tries ipapi.co first, falls back to ip-api.com
   useEffect(() => {
     getCities().then(async (fetchedCities) => {
       setCities(fetchedCities);
@@ -266,19 +315,28 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
         if (match) setSelectedCity(match);
         return;
       }
+
+      let detectedCity: string | null = null;
+
+      // Primary: ipapi.co
       try {
-        const res = await fetch('https://ipapi.co/json/', { signal: AbortSignal.timeout(3000) });
+        const res = await fetch('https://ipapi.co/json/', { signal: AbortSignal.timeout(4000) });
         const geo = await res.json();
-        const detected = (geo.city || '').toLowerCase();
-        if (!detected) return;
-        const match =
-          fetchedCities.find(c => c.name.toLowerCase() === detected) ||
-          fetchedCities.find(c => c.slug === detected.replace(/\s+/g, '-')) ||
-          fetchedCities.find(c =>
-            c.name.toLowerCase().includes(detected) || detected.includes(c.name.toLowerCase())
-          );
-        if (match) setSelectedCity(match);
-      } catch { /* silent */ }
+        if (geo.city && !geo.error) detectedCity = geo.city;
+      } catch { /* fall through to backup */ }
+
+      // Fallback: ip-api.com (no monthly cap, 45 req/min free)
+      if (!detectedCity) {
+        try {
+          const res = await fetch('https://ip-api.com/json/?fields=city,status', { signal: AbortSignal.timeout(4000) });
+          const geo = await res.json();
+          if (geo.city && geo.status === 'success') detectedCity = geo.city;
+        } catch { /* silent */ }
+      }
+
+      if (!detectedCity) return;
+      const match = matchCityFromDetected(detectedCity, fetchedCities);
+      if (match) setSelectedCity(match);
     }).catch(() => {});
   }, [initialCitySlug]);
 
