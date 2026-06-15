@@ -469,14 +469,13 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
       const toSave = [...messages, userMsg, assistantMsg];
       if (user) {
         if (activeConversationId) {
-          updateConversation(activeConversationId, toSave).catch(() => {});
+          updateConversation(activeConversationId, toSave, effectiveCity.slug).catch(() => {});
         } else {
           const firstUser = toSave.find(m => m.role === 'user');
           const title = (firstUser?.content || 'Chat').slice(0, 60);
-          createConversation(title, toSave)
+          createConversation(title, toSave, effectiveCity.slug)
             .then(res => {
               setActiveConversationId(res.id);
-              // Save conv→city so history restore works even if IP detection fails
               try {
                 const map = JSON.parse(localStorage.getItem(CONV_CITIES_KEY) || '{}');
                 map[res.id] = effectiveCity.slug;
@@ -569,11 +568,11 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
 
       if (user) {
         if (activeConversationId) {
-          updateConversation(activeConversationId, toSave).catch(() => {});
+          updateConversation(activeConversationId, toSave, selectedCity?.slug).catch(() => {});
         } else {
           const firstUser = toSave.find(m => m.role === 'user');
           const title = (firstUser?.content || 'Chat').slice(0, 60);
-          createConversation(title, toSave)
+          createConversation(title, toSave, selectedCity?.slug)
             .then(res => {
               setActiveConversationId(res.id);
               if (selectedCity) {
@@ -647,27 +646,16 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
       setActiveFocusedSlug(null);
       setShowHistory(false);
 
-      // Restore city if not currently set
-      if (!selectedCity) {
-        // 1. Check localStorage mapping saved at conversation-create time
-        let restoredSlug: string | null = null;
-        try {
-          const map = JSON.parse(localStorage.getItem(CONV_CITIES_KEY) || '{}');
-          restoredSlug = map[id] ?? null;
-        } catch { /* silent */ }
+      // Always restore city from conversation — even if selectedCity is already set,
+      // load the city the conversation belongs to
+      const slug =
+        conv.citySlug ||                                              // 1. DB field (permanent fix)
+        (() => { try { return JSON.parse(localStorage.getItem(CONV_CITIES_KEY) || '{}')[id] ?? null; } catch { return null; } })() || // 2. localStorage map
+        (() => { for (const msg of (conv.messages || [])) { const c = (msg.businesses as any[])?.[0]?.city; if (c?.slug) return c.slug; } return null; })(); // 3. scan messages
 
-        // 2. Fallback: scan messages for business city data (stored in JSONB)
-        if (!restoredSlug) {
-          for (const msg of (conv.messages || [])) {
-            const cityFromBusiness = (msg.businesses as any[])?.[0]?.city;
-            if (cityFromBusiness?.slug) { restoredSlug = cityFromBusiness.slug; break; }
-          }
-        }
-
-        if (restoredSlug) {
-          const match = cities.find(c => c.slug === restoredSlug);
-          if (match) setSelectedCity(match);
-        }
+      if (slug) {
+        const match = cities.find(c => c.slug === slug);
+        if (match) setSelectedCity(match);
       }
     } catch { /* silent */ }
   };

@@ -506,6 +506,7 @@ export const deleteBlog = async (id: number): Promise<void> => {
 export interface ConversationSummary {
   id: number;
   title: string;
+  citySlug: string | null;
   messageCount: number;
   createdAt: string;
   updatedAt: string;
@@ -516,18 +517,18 @@ export const getConversations = async (): Promise<ConversationSummary[]> => {
   return data.conversations ?? [];
 };
 
-export const getConversationById = async (id: number): Promise<{ id: number; title: string; messages: any[]; createdAt: string; updatedAt: string }> => {
+export const getConversationById = async (id: number): Promise<{ id: number; title: string; citySlug: string | null; messages: any[]; createdAt: string; updatedAt: string }> => {
   const { data } = await api.get(`/conversations/${id}`);
   return data.conversation;
 };
 
-export const createConversation = async (title: string, messages: any[]): Promise<{ id: number; autoDeleted: boolean }> => {
-  const { data } = await api.post('/conversations', { title, messages });
+export const createConversation = async (title: string, messages: any[], citySlug?: string): Promise<{ id: number; autoDeleted: boolean }> => {
+  const { data } = await api.post('/conversations', { title, messages, citySlug });
   return data;
 };
 
-export const updateConversation = async (id: number, messages: any[]): Promise<void> => {
-  await api.put(`/conversations/${id}`, { messages });
+export const updateConversation = async (id: number, messages: any[], citySlug?: string): Promise<void> => {
+  await api.put(`/conversations/${id}`, { messages, ...(citySlug ? { citySlug } : {}) });
 };
 
 export const deleteConversation = async (id: number): Promise<void> => {
