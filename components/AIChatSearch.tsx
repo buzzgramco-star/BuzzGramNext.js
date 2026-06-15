@@ -301,6 +301,8 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
   const [showHistory, setShowHistory] = useState(false);
   const [conversations, setConversations] = useState<ConversationSummary[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
+  const [cityDropdownOpen, setCityDropdownOpen] = useState(false);
+  const cityDropdownRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -309,6 +311,18 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
     setToast(msg);
     setTimeout(() => setToast(null), 4000);
   };
+
+  // Close city dropdown on outside click
+  useEffect(() => {
+    if (!cityDropdownOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (cityDropdownRef.current && !cityDropdownRef.current.contains(e.target as Node)) {
+        setCityDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [cityDropdownOpen]);
 
   // Guests: load single session from sessionStorage on mount
   useEffect(() => {
@@ -943,16 +957,53 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
             ) : (
               /* Normal mode bottom bar */
               <>
-                {selectedCity ? (
-                  <span className="flex items-center gap-1 text-xs text-gray-400 dark:text-gray-500 pointer-events-none select-none">
+                {/* City selector — shows detected/selected city, click to switch */}
+                <div ref={cityDropdownRef} className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setCityDropdownOpen(o => !o)}
+                    className="flex items-center gap-1 text-xs text-gray-400 dark:text-gray-500 hover:text-orange-500 dark:hover:text-orange-400 transition-colors group"
+                  >
                     <svg className="w-3 h-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
                     </svg>
-                    {selectedCity.name}
-                  </span>
-                ) : (
-                  <span className="text-xs text-gray-300 dark:text-gray-600 pointer-events-none select-none">Detecting city…</span>
-                )}
+                    <span>{selectedCity ? selectedCity.name : 'Detecting city…'}</span>
+                    {cities.length > 0 && (
+                      <svg
+                        className={`w-3 h-3 transition-transform duration-150 ${cityDropdownOpen ? 'rotate-180' : ''}`}
+                        fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                      </svg>
+                    )}
+                  </button>
+
+                  {cityDropdownOpen && cities.length > 0 && (
+                    <div className="absolute bottom-full left-0 mb-2 w-44 bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-xl shadow-lg py-1 z-50">
+                      {cities.map(city => (
+                        <button
+                          key={city.id}
+                          type="button"
+                          onClick={() => {
+                            setSelectedCity(city);
+                            setActiveFocusedSlug(null);
+                            setCityDropdownOpen(false);
+                          }}
+                          className="w-full flex items-center justify-between px-3 py-2 text-xs text-left hover:bg-gray-50 dark:hover:bg-dark-hover transition-colors"
+                        >
+                          <span className={selectedCity?.id === city.id ? 'text-orange-500 font-medium' : 'text-gray-700 dark:text-gray-300'}>
+                            {city.name}
+                          </span>
+                          {selectedCity?.id === city.id && (
+                            <svg className="w-3 h-3 text-orange-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            </svg>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
 
                 <div className="flex items-center gap-2">
                   {messages.length > 0 && (
