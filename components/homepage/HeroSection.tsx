@@ -22,7 +22,7 @@ export default function HeroSection({ detectedCity }: HeroSectionProps) {
         <div className="flex justify-center mb-6">
           <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 text-orange-700 dark:text-orange-400 text-xs font-semibold tracking-wide uppercase">
             <span className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse" />
-            AI-Powered Business Discovery
+            Meet the AI that knows your city
           </span>
         </div>
 
@@ -34,7 +34,10 @@ export default function HeroSection({ detectedCity }: HeroSectionProps) {
 
         {/* Subtext */}
         <p className="text-center text-lg sm:text-xl text-gray-500 dark:text-gray-400 max-w-2xl mx-auto mb-10 leading-relaxed">
-          BuzzGram connects you with the best home-based and Instagram businesses in your city — nail techs, bakers, photographers, event planners and more. Just describe what you need.
+          The best local talent isn&apos;t on Google — they&apos;re home-based and Instagram-only.
+          BuzzGram AI is the first of its kind: just describe what you need and it instantly
+          surfaces the hidden nail techs, bakers, lash artists, photographers and event planners
+          in your city.
         </p>
 
         {/* AI Chat — the hero */}
@@ -48,12 +51,12 @@ export default function HeroSection({ detectedCity }: HeroSectionProps) {
             <svg className="w-4 h-4 text-orange-400" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
             </svg>
-            10 cities
+            10 cities &amp; growing
           </span>
           <span className="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600" />
-          <span>Beauty · Food · Events</span>
+          <span>Beauty · Food · Events · and more</span>
           <span className="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600" />
-          <span>Home-based &amp; Instagram businesses</span>
+          <span>Businesses you won&apos;t find anywhere else</span>
         </div>
 
         {/* Business owner link */}
