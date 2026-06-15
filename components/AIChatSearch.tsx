@@ -382,6 +382,7 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
     setIsLoading(true);
 
     const historyForAPI = [...messages, userMsg]
+      .filter(m => !m.isError && !m.isLoading)
       .slice(-8)
       .map(m => ({ role: m.role, content: m.content }));
 
@@ -451,6 +452,99 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
 
       setMessages(prev => prev.map(m =>
         m.id === loadingId ? { ...m, content: errorText, isLoading: false, isError: true } : m
+      ));
+    } finally {
+      setIsLoading(false);
+    }
+  }, [messages, selectedCity, isLoading, user, activeFocusedSlug, cities, activeConversationId]);
+
+  // Retry an errored AI message in-place — replaces the error bubble with loading
+  // then with the real response. Does NOT add a new user message to the thread.
+  const retryMessage = useCallback(async (errorMsgId: string) => {
+    if (isLoading || !selectedCity) return;
+
+    // Find the user message that triggered this error
+    const errorIdx = messages.findIndex(m => m.id === errorMsgId);
+    const triggeringUser = messages.slice(0, errorIdx).reverse().find(m => m.role === 'user');
+    if (!triggeringUser) return;
+
+    setIsLoading(true);
+    setMessages(prev => prev.map(m =>
+      m.id === errorMsgId ? { ...m, content: '', isLoading: true, isError: false } : m
+    ));
+
+    const historyForAPI = messages
+      .filter(m => m.id !== errorMsgId && !m.isError && !m.isLoading)
+      .slice(-8)
+      .map(m => ({ role: m.role, content: m.content }));
+
+    const slugToSend = activeFocusedSlug ?? undefined;
+
+    try {
+      const { data } = await api.post<AISearchResponse>(
+        '/ai-search',
+        { messages: historyForAPI, cityId: selectedCity.id, ...(slugToSend ? { focusedSlug: slugToSend } : {}) },
+        { timeout: 35000 }
+      );
+
+      if (data.showCards === false && data.data?.length === 1) {
+        setActiveFocusedSlug(data.data[0].slug);
+      } else if ((data.data?.length ?? 0) > 1) {
+        setActiveFocusedSlug(null);
+      }
+
+      if (data.detectedCity) {
+        const switched = cities.find(c => c.slug === data.detectedCity);
+        if (switched && switched.id !== selectedCity.id) {
+          setSelectedCity(switched);
+          setActiveFocusedSlug(null);
+        }
+      }
+
+      const assistantMsg: ChatMessage = {
+        id: errorMsgId,
+        role: 'assistant',
+        content: data.message || '',
+        businesses: data.data || [],
+        followUps: data.followUps || [],
+        checklist: data.checklist || [],
+        type: data.type as any,
+        showCards: data.showCards !== false,
+        focusedSlug: data.showCards === false && data.data?.length === 1 ? data.data[0].slug : undefined,
+        isLoading: false,
+      };
+
+      setMessages(prev => prev.map(m => m.id === errorMsgId ? assistantMsg : m));
+
+      const toSave = messages
+        .filter(m => m.id !== errorMsgId && !m.isError && !m.isLoading)
+        .concat(assistantMsg);
+
+      if (user) {
+        if (activeConversationId) {
+          updateConversation(activeConversationId, toSave).catch(() => {});
+        } else {
+          const firstUser = toSave.find(m => m.role === 'user');
+          const title = (firstUser?.content || 'Chat').slice(0, 60);
+          createConversation(title, toSave)
+            .then(res => {
+              setActiveConversationId(res.id);
+              if (res.autoDeleted) showToast('Your oldest chat was auto-removed to make room.');
+            })
+            .catch(() => {});
+        }
+      } else {
+        try { sessionStorage.setItem(GUEST_KEY, JSON.stringify(toSave)); } catch { /* silent */ }
+      }
+    } catch (error: any) {
+      const errorText =
+        error?.response?.status === 429
+          ? user
+            ? 'AI search daily limit reached.'
+            : 'Daily AI search limit reached. Sign up free for 20 AI searches per day.'
+          : 'Something went wrong. Please try again.';
+      setMessages(prev => prev.map(m =>
+        m.id === errorMsgId ? { ...m, content: errorText, isLoading: false, isError: true } : m
       ));
     } finally {
       setIsLoading(false);
@@ -619,6 +713,20 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
                           <p className={`text-sm leading-relaxed whitespace-pre-line ${msg.isError ? 'text-red-500 dark:text-red-400' : 'text-gray-700 dark:text-gray-300'} ${(msg.checklist?.length || msg.businesses?.length) ? 'mb-4' : ''}`}>
                             {msg.isError ? msg.content : renderMarkdown(msg.content)}
                           </p>
+                        )}
+
+                        {msg.isError && !msg.isLoading && (
+                          <button
+                            type="button"
+                            onClick={() => retryMessage(msg.id)}
+                            disabled={isLoading}
+                            className="mt-2 flex items-center gap-1.5 text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-orange-600 dark:hover:text-orange-400 transition-colors disabled:opacity-40"
+                          >
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                            Try again
+                          </button>
                         )}
 
                         {!msg.isLoading && msg.checklist && msg.checklist.length > 0 && (
