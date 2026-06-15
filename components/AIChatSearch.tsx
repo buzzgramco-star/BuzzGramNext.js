@@ -55,6 +55,7 @@ const EXAMPLE_PROMPTS = [
 ];
 
 const GUEST_KEY = 'buzzgram-chat';
+const CITY_KEY = 'buzzgram-city'; // persists last-selected city across remounts
 
 // Suburbs / metro-area neighbourhoods → supported city slug
 const METRO_ALIASES: Record<string, string> = {
@@ -306,26 +307,42 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // City detection — tries ipapi.co first, falls back to ip-api.com
+  // Persist selected city to localStorage so it survives remounts
+  useEffect(() => {
+    if (selectedCity) {
+      try { localStorage.setItem(CITY_KEY, selectedCity.slug); } catch { /* silent */ }
+    }
+  }, [selectedCity]);
+
+  // City detection — restores from localStorage immediately, then IP-detects in background
   useEffect(() => {
     getCities().then(async (fetchedCities) => {
       setCities(fetchedCities);
+
       if (initialCitySlug) {
         const match = fetchedCities.find(c => c.slug === initialCitySlug);
         if (match) setSelectedCity(match);
         return;
       }
 
+      // Restore last-used city immediately so returning users never see "pick your city"
+      try {
+        const savedSlug = localStorage.getItem(CITY_KEY);
+        if (savedSlug) {
+          const saved = fetchedCities.find(c => c.slug === savedSlug);
+          if (saved) setSelectedCity(saved);
+        }
+      } catch { /* silent */ }
+
+      // IP detection still runs in background to update city if user is somewhere different
       let detectedCity: string | null = null;
 
-      // Primary: ipapi.co
       try {
         const res = await fetch('https://ipapi.co/json/', { signal: AbortSignal.timeout(4000) });
         const geo = await res.json();
         if (geo.city && !geo.error) detectedCity = geo.city;
       } catch { /* fall through to backup */ }
 
-      // Fallback: ip-api.com (no monthly cap, 45 req/min free)
       if (!detectedCity) {
         try {
           const res = await fetch('https://ip-api.com/json/?fields=city,status', { signal: AbortSignal.timeout(4000) });
