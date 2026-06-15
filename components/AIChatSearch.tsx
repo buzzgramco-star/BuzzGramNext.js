@@ -111,6 +111,19 @@ function uid() {
   return Math.random().toString(36).slice(2, 9);
 }
 
+function extractCityFromText(text: string, fetchedCities: City[]): City | null {
+  const t = text.toLowerCase();
+  for (const city of fetchedCities) {
+    if (t.includes(city.name.toLowerCase()) || t.includes(city.slug.replace(/-/g, ' '))) {
+      return city;
+    }
+  }
+  for (const [alias, slug] of Object.entries(METRO_ALIASES)) {
+    if (t.includes(alias)) return fetchedCities.find(c => c.slug === slug) ?? null;
+  }
+  return null;
+}
+
 function formatDate(dateStr: string): string {
   const date = new Date(dateStr);
   const now = new Date();
@@ -385,7 +398,14 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
     const trimmed = text.trim();
     if (!trimmed || isLoading) return;
 
-    if (!selectedCity) {
+    // If city not yet detected, try to infer it from the user's message text
+    let effectiveCity = selectedCity;
+    if (!effectiveCity && cities.length > 0) {
+      const inferred = extractCityFromText(trimmed, cities);
+      if (inferred) { effectiveCity = inferred; setSelectedCity(inferred); }
+    }
+
+    if (!effectiveCity) {
       showToast('Select your city first — pick one below or mention it in chat.');
       return;
     }
@@ -412,7 +432,7 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
     try {
       const { data } = await api.post<AISearchResponse>(
         '/ai-search',
-        { messages: historyForAPI, cityId: selectedCity.id, ...(slugToSend ? { focusedSlug: slugToSend } : {}) },
+        { messages: historyForAPI, cityId: effectiveCity.id, ...(slugToSend ? { focusedSlug: slugToSend } : {}) },
         { timeout: 35000 }
       );
 
@@ -424,7 +444,7 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
 
       if (data.detectedCity) {
         const switched = cities.find(c => c.slug === data.detectedCity);
-        if (switched && switched.id !== selectedCity.id) {
+        if (switched && switched.id !== effectiveCity.id) {
           setSelectedCity(switched);
           setActiveFocusedSlug(null);
         }
@@ -457,13 +477,11 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
             .then(res => {
               setActiveConversationId(res.id);
               // Save conv→city so history restore works even if IP detection fails
-              if (selectedCity) {
-                try {
-                  const map = JSON.parse(localStorage.getItem(CONV_CITIES_KEY) || '{}');
-                  map[res.id] = selectedCity.slug;
-                  localStorage.setItem(CONV_CITIES_KEY, JSON.stringify(map));
-                } catch { /* silent */ }
-              }
+              try {
+                const map = JSON.parse(localStorage.getItem(CONV_CITIES_KEY) || '{}');
+                map[res.id] = effectiveCity.slug;
+                localStorage.setItem(CONV_CITIES_KEY, JSON.stringify(map));
+              } catch { /* silent */ }
               if (res.autoDeleted) showToast('Your oldest chat was auto-removed to make room.');
             })
             .catch(() => {});
