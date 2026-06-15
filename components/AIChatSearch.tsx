@@ -55,7 +55,8 @@ const EXAMPLE_PROMPTS = [
 ];
 
 const GUEST_KEY = 'buzzgram-chat';
-const CITY_KEY = 'buzzgram-city'; // persists last-selected city across remounts
+const CITY_KEY = 'buzzgram-city';           // persists last-selected city across remounts
+const CONV_CITIES_KEY = 'buzzgram-conv-cities'; // maps convId → citySlug for history restore
 
 // Suburbs / metro-area neighbourhoods → supported city slug
 const METRO_ALIASES: Record<string, string> = {
@@ -455,6 +456,14 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
           createConversation(title, toSave)
             .then(res => {
               setActiveConversationId(res.id);
+              // Save conv→city so history restore works even if IP detection fails
+              if (selectedCity) {
+                try {
+                  const map = JSON.parse(localStorage.getItem(CONV_CITIES_KEY) || '{}');
+                  map[res.id] = selectedCity.slug;
+                  localStorage.setItem(CONV_CITIES_KEY, JSON.stringify(map));
+                } catch { /* silent */ }
+              }
               if (res.autoDeleted) showToast('Your oldest chat was auto-removed to make room.');
             })
             .catch(() => {});
@@ -549,6 +558,13 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
           createConversation(title, toSave)
             .then(res => {
               setActiveConversationId(res.id);
+              if (selectedCity) {
+                try {
+                  const map = JSON.parse(localStorage.getItem(CONV_CITIES_KEY) || '{}');
+                  map[res.id] = selectedCity.slug;
+                  localStorage.setItem(CONV_CITIES_KEY, JSON.stringify(map));
+                } catch { /* silent */ }
+              }
               if (res.autoDeleted) showToast('Your oldest chat was auto-removed to make room.');
             })
             .catch(() => {});
@@ -612,6 +628,29 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
       setActiveConversationId(id);
       setActiveFocusedSlug(null);
       setShowHistory(false);
+
+      // Restore city if not currently set
+      if (!selectedCity) {
+        // 1. Check localStorage mapping saved at conversation-create time
+        let restoredSlug: string | null = null;
+        try {
+          const map = JSON.parse(localStorage.getItem(CONV_CITIES_KEY) || '{}');
+          restoredSlug = map[id] ?? null;
+        } catch { /* silent */ }
+
+        // 2. Fallback: scan messages for business city data (stored in JSONB)
+        if (!restoredSlug) {
+          for (const msg of (conv.messages || [])) {
+            const cityFromBusiness = (msg.businesses as any[])?.[0]?.city;
+            if (cityFromBusiness?.slug) { restoredSlug = cityFromBusiness.slug; break; }
+          }
+        }
+
+        if (restoredSlug) {
+          const match = cities.find(c => c.slug === restoredSlug);
+          if (match) setSelectedCity(match);
+        }
+      }
     } catch { /* silent */ }
   };
 
