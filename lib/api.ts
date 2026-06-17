@@ -151,6 +151,11 @@ export const getAdminStats = async () => {
   return data.data;
 };
 
+export const getAIStats = async () => {
+  const { data } = await api.get('/admin/ai-stats');
+  return data.data;
+};
+
 // Admin: Get all users
 export const getAllUsers = async () => {
   const { data } = await api.get('/admin/users');

@@ -9,7 +9,7 @@ import Link from 'next/link';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { getAdminStats, getAllUsers, getGeneralQuotes, getAllBusinessQuotes, getBusinesses, deleteBusiness, updateBusinessStatus, deleteUser, updateUserStatus, getBusinessClaims, approveBusinessClaim, rejectBusinessClaim, getBusinessRegistrations, approveBusinessRegistration, rejectBusinessRegistration, getAllReviews, toggleReviewVisibility, deleteReview, deleteAdminService, duplicateAdminService } from '@/lib/api';
+import { getAdminStats, getAIStats, getAllUsers, getGeneralQuotes, getAllBusinessQuotes, getBusinesses, deleteBusiness, updateBusinessStatus, deleteUser, updateUserStatus, getBusinessClaims, approveBusinessClaim, rejectBusinessClaim, getBusinessRegistrations, approveBusinessRegistration, rejectBusinessRegistration, getAllReviews, toggleReviewVisibility, deleteReview, deleteAdminService, duplicateAdminService } from '@/lib/api';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import StarRating from '@/components/StarRating';
 import BlogManagement from '@/components/BlogManagement';
@@ -27,6 +27,7 @@ function AdminDashboardContent() {
   const [showClaims, setShowClaims] = useState(false);
   const [showReviews, setShowReviews] = useState(false);
   const [showBlogs, setShowBlogs] = useState(false);
+  const [showAIStats, setShowAIStats] = useState(false);
   const [editingBlog, setEditingBlog] = useState<BlogPost | null>(null);
   const [creatingBlog, setCreatingBlog] = useState(false);
   const [claimFilter, setClaimFilter] = useState<'claims' | 'registrations'>('claims');
@@ -89,6 +90,12 @@ function AdminDashboardContent() {
     queryKey: ['allReviews'],
     queryFn: getAllReviews,
     enabled: showReviews,
+  });
+
+  const { data: aiStats, isLoading: aiStatsLoading } = useQuery({
+    queryKey: ['adminAIStats'],
+    queryFn: getAIStats,
+    enabled: showAIStats,
   });
 
   // Search businesses query - only fetch when search is not empty
@@ -371,7 +378,7 @@ function AdminDashboardContent() {
         )}
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           <button
             onClick={() => setShowBusinesses(!showBusinesses)}
             className="w-full bg-white dark:bg-dark-card rounded-xl border border-gray-200 dark:border-dark-border p-6 hover:border-orange-500 dark:hover:border-orange-500 transition-all cursor-pointer text-left"
@@ -529,6 +536,35 @@ function AdminDashboardContent() {
                 </div>
               </div>
               <svg className={`w-5 h-5 text-gray-400 transition-transform ${showBlogs ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+          </button>
+
+          <button
+            onClick={() => setShowAIStats(!showAIStats)}
+            className="w-full bg-white dark:bg-dark-card rounded-xl border border-gray-200 dark:border-dark-border p-6 hover:border-indigo-500 dark:hover:border-indigo-500 transition-all cursor-pointer text-left"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <div className="w-12 h-12 bg-indigo-100 dark:bg-indigo-900/20 rounded-lg flex items-center justify-center">
+                    <svg className="w-6 h-6 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.347.347a3.75 3.75 0 00-1.1 2.028l-.3 1.5a.75.75 0 01-.734.598H8.741a.75.75 0 01-.734-.598l-.3-1.5a3.75 3.75 0 00-1.1-2.028l-.347-.347z" />
+                    </svg>
+                  </div>
+                </div>
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">AI Analytics</p>
+                  <p className="text-2xl font-semibold text-gray-900 dark:text-white">
+                    {aiStats?.sessions?.total ?? '—'}
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    {aiStats?.sessions?.last24h ?? 0} today
+                  </p>
+                </div>
+              </div>
+              <svg className={`w-5 h-5 text-gray-400 transition-transform ${showAIStats ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
             </div>
@@ -1594,6 +1630,155 @@ function AdminDashboardContent() {
               setEditingBlog(null);
             }}
           />
+        )}
+
+        {/* AI Analytics */}
+        {showAIStats && (
+          <div className="bg-white dark:bg-dark-card rounded-xl border border-gray-200 dark:border-dark-border p-6 mb-6">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">AI Chat Analytics</h3>
+
+            {aiStatsLoading ? (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {[1, 2, 3, 4].map(i => (
+                  <div key={i} className="h-24 bg-gray-100 dark:bg-gray-800 rounded-xl animate-pulse" />
+                ))}
+              </div>
+            ) : (
+              <>
+                {/* Summary stat cards */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                  <div className="bg-gray-50 dark:bg-dark-bg rounded-xl p-4">
+                    <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Sessions</p>
+                    <p className="text-2xl font-bold text-gray-900 dark:text-white">{aiStats?.sessions?.total || 0}</p>
+                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                      {aiStats?.sessions?.last24h || 0} today · {aiStats?.sessions?.last7d || 0} this week
+                    </p>
+                  </div>
+                  <div className="bg-gray-50 dark:bg-dark-bg rounded-xl p-4">
+                    <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Queries</p>
+                    <p className="text-2xl font-bold text-gray-900 dark:text-white">{aiStats?.totalQueries || 0}</p>
+                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Total user messages</p>
+                  </div>
+                  <div className="bg-gray-50 dark:bg-dark-bg rounded-xl p-4">
+                    <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Satisfaction</p>
+                    {(() => {
+                      const up = aiStats?.events?.thumbs_up || 0;
+                      const down = aiStats?.events?.thumbs_down || 0;
+                      const total = up + down;
+                      const rate = total > 0 ? Math.round((up / total) * 100) : null;
+                      return (
+                        <>
+                          <p className={`text-2xl font-bold ${rate === null ? 'text-gray-400 dark:text-gray-500' : rate >= 80 ? 'text-green-600 dark:text-green-400' : rate >= 60 ? 'text-orange-500' : 'text-red-500'}`}>
+                            {rate === null ? '—' : `${rate}%`}
+                          </p>
+                          <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{up} up · {down} down</p>
+                        </>
+                      );
+                    })()}
+                  </div>
+                  <div className="bg-gray-50 dark:bg-dark-bg rounded-xl p-4">
+                    <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Avg Response</p>
+                    <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                      {aiStats?.avgResponseMs
+                        ? aiStats.avgResponseMs >= 1000
+                          ? `${(aiStats.avgResponseMs / 1000).toFixed(1)}s`
+                          : `${aiStats.avgResponseMs}ms`
+                        : '—'}
+                    </p>
+                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Per AI response</p>
+                  </div>
+                </div>
+
+                {/* Session sources + interaction events */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Session Sources</h4>
+                    <div className="space-y-2 mb-5">
+                      {[
+                        { label: 'Guest', value: aiStats?.sessions?.guestCount || 0 },
+                        { label: 'Authenticated', value: aiStats?.sessions?.authCount || 0 },
+                      ].map(({ label, value }) => (
+                        <div key={label} className="flex justify-between items-center p-2 rounded bg-gray-50 dark:bg-dark-bg">
+                          <span className="text-sm text-gray-700 dark:text-gray-300">{label}</span>
+                          <span className="text-sm font-semibold text-indigo-600 dark:text-indigo-400">{value}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Interaction Events</h4>
+                    <div className="space-y-2">
+                      {[
+                        { key: 'business_click', label: 'Business clicks' },
+                        { key: 'followup_click', label: 'Follow-up clicks' },
+                        { key: 'thumbs_up', label: 'Thumbs up' },
+                        { key: 'thumbs_down', label: 'Thumbs down' },
+                      ].map(({ key, label }) => (
+                        <div key={key} className="flex justify-between items-center p-2 rounded bg-gray-50 dark:bg-dark-bg">
+                          <span className="text-sm text-gray-700 dark:text-gray-300">{label}</span>
+                          <span className="text-sm font-semibold text-indigo-600 dark:text-indigo-400">{aiStats?.events?.[key] || 0}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Sessions by City</h4>
+                    {(aiStats?.sessionsByCity || []).length === 0 ? (
+                      <p className="text-sm text-gray-400 dark:text-gray-500">No data yet</p>
+                    ) : (
+                      <div className="space-y-2">
+                        {(aiStats?.sessionsByCity || []).map((row: any) => (
+                          <div key={row.citySlug} className="flex justify-between items-center p-2 rounded bg-gray-50 dark:bg-dark-bg">
+                            <span className="text-sm text-gray-700 dark:text-gray-300 capitalize">
+                              {row.citySlug?.replace(/-/g, ' ')}
+                            </span>
+                            <span className="text-sm font-semibold text-indigo-600 dark:text-indigo-400">{row.sessions}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Top queries + most clicked businesses */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Top Queries</h4>
+                    {(aiStats?.topQueries || []).length === 0 ? (
+                      <p className="text-sm text-gray-400 dark:text-gray-500">No data yet</p>
+                    ) : (
+                      <div className="space-y-1.5">
+                        {(aiStats?.topQueries || []).map((row: any, i: number) => (
+                          <div key={i} className="flex justify-between items-center gap-3 p-2 rounded bg-gray-50 dark:bg-dark-bg">
+                            <span className="text-sm text-gray-700 dark:text-gray-300 truncate">{row.content}</span>
+                            <span className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 flex-shrink-0">{row.count}×</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Most Clicked Businesses</h4>
+                    {(aiStats?.topBusinesses || []).length === 0 ? (
+                      <p className="text-sm text-gray-400 dark:text-gray-500">No data yet</p>
+                    ) : (
+                      <div className="space-y-1.5">
+                        {(aiStats?.topBusinesses || []).map((row: any, i: number) => (
+                          <div key={i} className="flex justify-between items-center gap-3 p-2 rounded bg-gray-50 dark:bg-dark-bg">
+                            <span className="text-sm text-gray-700 dark:text-gray-300 truncate">{row.businessSlug}</span>
+                            <span className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 flex-shrink-0">
+                              {row.clicks} {row.clicks === 1 ? 'click' : 'clicks'}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
         )}
 
         {/* Quick Actions */}
