@@ -304,6 +304,7 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
   const [historyLoading, setHistoryLoading] = useState(false);
   const [cityDropdownOpen, setCityDropdownOpen] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
+  const [ratings, setRatings] = useState<Record<string, 'up' | 'down'>>({});
   const cityDropdownRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -419,6 +420,16 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
       await api.post('/ai-events', { sessionId, eventType, payload });
     } catch { /* silent */ }
   }, [sessionId]);
+
+  const handleRating = useCallback((msgId: string, rating: 'up' | 'down') => {
+    const current = ratings[msgId];
+    if (current === rating) {
+      setRatings(prev => { const n = { ...prev }; delete n[msgId]; return n; });
+    } else {
+      setRatings(prev => ({ ...prev, [msgId]: rating }));
+      trackEvent(rating === 'up' ? 'thumbs_up' : 'thumbs_down', { messageId: msgId });
+    }
+  }, [ratings, trackEvent]);
 
   const fetchHistory = useCallback(async () => {
     if (!user) return;
@@ -670,6 +681,7 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
     setMessages([]);
     setActiveFocusedSlug(null);
     setActiveConversationId(null);
+    setRatings({});
     if (!user) {
       try { sessionStorage.removeItem(GUEST_KEY); } catch { /* silent */ }
     }
@@ -679,6 +691,7 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
     setMessages([]);
     setActiveFocusedSlug(null);
     setActiveConversationId(null);
+    setRatings({});
     setShowHistory(false);
   };
 
@@ -900,6 +913,39 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
                                 {suggestion}
                               </button>
                             ))}
+                          </div>
+                        )}
+
+                        {!msg.isLoading && !msg.isError && msg.content && (
+                          <div className="flex items-center gap-0.5 mt-2">
+                            <button
+                              type="button"
+                              onClick={() => handleRating(msg.id, 'up')}
+                              title="Good response"
+                              className={`p-1 rounded-lg transition-colors ${
+                                ratings[msg.id] === 'up'
+                                  ? 'text-green-500 dark:text-green-400'
+                                  : 'text-gray-300 dark:text-gray-600 hover:text-gray-400 dark:hover:text-gray-500'
+                              }`}
+                            >
+                              <svg className="w-3.5 h-3.5" fill={ratings[msg.id] === 'up' ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
+                              </svg>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleRating(msg.id, 'down')}
+                              title="Poor response"
+                              className={`p-1 rounded-lg transition-colors ${
+                                ratings[msg.id] === 'down'
+                                  ? 'text-red-500 dark:text-red-400'
+                                  : 'text-gray-300 dark:text-gray-600 hover:text-gray-400 dark:hover:text-gray-500'
+                              }`}
+                            >
+                              <svg className="w-3.5 h-3.5" fill={ratings[msg.id] === 'down' ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M10 14H5.236a2 2 0 01-1.789-2.894l3.5-7A2 2 0 018.736 3h4.018a2 2 0 01.485.06l3.76.94m-7 10v5a2 2 0 002 2h.096c.5 0 .905-.405.905-.905 0-.714.211-1.412.608-2.006L17 13V4m-7 10h2m5-10h2a2 2 0 012 2v6a2 2 0 01-2 2h-2.5" />
+                              </svg>
+                            </button>
                           </div>
                         )}
                       </div>
