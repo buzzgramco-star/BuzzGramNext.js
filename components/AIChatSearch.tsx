@@ -55,6 +55,7 @@ const EXAMPLE_PROMPTS = [
 ];
 
 const GUEST_KEY = 'buzzgram-chat';
+const SESSION_KEY = 'buzzgram-session-id';
 const CITY_KEY = 'buzzgram-city';           // persists last-selected city across remounts
 const CONV_CITIES_KEY = 'buzzgram-conv-cities'; // maps convId → citySlug for history restore
 
@@ -302,6 +303,7 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
   const [conversations, setConversations] = useState<ConversationSummary[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [cityDropdownOpen, setCityDropdownOpen] = useState(false);
+  const [sessionId, setSessionId] = useState<string | null>(null);
   const cityDropdownRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -323,6 +325,22 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, [cityDropdownOpen]);
+
+  // Init or resume analytics session — runs once on mount
+  useEffect(() => {
+    const init = async () => {
+      try {
+        const existingId = localStorage.getItem(SESSION_KEY);
+        const { data } = await api.post('/ai-sessions', {
+          ...(existingId ? { existingSessionId: existingId } : {}),
+        });
+        setSessionId(data.sessionId);
+        localStorage.setItem(SESSION_KEY, data.sessionId);
+      } catch { /* silent — tracking must never break the chat */ }
+    };
+    init();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Guests: load single session from sessionStorage on mount
   useEffect(() => {
@@ -394,6 +412,14 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
     }
   }, [messages, compact]);
 
+  // Fire-and-forget event tracking — never throws, never blocks
+  const trackEvent = useCallback(async (eventType: string, payload?: Record<string, any>) => {
+    if (!sessionId) return;
+    try {
+      await api.post('/ai-events', { sessionId, eventType, payload });
+    } catch { /* silent */ }
+  }, [sessionId]);
+
   const fetchHistory = useCallback(async () => {
     if (!user) return;
     try {
@@ -446,7 +472,12 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
     try {
       const { data } = await api.post<AISearchResponse>(
         '/ai-search',
-        { messages: historyForAPI, cityId: effectiveCity.id, ...(slugToSend ? { focusedSlug: slugToSend } : {}) },
+        {
+          messages: historyForAPI,
+          cityId: effectiveCity.id,
+          ...(slugToSend ? { focusedSlug: slugToSend } : {}),
+          ...(sessionId ? { sessionId } : {}),
+        },
         { timeout: 35000 }
       );
 
@@ -543,7 +574,12 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
     try {
       const { data } = await api.post<AISearchResponse>(
         '/ai-search',
-        { messages: historyForAPI, cityId: selectedCity.id, ...(slugToSend ? { focusedSlug: slugToSend } : {}) },
+        {
+          messages: historyForAPI,
+          cityId: selectedCity.id,
+          ...(slugToSend ? { focusedSlug: slugToSend } : {}),
+          ...(sessionId ? { sessionId } : {}),
+        },
         { timeout: 35000 }
       );
 
@@ -827,7 +863,10 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
                               <CarouselRow
                                 key={group.label}
                                 group={group}
-                                onSelect={(name, slug) => sendMessage(`What can you tell me about ${name}?`, slug)}
+                                onSelect={(name, slug) => {
+                                  trackEvent('business_click', { businessSlug: slug });
+                                  sendMessage(`What can you tell me about ${name}?`, slug);
+                                }}
                               />
                             ))}
                           </div>
@@ -851,7 +890,10 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
                               <button
                                 key={i}
                                 type="button"
-                                onClick={() => sendMessage(suggestion, msg.focusedSlug)}
+                                onClick={() => {
+                                  trackEvent('followup_click', { text: suggestion });
+                                  sendMessage(suggestion, msg.focusedSlug);
+                                }}
                                 disabled={isLoading}
                                 className="px-3 py-1.5 rounded-full text-xs font-medium border border-gray-200 dark:border-dark-border text-gray-600 dark:text-gray-400 hover:border-orange-400 hover:text-orange-600 dark:hover:border-orange-500 dark:hover:text-orange-400 bg-white dark:bg-dark-card transition-all disabled:opacity-40"
                               >
