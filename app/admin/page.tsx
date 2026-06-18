@@ -353,6 +353,70 @@ function AdminDashboardContent() {
     duplicateServiceMutation.mutate({ businessId, serviceId });
   };
 
+  const downloadAIStatsCSV = () => {
+    if (!aiStats) return;
+    const s = aiStats.sessions;
+    const up = aiStats.events?.thumbs_up || 0;
+    const down = aiStats.events?.thumbs_down || 0;
+    const totalRatings = up + down;
+    const rate = totalRatings > 0 ? `${Math.round((up / totalRatings) * 100)}%` : 'N/A';
+
+    const rows: string[] = [];
+    rows.push('BUZZGRAM AI ANALYTICS REPORT');
+    rows.push(`Generated,${new Date().toLocaleString()}`);
+    rows.push('');
+
+    rows.push('SUMMARY');
+    rows.push('Sessions (Total),Sessions (Today),Sessions (This Week),Queries,Satisfaction,Avg Response (ms)');
+    rows.push(`${s.total},${s.last24h},${s.last7d},${aiStats.totalQueries},${rate},${aiStats.avgResponseMs || 0}`);
+    rows.push('');
+
+    rows.push('SESSION SOURCES');
+    rows.push('Guest,Authenticated');
+    rows.push(`${s.guestCount},${s.authCount}`);
+    rows.push('');
+
+    rows.push('INTERACTION EVENTS');
+    rows.push('Event Type,Count');
+    for (const [key, label] of [
+      ['business_click', 'Business Clicks'],
+      ['followup_click', 'Follow-up Clicks'],
+      ['thumbs_up', 'Thumbs Up'],
+      ['thumbs_down', 'Thumbs Down'],
+    ] as [string, string][]) {
+      rows.push(`${label},${aiStats.events?.[key] || 0}`);
+    }
+    rows.push('');
+
+    rows.push('SESSIONS BY CITY');
+    rows.push('City,Sessions');
+    for (const row of (aiStats.sessionsByCity || [])) {
+      rows.push(`${row.citySlug?.replace(/-/g, ' ')},${row.sessions}`);
+    }
+    rows.push('');
+
+    rows.push('TOP QUERIES');
+    rows.push('Query,Count');
+    for (const row of (aiStats.topQueries || [])) {
+      rows.push(`"${String(row.content).replace(/"/g, '""')}",${row.count}`);
+    }
+    rows.push('');
+
+    rows.push('MOST CLICKED BUSINESSES');
+    rows.push('Business Slug,Clicks');
+    for (const row of (aiStats.topBusinesses || [])) {
+      rows.push(`${row.businessSlug},${row.clicks}`);
+    }
+
+    const blob = new Blob([rows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `buzzgram-ai-analytics-${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
   if (isLoading) return <LoadingSpinner />;
 
   return (
@@ -1635,7 +1699,20 @@ function AdminDashboardContent() {
         {/* AI Analytics */}
         {showAIStats && (
           <div className="bg-white dark:bg-dark-card rounded-xl border border-gray-200 dark:border-dark-border p-6 mb-6">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">AI Chat Analytics</h3>
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">AI Chat Analytics</h3>
+              {aiStats && (
+                <button
+                  onClick={downloadAIStatsCSV}
+                  className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                  Export CSV
+                </button>
+              )}
+            </div>
 
             {aiStatsLoading ? (
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
