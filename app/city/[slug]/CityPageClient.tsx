@@ -11,7 +11,7 @@ import Breadcrumbs, { BreadcrumbItem } from '@/components/Breadcrumbs';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { cityContent } from '@/lib/seoContent';
-import AIChatSearch from '@/components/AIChatSearch';
+import FloatingAIChat from '@/components/FloatingAIChat';
 
 type Props = {
   city: City;
@@ -170,11 +170,6 @@ export default function CityPageClient({ city, businesses, categories, subcatego
           )}
         </div>
 
-        {/* AI Search */}
-        <div className="w-full md:max-w-7xl md:mx-auto px-4 md:px-6 lg:px-8 py-6">
-          <AIChatSearch initialCitySlug={city.slug} />
-        </div>
-
         {/* Filters */}
         <div className="bg-white dark:bg-dark-card border-b border-gray-200 dark:border-dark-border">
           <div className="w-full md:max-w-7xl md:mx-auto px-2 md:px-6 lg:px-8 py-6 sm:py-8">
@@ -241,6 +236,8 @@ export default function CityPageClient({ city, businesses, categories, subcatego
 
         <Footer />
       </div>
+
+      <FloatingAIChat citySlug={city.slug} />
     </>
   );
 }
