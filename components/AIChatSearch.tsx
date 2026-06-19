@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import type { City, Business } from '@/types';
 import {
-  api, getCities,
+  api, API_BASE_URL, getCities,
   getConversations, getConversationById, createConversation, updateConversation, deleteConversation,
 } from '@/lib/api';
 import type { ConversationSummary } from '@/lib/api';
@@ -445,6 +445,80 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
     el.style.height = `${Math.min(el.scrollHeight, 160)}px`;
   };
 
+  // ── SSE stream consumer ────────────────────────────────────────────────────
+  // Shared by sendMessage and retryMessage. Streams the AI response token-by-token
+  // then processes the final done event for structured data.
+  const callAIStream = useCallback(async (
+    payload: object,
+    streamingMsgId: string,
+    effectiveCity: City,
+  ): Promise<AISearchResponse> => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+
+    const response = await fetch(`${API_BASE_URL}/api/ai-search`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(35000),
+    });
+
+    if (response.status === 429) {
+      const err: any = new Error('rate_limit');
+      err.is429 = true;
+      throw err;
+    }
+
+    if (!response.ok || !response.body) {
+      throw new Error('Request failed');
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    let donePayload: AISearchResponse | null = null;
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() ?? '';
+
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue;
+          const raw = line.slice(6).trim();
+          if (!raw) continue;
+          try {
+            const event = JSON.parse(raw);
+            if (event.t === 'ping') continue;
+            if (event.t === 'chunk' && event.text) {
+              setMessages(prev => prev.map(m =>
+                m.id === streamingMsgId
+                  ? { ...m, content: (m.content || '') + event.text, isLoading: false }
+                  : m
+              ));
+            }
+            if (event.t === 'done') {
+              donePayload = event as AISearchResponse;
+            }
+          } catch { /* skip malformed event */ }
+        }
+
+        if (donePayload) break;
+      }
+    } finally {
+      reader.cancel().catch(() => {});
+    }
+
+    if (!donePayload) throw new Error('No response received');
+    return donePayload;
+  }, []);
+
   const sendMessage = useCallback(async (text: string, explicitSlug?: string | null) => {
     const trimmed = text.trim();
     if (!trimmed || isLoading) return;
@@ -469,7 +543,6 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
     setInput('');
     if (textareaRef.current) textareaRef.current.style.height = 'auto';
     setIsLoading(true);
-    // null = user typed a new intent — drop the focused-business context
     if (explicitSlug === null) setActiveFocusedSlug(null);
 
     const historyForAPI = [...messages, userMsg]
@@ -477,19 +550,18 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
       .slice(-8)
       .map(m => ({ role: m.role, content: m.content }));
 
-    // null = user typed manually (no focused slug); undefined = not specified (keep active); string = chip/explicit
     const slugToSend = explicitSlug === null ? undefined : explicitSlug ?? (activeFocusedSlug ?? undefined);
 
     try {
-      const { data } = await api.post<AISearchResponse>(
-        '/ai-search',
+      const data = await callAIStream(
         {
           messages: historyForAPI,
           cityId: effectiveCity.id,
           ...(slugToSend ? { focusedSlug: slugToSend } : {}),
           ...(sessionId ? { sessionId } : {}),
         },
-        { timeout: 35000 }
+        loadingId,
+        effectiveCity,
       );
 
       if (data.showCards === false && data.data?.length === 1) {
@@ -500,7 +572,7 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
 
       if (data.detectedCity) {
         const switched = cities.find(c => c.slug === data.detectedCity);
-        if (switched && switched.id !== effectiveCity.id) {
+        if (switched && switched.id !== effectiveCity!.id) {
           setSelectedCity(switched);
           setActiveFocusedSlug(null);
         }
@@ -525,16 +597,16 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
       const toSave = [...messages, userMsg, assistantMsg];
       if (user) {
         if (activeConversationId) {
-          updateConversation(activeConversationId, toSave, effectiveCity.slug).catch(() => {});
+          updateConversation(activeConversationId, toSave, effectiveCity!.slug).catch(() => {});
         } else {
           const firstUser = toSave.find(m => m.role === 'user');
           const title = (firstUser?.content || 'Chat').slice(0, 60);
-          createConversation(title, toSave, effectiveCity.slug)
+          createConversation(title, toSave, effectiveCity!.slug)
             .then(res => {
               setActiveConversationId(res.id);
               try {
                 const map = JSON.parse(localStorage.getItem(CONV_CITIES_KEY) || '{}');
-                map[res.id] = effectiveCity.slug;
+                map[res.id] = effectiveCity!.slug;
                 localStorage.setItem(CONV_CITIES_KEY, JSON.stringify(map));
               } catch { /* silent */ }
               if (res.autoDeleted) showToast('Your oldest chat was auto-removed to make room.');
@@ -545,12 +617,11 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
         try { sessionStorage.setItem(GUEST_KEY, JSON.stringify(toSave)); } catch { /* silent */ }
       }
     } catch (error: any) {
-      const errorText =
-        error?.response?.status === 429
-          ? user
-            ? 'AI search daily limit reached.'
-            : 'Daily AI search limit reached. Sign up free for 20 AI searches per day.'
-          : 'Something went wrong. Please try again.';
+      const errorText = error?.is429
+        ? user
+          ? 'AI search daily limit reached.'
+          : 'Daily AI search limit reached. Sign up free for 20 AI searches per day.'
+        : 'Something went wrong. Please try again.';
 
       setMessages(prev => prev.map(m =>
         m.id === loadingId ? { ...m, content: errorText, isLoading: false, isError: true } : m
@@ -558,14 +629,13 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
     } finally {
       setIsLoading(false);
     }
-  }, [messages, selectedCity, isLoading, user, activeFocusedSlug, cities, activeConversationId]);
+  }, [messages, selectedCity, isLoading, user, activeFocusedSlug, cities, activeConversationId, callAIStream]);
 
   // Retry an errored AI message in-place — replaces the error bubble with loading
   // then with the real response. Does NOT add a new user message to the thread.
   const retryMessage = useCallback(async (errorMsgId: string) => {
     if (isLoading || !selectedCity) return;
 
-    // Find the user message that triggered this error
     const errorIdx = messages.findIndex(m => m.id === errorMsgId);
     const triggeringUser = messages.slice(0, errorIdx).reverse().find(m => m.role === 'user');
     if (!triggeringUser) return;
@@ -583,15 +653,15 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
     const slugToSend = activeFocusedSlug ?? undefined;
 
     try {
-      const { data } = await api.post<AISearchResponse>(
-        '/ai-search',
+      const data = await callAIStream(
         {
           messages: historyForAPI,
           cityId: selectedCity.id,
           ...(slugToSend ? { focusedSlug: slugToSend } : {}),
           ...(sessionId ? { sessionId } : {}),
         },
-        { timeout: 35000 }
+        errorMsgId,
+        selectedCity,
       );
 
       if (data.showCards === false && data.data?.length === 1) {
@@ -651,19 +721,18 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
         try { sessionStorage.setItem(GUEST_KEY, JSON.stringify(toSave)); } catch { /* silent */ }
       }
     } catch (error: any) {
-      const errorText =
-        error?.response?.status === 429
-          ? user
-            ? 'AI search daily limit reached.'
-            : 'Daily AI search limit reached. Sign up free for 20 AI searches per day.'
-          : 'Something went wrong. Please try again.';
+      const errorText = error?.is429
+        ? user
+          ? 'AI search daily limit reached.'
+          : 'Daily AI search limit reached. Sign up free for 20 AI searches per day.'
+        : 'Something went wrong. Please try again.';
       setMessages(prev => prev.map(m =>
         m.id === errorMsgId ? { ...m, content: errorText, isLoading: false, isError: true } : m
       ));
     } finally {
       setIsLoading(false);
     }
-  }, [messages, selectedCity, isLoading, user, activeFocusedSlug, cities, activeConversationId]);
+  }, [messages, selectedCity, isLoading, user, activeFocusedSlug, cities, activeConversationId, callAIStream]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

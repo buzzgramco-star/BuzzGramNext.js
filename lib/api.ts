@@ -18,7 +18,7 @@ const getApiBaseUrl = () => {
   return 'https://backend-production-f30d.up.railway.app';
 };
 
-const API_BASE_URL = getApiBaseUrl();
+export const API_BASE_URL = getApiBaseUrl();
 
 console.log('[API] Using API base URL:', API_BASE_URL);
 
