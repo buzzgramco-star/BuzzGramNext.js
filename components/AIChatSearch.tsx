@@ -713,9 +713,10 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
 
       setMessages(prev => prev.map(m => m.id === loadingId ? assistantMsg : m));
 
-      // If AI created/updated an event plan, refresh the events panel
-      if (user && data.eventUpdate) {
-        getUserEvents().then(setEvents).catch(() => {});
+      // Always refresh events for logged-in users after each AI response — ensures
+      // the panel appears as soon as the backend writes the new event to DB
+      if (user) {
+        setTimeout(() => getUserEvents().then(setEvents).catch(() => {}), 800);
       }
 
       // Persist conversation
@@ -818,8 +819,8 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
 
       setMessages(prev => prev.map(m => m.id === errorMsgId ? assistantMsg : m));
 
-      if (user && data.eventUpdate) {
-        getUserEvents().then(setEvents).catch(() => {});
+      if (user) {
+        setTimeout(() => getUserEvents().then(setEvents).catch(() => {}), 800);
       }
 
       const toSave = messages
