@@ -217,6 +217,25 @@ export interface CreateBlogInput {
   publishedAt?: string;
 }
 
+export interface EventChecklistItem {
+  category: string;
+  status: 'pending' | 'found';
+  vendorSlug?: string;
+  vendorName?: string;
+}
+
+export interface EventPlan {
+  type: string;
+  label: string;
+  date: string | null;
+  headcount: number | null;
+  budget: number | null;
+  city: string | null;
+  status: 'active' | 'archived';
+  createdAt: string;
+  checklist: EventChecklistItem[];
+}
+
 export interface GoogleCredentialResponse {
   credential: string;
   select_by: string;

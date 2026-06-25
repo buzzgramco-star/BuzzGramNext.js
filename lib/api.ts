@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { City, Category, Subcategory, Business, BusinessSearchParams, GeneralQuote, BlogPost, CreateBlogInput } from '@/types';
+import type { City, Category, Subcategory, Business, BusinessSearchParams, GeneralQuote, BlogPost, CreateBlogInput, EventPlan } from '@/types';
 
 // Determine the correct API URL based on environment
 const getApiBaseUrl = () => {
@@ -538,6 +538,33 @@ export const updateConversation = async (id: number, messages: any[], citySlug?:
 
 export const deleteConversation = async (id: number): Promise<void> => {
   await api.delete(`/conversations/${id}`);
+};
+
+// Event Plans (AI Event Planning)
+export const getUserEvents = async (): Promise<EventPlan[]> => {
+  const { data } = await api.get('/events');
+  return data.data;
+};
+
+export const saveVendorToEvent = async (
+  eventIndex: number,
+  payload: { category: string; vendorSlug: string; vendorName: string; sessionId?: string }
+): Promise<void> => {
+  await api.post(`/events/${eventIndex}/vendor`, payload);
+};
+
+export const removeVendorFromEvent = async (eventIndex: number, category: string): Promise<void> => {
+  await api.delete(`/events/${eventIndex}/vendor/${encodeURIComponent(category)}`);
+};
+
+export const createEventShareLink = async (eventIndex: number): Promise<{ token: string; expiresAt: string }> => {
+  const { data } = await api.post('/event-plans', { eventIndex });
+  return data.data;
+};
+
+export const getEventSharePlan = async (token: string): Promise<{ event: EventPlan; expiresAt: string; token: string }> => {
+  const { data } = await api.get(`/event-plans/${token}`);
+  return data.data;
 };
 
 // Contact Form

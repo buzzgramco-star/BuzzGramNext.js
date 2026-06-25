@@ -82,7 +82,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const register = async (email: string, password: string, name: string, role: 'user' | 'business_owner' = 'user') => {
-    const { data } = await api.post('/auth/register', { email, password, name, role });
+    const claimToken = typeof window !== 'undefined' ? sessionStorage.getItem('buzzgram-claim-token') : null;
+    const { data } = await api.post('/auth/register', {
+      email, password, name, role,
+      ...(claimToken ? { claimToken } : {}),
+    });
+    if (claimToken) { try { sessionStorage.removeItem('buzzgram-claim-token'); } catch { /* silent */ } }
     setUser(data.data.user);
     setToken(data.data.token);
 
@@ -95,13 +100,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const googleLogin = async (credential: string, userType?: 'customer' | 'business_owner', businessName?: string, instagramHandle?: string, phone?: string) => {
+    const claimToken = typeof window !== 'undefined' ? sessionStorage.getItem('buzzgram-claim-token') : null;
     const { data } = await api.post('/auth/google', {
       credential,
       userType,
       businessName,
       instagramHandle,
       phone,
+      ...(claimToken ? { claimToken } : {}),
     });
+    if (claimToken) { try { sessionStorage.removeItem('buzzgram-claim-token'); } catch { /* silent */ } }
     setUser(data.data.user);
     setToken(data.data.token);
 

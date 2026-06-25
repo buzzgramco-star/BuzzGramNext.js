@@ -2,10 +2,11 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
-import type { City, Business } from '@/types';
+import type { City, Business, EventPlan } from '@/types';
 import {
   api, API_BASE_URL, getCities,
   getConversations, getConversationById, createConversation, updateConversation, deleteConversation,
+  getUserEvents, saveVendorToEvent, createEventShareLink,
 } from '@/lib/api';
 import type { ConversationSummary } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
@@ -39,6 +40,7 @@ interface AISearchResponse {
   detectedCity: string | null;
   showCards: boolean;
   aiUnavailable: boolean;
+  eventUpdate?: { action: 'create' | 'update'; type?: string; index?: number; [key: string]: any } | null;
 }
 
 interface BusinessGroup {
@@ -136,13 +138,15 @@ function formatDate(dateStr: string): string {
 }
 
 function renderMarkdown(text: string): React.ReactNode[] {
+  // Strip markdown heading markers (###, ##, #) — AI sometimes outputs them despite instructions
+  const cleaned = text.replace(/^#{1,6}\s*/gm, '');
   const parts: React.ReactNode[] = [];
   const re = /\*\*(.*?)\*\*|\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g;
   let last = 0;
   let match;
   let key = 0;
-  while ((match = re.exec(text)) !== null) {
-    if (match.index > last) parts.push(text.slice(last, match.index));
+  while ((match = re.exec(cleaned)) !== null) {
+    if (match.index > last) parts.push(cleaned.slice(last, match.index));
     if (match[1] !== undefined) {
       parts.push(
         <strong key={key++} className="font-semibold text-gray-900 dark:text-white">{match[1]}</strong>
@@ -162,7 +166,7 @@ function renderMarkdown(text: string): React.ReactNode[] {
     }
     last = match.index + match[0].length;
   }
-  if (last < text.length) parts.push(text.slice(last));
+  if (last < cleaned.length) parts.push(cleaned.slice(last));
   return parts;
 }
 
@@ -177,13 +181,56 @@ function groupBusinesses(businesses: Business[]): BusinessGroup[] {
   return Object.values(map);
 }
 
-function MiniBusinessCard({ business, onSelect }: { business: Business; onSelect: (name: string, slug: string) => void }) {
+function MiniBusinessCard({
+  business,
+  onSelect,
+  events,
+  onSaveVendor,
+  savingVendor,
+}: {
+  business: Business;
+  onSelect: (name: string, slug: string) => void;
+  events?: EventPlan[];
+  onSaveVendor?: (business: Business) => void;
+  savingVendor?: string | null;
+}) {
+  const activeEvents = (events || []).filter(e => e.status === 'active');
+  const showBookmark = activeEvents.length > 0 && !!onSaveVendor;
+  const isSaved = activeEvents.some(ev =>
+    (ev.checklist || []).some(c => c.status !== 'pending' && c.vendorSlug === business.slug)
+  );
+
   return (
     <div
       onClick={() => onSelect(business.name, business.slug)}
-      className="cursor-pointer bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-xl p-3 hover:shadow-md hover:border-orange-300 dark:hover:border-orange-500 transition-all group flex flex-col"
+      className="cursor-pointer bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-xl p-3 hover:shadow-md hover:border-orange-300 dark:hover:border-orange-500 transition-all group flex flex-col relative"
     >
-      <p className="text-sm font-semibold text-gray-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors line-clamp-2 leading-snug mb-2">
+      {showBookmark && (
+        <button
+          type="button"
+          onClick={e => { e.stopPropagation(); onSaveVendor!(business); }}
+          disabled={savingVendor === business.slug || isSaved}
+          title={isSaved ? 'Already saved to event' : 'Save to event plan'}
+          className="absolute top-2 right-2 p-1 rounded-lg hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-colors disabled:opacity-50 z-10"
+        >
+          {savingVendor === business.slug ? (
+            <svg className="w-3.5 h-3.5 animate-spin text-orange-500" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+            </svg>
+          ) : (
+            <svg
+              className={`w-3.5 h-3.5 transition-colors ${isSaved ? 'text-orange-500' : 'text-gray-300 dark:text-gray-600 group-hover:text-orange-300 dark:group-hover:text-orange-600'}`}
+              fill={isSaved ? 'currentColor' : 'none'}
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+            </svg>
+          )}
+        </button>
+      )}
+      <p className="text-sm font-semibold text-gray-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors line-clamp-2 leading-snug mb-2 pr-6">
         {business.name}
       </p>
       {business.instagramHandle && (
@@ -213,7 +260,13 @@ function MiniBusinessCard({ business, onSelect }: { business: Business; onSelect
   );
 }
 
-function CarouselRow({ group, onSelect }: { group: BusinessGroup; onSelect: (name: string, slug: string) => void }) {
+function CarouselRow({ group, onSelect, events, onSaveVendor, savingVendor }: {
+  group: BusinessGroup;
+  onSelect: (name: string, slug: string) => void;
+  events?: EventPlan[];
+  onSaveVendor?: (business: Business) => void;
+  savingVendor?: string | null;
+}) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canLeft, setCanLeft] = useState(false);
   const [canRight, setCanRight] = useState(false);
@@ -266,7 +319,13 @@ function CarouselRow({ group, onSelect }: { group: BusinessGroup; onSelect: (nam
         >
           {group.items.map(business => (
             <div key={business.id} className="flex-shrink-0 w-48 snap-start">
-              <MiniBusinessCard business={business} onSelect={onSelect} />
+              <MiniBusinessCard
+                business={business}
+                onSelect={onSelect}
+                events={events}
+                onSaveVendor={onSaveVendor}
+                savingVendor={savingVendor}
+              />
             </div>
           ))}
         </div>
@@ -305,6 +364,9 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
   const [cityDropdownOpen, setCityDropdownOpen] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [ratings, setRatings] = useState<Record<string, 'up' | 'down'>>({});
+  const [events, setEvents] = useState<EventPlan[]>([]);
+  const [eventsExpanded, setEventsExpanded] = useState(false);
+  const [savingVendor, setSavingVendor] = useState<string | null>(null);
   const cityDropdownRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -413,6 +475,12 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
     }
   }, [messages, compact]);
 
+  // Load event plans when user logs in / out
+  useEffect(() => {
+    if (!user) { setEvents([]); return; }
+    getUserEvents().then(setEvents).catch(() => {});
+  }, [user]);
+
   // Fire-and-forget event tracking — never throws, never blocks
   const trackEvent = useCallback(async (eventType: string, payload?: Record<string, any>) => {
     if (!sessionId) return;
@@ -430,6 +498,58 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
       trackEvent(rating === 'up' ? 'thumbs_up' : 'thumbs_down', { messageId: msgId });
     }
   }, [ratings, trackEvent]);
+
+  const handleSaveVendorToEvent = useCallback(async (business: Business) => {
+    if (!user || events.length === 0) return;
+    const activeEvents = events.filter(e => e.status === 'active');
+    if (activeEvents.length === 0) return;
+
+    const subcatName = (business.subcategory?.name || business.category?.name || '').toLowerCase();
+
+    // Find first active event with a pending checklist item matching this business's subcategory
+    let bestEventIdx = -1;
+    let bestCategory = '';
+    for (let i = 0; i < events.length; i++) {
+      if (events[i].status !== 'active') continue;
+      const pending = (events[i].checklist || []).find(
+        c => c.status === 'pending' && c.category.toLowerCase() === subcatName
+      );
+      if (pending) { bestEventIdx = i; bestCategory = pending.category; break; }
+    }
+
+    if (bestEventIdx === -1) {
+      showToast("This vendor type doesn't match any pending checklist items");
+      return;
+    }
+
+    setSavingVendor(business.slug);
+    try {
+      await saveVendorToEvent(bestEventIdx, {
+        category: bestCategory,
+        vendorSlug: business.slug,
+        vendorName: business.name,
+        ...(sessionId ? { sessionId } : {}),
+      });
+      const updated = await getUserEvents();
+      setEvents(updated);
+      showToast(`${business.name} saved to ${events[bestEventIdx].label} checklist`);
+    } catch {
+      showToast('Failed to save vendor — please try again');
+    } finally {
+      setSavingVendor(null);
+    }
+  }, [user, events, sessionId]);
+
+  const handleShareEvent = useCallback(async (eventIdx: number) => {
+    try {
+      const { token } = await createEventShareLink(eventIdx);
+      const shareUrl = `${window.location.origin}/event-plans/${token}`;
+      await navigator.clipboard.writeText(shareUrl);
+      showToast('Share link copied! Valid for 30 minutes');
+    } catch {
+      showToast('Failed to create share link');
+    }
+  }, []);
 
   const fetchHistory = useCallback(async () => {
     if (!user) return;
@@ -593,6 +713,11 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
 
       setMessages(prev => prev.map(m => m.id === loadingId ? assistantMsg : m));
 
+      // If AI created/updated an event plan, refresh the events panel
+      if (user && data.eventUpdate) {
+        getUserEvents().then(setEvents).catch(() => {});
+      }
+
       // Persist conversation
       const toSave = [...messages, userMsg, assistantMsg];
       if (user) {
@@ -692,6 +817,10 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
       };
 
       setMessages(prev => prev.map(m => m.id === errorMsgId ? assistantMsg : m));
+
+      if (user && data.eventUpdate) {
+        getUserEvents().then(setEvents).catch(() => {});
+      }
 
       const toSave = messages
         .filter(m => m.id !== errorMsgId && !m.isError && !m.isLoading)
@@ -806,6 +935,87 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
 
   return (
     <div className="w-full flex flex-col gap-4">
+
+      {/* ── Event Plans Panel ── */}
+      {user && events.some(e => e.status === 'active') && (
+        <div className="bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800/40 rounded-xl overflow-hidden">
+          {events.map((event, globalIdx) => {
+            if (event.status !== 'active') return null;
+            const found = (event.checklist || []).filter(c => c.status !== 'pending').length;
+            const total = (event.checklist || []).length;
+            const pct = total > 0 ? Math.round((found / total) * 100) : 0;
+            return (
+              <div key={globalIdx} className="px-3 py-2.5">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="text-sm">🎉</span>
+                    <span className="text-sm font-semibold text-gray-900 dark:text-white truncate">{event.label}</span>
+                    {event.date && <span className="text-xs text-gray-400 dark:text-gray-500 flex-shrink-0">· {event.date}</span>}
+                    <span className="text-xs font-medium text-orange-600 dark:text-orange-400 flex-shrink-0">{found}/{total} found</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 flex-shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => handleShareEvent(globalIdx)}
+                      title="Copy share link (valid 30 min)"
+                      className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 hover:bg-orange-200 dark:hover:bg-orange-800/50 transition-colors"
+                    >
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                      </svg>
+                      Share
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEventsExpanded(x => !x)}
+                      aria-label={eventsExpanded ? 'Collapse checklist' : 'Expand checklist'}
+                      className="p-1 rounded-lg text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors"
+                    >
+                      <svg className={`w-4 h-4 transition-transform duration-200 ${eventsExpanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+                <div className="mt-2 h-1 bg-orange-100 dark:bg-orange-900/40 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-orange-500 dark:bg-orange-400 rounded-full transition-all duration-500"
+                    style={{ width: `${pct}%` }}
+                  />
+                </div>
+                {eventsExpanded && (
+                  <div className="mt-2.5 flex flex-wrap gap-1.5">
+                    {(event.checklist || []).map(item => (
+                      <span
+                        key={item.category}
+                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${
+                          item.status !== 'pending'
+                            ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
+                            : 'bg-white dark:bg-dark-card text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-dark-border'
+                        }`}
+                      >
+                        {item.status !== 'pending' ? (
+                          <svg className="w-2.5 h-2.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                        ) : (
+                          <span className="w-2.5 h-2.5 rounded-full border border-current flex-shrink-0 opacity-40" />
+                        )}
+                        {item.category}
+                        {item.vendorName && (
+                          <span className="opacity-60 font-normal">
+                            ({item.vendorName.length > 12 ? item.vendorName.slice(0, 12) + '…' : item.vendorName})
+                          </span>
+                        )}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       {showHistory ? (
         /* ── History panel ── */
@@ -949,6 +1159,9 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
                                   trackEvent('business_click', { businessSlug: slug });
                                   sendMessage(`What can you tell me about ${name}?`, slug);
                                 }}
+                                events={events}
+                                onSaveVendor={handleSaveVendorToEvent}
+                                savingVendor={savingVendor}
                               />
                             ))}
                           </div>
