@@ -95,6 +95,7 @@ export interface User {
   role: string;
   userType: 'customer' | 'business_owner';
   emailVerified: boolean;
+  twoFactorEnabled: boolean;
   businessName?: string | null;
   instagramHandle?: string | null;
   phone?: string | null;

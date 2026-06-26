@@ -9,9 +9,10 @@ interface AuthContextType {
   user: User | null;
   token: string | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<{ requiresTwoFactor: true; pendingEmail: string } | void>;
   register: (email: string, password: string, name: string, role?: 'user' | 'business_owner') => Promise<void>;
   googleLogin: (credential: string, userType?: 'customer' | 'business_owner', businessName?: string, instagramHandle?: string, phone?: string) => Promise<void>;
+  completeTwoFactorLogin: (token: string, user: User) => void;
   logout: () => void;
   isAuthenticated: boolean;
   isAdmin: boolean;
@@ -70,14 +71,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (email: string, password: string) => {
     const { data } = await api.post('/auth/login', { email, password });
+
+    if (data.data.requiresTwoFactor) {
+      return { requiresTwoFactor: true as const, pendingEmail: data.data.pendingEmail };
+    }
+
     setUser(data.data.user);
     setToken(data.data.token);
 
-    // Store token in cookie (expires in 7 days)
     Cookies.set('token', data.data.token, {
       expires: 7,
       sameSite: 'lax',
-      secure: process.env.NODE_ENV === 'production'
+      secure: process.env.NODE_ENV === 'production',
+    });
+  };
+
+  const completeTwoFactorLogin = (token: string, user: User) => {
+    setUser(user);
+    setToken(token);
+    Cookies.set('token', token, {
+      expires: 7,
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
     });
   };
 
@@ -139,6 +154,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     login,
     register,
     googleLogin,
+    completeTwoFactorLogin,
     logout,
     isAuthenticated: !!user,
     isAdmin: user?.role === 'admin',
