@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import type { City, Business, EventPlan } from '@/types';
 import {
-  api, API_BASE_URL, getCities, getBusinesses,
+  api, API_BASE_URL, getCities, getBusinesses, getSubcategories,
   getConversations, getConversationById, createConversation, updateConversation, deleteConversation,
   getUserEvents, createEvent, saveVendorToEvent, createEventShareLink,
 } from '@/lib/api';
@@ -77,6 +77,28 @@ const EVENT_CHECKLISTS: Record<string, string[]> = {
   sweet_16:      ['Decor', 'Bakery', 'Photography', 'Catering', 'Hair', 'Makeup'],
   graduation:    ['Bakery', 'Catering', 'Photography', 'Decor'],
 };
+
+// Keywords for matching event checklist categories to subcategory/category names in the DB.
+// The DB may use "Nail Techs", "Home Bakers", "Event Planners" etc., so exact string equality
+// fails. These stem-based keywords let one checklist entry match multiple DB names.
+const CATEGORY_KEYWORDS: Record<string, string[]> = {
+  Photography: ['photo'],
+  Hair:        ['hair'],
+  Makeup:      ['makeup', 'make-up', 'make up'],
+  Nails:       ['nail'],
+  Decor:       ['decor'],
+  Planning:    ['plan', 'coordinat'],
+  Catering:    ['cater'],
+  Bakery:      ['bak'],
+  Lashes:      ['lash'],
+  Chef:        ['chef', 'culinar', 'cook'],
+};
+
+function matchesEventCategory(eventCat: string, dbName: string): boolean {
+  const lower = dbName.toLowerCase();
+  const keywords = CATEGORY_KEYWORDS[eventCat] || [eventCat.toLowerCase()];
+  return keywords.some(kw => lower.includes(kw));
+}
 
 const GUEST_KEY = 'buzzgram-chat';
 const SESSION_KEY = 'buzzgram-session-id';
@@ -218,8 +240,10 @@ function MiniBusinessCard({
 }) {
   const activeEvents = (events || []).filter(e => e.status === 'active');
   const showBookmark = activeEvents.length > 0 && !!onSaveVendor;
-  const isSaved = activeEvents.some(ev =>
-    (ev.checklist || []).some(c => c.status !== 'pending' && c.vendorSlug === business.slug)
+  // Only check the latest active event — vendors saved to past events should remain saveable
+  const latestEvent = activeEvents[activeEvents.length - 1];
+  const isSaved = !!latestEvent && (latestEvent.checklist || []).some(
+    c => c.status !== 'pending' && c.vendorSlug === business.slug
   );
 
   return (
@@ -542,21 +566,21 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
     const activeEvents = events.filter(e => e.status === 'active');
     if (activeEvents.length === 0) return;
 
-    const subcatName = (business.subcategory?.name || business.category?.name || '').toLowerCase();
+    const businessCatName = business.subcategory?.name || business.category?.name || '';
 
-    // Find first active event with a pending checklist item matching this business's subcategory
+    // Search latest active event first so the vendor goes to the current plan
     let bestEventIdx = -1;
     let bestCategory = '';
-    for (let i = 0; i < events.length; i++) {
+    for (let i = events.length - 1; i >= 0; i--) {
       if (events[i].status !== 'active') continue;
-      const pending = (events[i].checklist || []).find(
-        c => c.status === 'pending' && c.category.toLowerCase() === subcatName
+      const match = (events[i].checklist || []).find(
+        c => c.status === 'pending' && matchesEventCategory(c.category, businessCatName)
       );
-      if (pending) { bestEventIdx = i; bestCategory = pending.category; break; }
+      if (match) { bestEventIdx = i; bestCategory = match.category; break; }
     }
 
     if (bestEventIdx === -1) {
-      showToast("This vendor type doesn't match any pending checklist items");
+      showToast("This vendor type doesn't match any pending item in your event plan");
       return;
     }
 
@@ -609,12 +633,26 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
       const loadingId = uid();
       setMessages(prev => [...prev, { id: loadingId, role: 'assistant' as const, content: '', isLoading: true }]);
 
-      // Fetch businesses for each category in parallel
+      // Fetch all subcategories once, then match each checklist category to subcategoryId(s)
+      // This is far more reliable than text search which misses "Bakers", "Nail Techs", etc.
+      const subcats = await getSubcategories().catch(() => []);
+
       const results = await Promise.all(
-        categories.map(cat => getBusinesses({ cityId, search: cat }).catch(() => [] as Business[]))
+        categories.map(async cat => {
+          const matched = subcats.filter(sc => matchesEventCategory(cat, sc.name));
+          if (matched.length > 0) {
+            const sub = await Promise.all(
+              matched.map(sc => getBusinesses({ cityId, subcategoryId: sc.id }).catch(() => [] as Business[]))
+            );
+            return sub.flat();
+          }
+          // Fallback: keyword text search
+          const kw = (CATEGORY_KEYWORDS[cat] || [cat.toLowerCase()])[0];
+          return getBusinesses({ cityId, search: kw }).catch(() => [] as Business[]);
+        })
       );
 
-      // Flatten and deduplicate
+      // Flatten and deduplicate by business ID
       const seen = new Set<number>();
       const allBusinesses: Business[] = [];
       results.forEach(bs => bs.forEach(b => {
