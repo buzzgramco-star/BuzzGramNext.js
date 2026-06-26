@@ -1422,12 +1422,12 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
                   )}
                 </div>
 
-                {/* Event planner picker — logged-in users only */}
-                {user && (
+                {/* Event planner picker — always visible; guests prompted to log in */}
+                {!showHistory && (
                   <div ref={eventPickerRef} className="relative">
                     <button
                       type="button"
-                      onClick={() => setShowEventPicker(o => !o)}
+                      onClick={() => user ? setShowEventPicker(o => !o) : showToast('Sign in to use the event planner')}
                       disabled={creatingEvent}
                       className="flex items-center gap-1 text-xs text-gray-400 dark:text-gray-500 hover:text-orange-500 dark:hover:text-orange-400 transition-colors disabled:opacity-50"
                     >
