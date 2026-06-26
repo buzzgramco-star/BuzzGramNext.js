@@ -67,6 +67,17 @@ const EVENT_TYPES = [
   { type: 'graduation',    label: 'Graduation',    icon: '🎓' },
 ];
 
+const EVENT_CHECKLISTS: Record<string, string[]> = {
+  wedding:       ['Photography', 'Hair', 'Makeup', 'Nails', 'Decor', 'Planning', 'Catering', 'Bakery'],
+  bridal_shower: ['Decor', 'Catering', 'Bakery', 'Nails', 'Lashes', 'Photography'],
+  baby_shower:   ['Decor', 'Catering', 'Bakery', 'Photography'],
+  gender_reveal: ['Decor', 'Bakery', 'Photography', 'Catering'],
+  birthday:      ['Bakery', 'Decor', 'Photography', 'Catering', 'Chef'],
+  bachelorette:  ['Hair', 'Makeup', 'Nails', 'Lashes', 'Photography'],
+  sweet_16:      ['Decor', 'Bakery', 'Photography', 'Catering', 'Hair', 'Makeup'],
+  graduation:    ['Bakery', 'Catering', 'Photography', 'Decor'],
+};
+
 const GUEST_KEY = 'buzzgram-chat';
 const SESSION_KEY = 'buzzgram-session-id';
 const CITY_KEY = 'buzzgram-city';           // persists last-selected city across remounts
@@ -380,6 +391,7 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
   const [savingVendor, setSavingVendor] = useState<string | null>(null);
   const [showEventPicker, setShowEventPicker] = useState(false);
   const [creatingEvent, setCreatingEvent] = useState(false);
+  const [pendingEventSearch, setPendingEventSearch] = useState<string | null>(null);
   const cityDropdownRef = useRef<HTMLDivElement>(null);
   const eventPickerRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -587,7 +599,9 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
       setEvents(updatedEvents);
       setEventsExpanded(true);
       const label = EVENT_TYPES.find(e => e.type === type)?.label || type;
-      showToast(`${label} plan created! Ask me to find vendors for it.`);
+      const categories = EVENT_CHECKLISTS[type] || [];
+      const city = selectedCity?.name || 'my city';
+      setPendingEventSearch(`Show me vendors for my ${label} in ${city} — I need: ${categories.join(', ')}`);
     } catch (err: any) {
       const msg = err?.response?.data?.message || 'Failed to create event';
       showToast(msg);
@@ -908,6 +922,12 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
       setIsLoading(false);
     }
   }, [messages, selectedCity, isLoading, user, activeFocusedSlug, cities, activeConversationId, callAIStream]);
+
+  useEffect(() => {
+    if (!pendingEventSearch) return;
+    setPendingEventSearch(null);
+    sendMessage(pendingEventSearch);
+  }, [pendingEventSearch, sendMessage]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
