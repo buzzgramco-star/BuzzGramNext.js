@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import type { City, Business, EventPlan } from '@/types';
 import {
-  api, API_BASE_URL, getCities,
+  api, API_BASE_URL, getCities, getBusinesses,
   getConversations, getConversationById, createConversation, updateConversation, deleteConversation,
   getUserEvents, createEvent, saveVendorToEvent, createEventShareLink,
 } from '@/lib/api';
@@ -391,7 +391,7 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
   const [savingVendor, setSavingVendor] = useState<string | null>(null);
   const [showEventPicker, setShowEventPicker] = useState(false);
   const [creatingEvent, setCreatingEvent] = useState(false);
-  const [pendingEventSearch, setPendingEventSearch] = useState<string | null>(null);
+  const [showEventPanel, setShowEventPanel] = useState(false);
   const cityDropdownRef = useRef<HTMLDivElement>(null);
   const eventPickerRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -598,10 +598,43 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
       });
       setEvents(updatedEvents);
       setEventsExpanded(true);
+      setShowEventPanel(true);
+
       const label = EVENT_TYPES.find(e => e.type === type)?.label || type;
       const categories = EVENT_CHECKLISTS[type] || [];
-      const city = selectedCity?.name || 'my city';
-      setPendingEventSearch(`Show me vendors for my ${label} in ${city} — I need: ${categories.join(', ')}`);
+      const cityId = selectedCity?.id;
+      const cityName = selectedCity?.name || 'your city';
+
+      // Show a loading bubble while we fetch vendors
+      const loadingId = uid();
+      setMessages(prev => [...prev, { id: loadingId, role: 'assistant' as const, content: '', isLoading: true }]);
+
+      // Fetch businesses for each category in parallel
+      const results = await Promise.all(
+        categories.map(cat => getBusinesses({ cityId, search: cat }).catch(() => [] as Business[]))
+      );
+
+      // Flatten and deduplicate
+      const seen = new Set<number>();
+      const allBusinesses: Business[] = [];
+      results.forEach(bs => bs.forEach(b => {
+        if (!seen.has(b.id)) { seen.add(b.id); allBusinesses.push(b); }
+      }));
+
+      const vendorMsg: ChatMessage = {
+        id: loadingId,
+        role: 'assistant',
+        content: allBusinesses.length > 0
+          ? `Here are vendors in ${cityName} for your ${label}! Browse by category and tap the bookmark to save any to your plan.`
+          : `No vendors found in ${cityName} yet for your ${label} categories. Try asking me about specific vendors you need!`,
+        businesses: allBusinesses,
+        followUps: [],
+        checklist: [],
+        type: 'search',
+        showCards: true,
+        isLoading: false,
+      };
+      setMessages(prev => prev.map(m => m.id === loadingId ? vendorMsg : m));
     } catch (err: any) {
       const msg = err?.response?.data?.message || 'Failed to create event';
       showToast(msg);
@@ -923,12 +956,6 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
     }
   }, [messages, selectedCity, isLoading, user, activeFocusedSlug, cities, activeConversationId, callAIStream]);
 
-  useEffect(() => {
-    if (!pendingEventSearch) return;
-    setPendingEventSearch(null);
-    sendMessage(pendingEventSearch);
-  }, [pendingEventSearch, sendMessage]);
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     sendMessage(input, null);  // null clears activeFocusedSlug — user typed a new intent
@@ -1003,7 +1030,7 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
     <div className="w-full flex flex-col gap-4">
 
       {/* ── Event Plans Panel ── */}
-      {user && events.some(e => e.status === 'active') && (() => {
+      {user && showEventPanel && events.some(e => e.status === 'active') && (() => {
         const activeWithIdx = events.map((e, i) => ({ event: e, idx: i })).filter(({ event }) => event.status === 'active');
         const { event: latestEvent, idx: latestIdx } = activeWithIdx[activeWithIdx.length - 1];
         const event = latestEvent;
