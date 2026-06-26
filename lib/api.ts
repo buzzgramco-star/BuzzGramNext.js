@@ -546,6 +546,16 @@ export const getUserEvents = async (): Promise<EventPlan[]> => {
   return data.data;
 };
 
+export const createEvent = async (type: string, options?: {
+  date?: string;
+  headcount?: number;
+  budget?: number;
+  city?: string;
+}): Promise<EventPlan[]> => {
+  const { data } = await api.post('/events', { type, ...options });
+  return data.events;
+};
+
 export const saveVendorToEvent = async (
   eventIndex: number,
   payload: { category: string; vendorSlug: string; vendorName: string; sessionId?: string }

@@ -6,7 +6,7 @@ import type { City, Business, EventPlan } from '@/types';
 import {
   api, API_BASE_URL, getCities,
   getConversations, getConversationById, createConversation, updateConversation, deleteConversation,
-  getUserEvents, saveVendorToEvent, createEventShareLink,
+  getUserEvents, createEvent, saveVendorToEvent, createEventShareLink,
 } from '@/lib/api';
 import type { ConversationSummary } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
@@ -54,6 +54,17 @@ const EXAMPLE_PROMPTS = [
   'Nail tech under $80',
   'Home baker for a birthday cake',
   'Event planner for a party',
+];
+
+const EVENT_TYPES = [
+  { type: 'wedding',       label: 'Wedding',       icon: '💍' },
+  { type: 'bridal_shower', label: 'Bridal Shower', icon: '👰' },
+  { type: 'baby_shower',   label: 'Baby Shower',   icon: '🍼' },
+  { type: 'gender_reveal', label: 'Gender Reveal', icon: '🎊' },
+  { type: 'birthday',      label: 'Birthday',      icon: '🎂' },
+  { type: 'bachelorette',  label: 'Bachelorette',  icon: '🎉' },
+  { type: 'sweet_16',      label: 'Sweet 16',      icon: '✨' },
+  { type: 'graduation',    label: 'Graduation',    icon: '🎓' },
 ];
 
 const GUEST_KEY = 'buzzgram-chat';
@@ -367,7 +378,10 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
   const [events, setEvents] = useState<EventPlan[]>([]);
   const [eventsExpanded, setEventsExpanded] = useState(false);
   const [savingVendor, setSavingVendor] = useState<string | null>(null);
+  const [showEventPicker, setShowEventPicker] = useState(false);
+  const [creatingEvent, setCreatingEvent] = useState(false);
   const cityDropdownRef = useRef<HTMLDivElement>(null);
+  const eventPickerRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -388,6 +402,18 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, [cityDropdownOpen]);
+
+  // Close event picker on outside click
+  useEffect(() => {
+    if (!showEventPicker) return;
+    const handler = (e: MouseEvent) => {
+      if (eventPickerRef.current && !eventPickerRef.current.contains(e.target as Node)) {
+        setShowEventPicker(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [showEventPicker]);
 
   // Init or resume analytics session — runs once on mount
   useEffect(() => {
@@ -550,6 +576,25 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
       showToast('Failed to create share link');
     }
   }, []);
+
+  const handleCreateEvent = useCallback(async (type: string) => {
+    setShowEventPicker(false);
+    setCreatingEvent(true);
+    try {
+      const updatedEvents = await createEvent(type, {
+        city: selectedCity?.name || undefined,
+      });
+      setEvents(updatedEvents);
+      setEventsExpanded(true);
+      const label = EVENT_TYPES.find(e => e.type === type)?.label || type;
+      showToast(`${label} plan created! Ask me to find vendors for it.`);
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || 'Failed to create event';
+      showToast(msg);
+    } finally {
+      setCreatingEvent(false);
+    }
+  }, [selectedCity]);
 
   const fetchHistory = useCallback(async () => {
     if (!user) return;
@@ -1328,6 +1373,7 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
             ) : (
               /* Normal mode bottom bar */
               <>
+                <div className="flex items-center gap-2">
                 {/* City selector — shows detected/selected city, click to switch */}
                 <div ref={cityDropdownRef} className="relative">
                   <button
@@ -1374,6 +1420,65 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
                       ))}
                     </div>
                   )}
+                </div>
+
+                {/* Event planner picker — logged-in users only */}
+                {user && (
+                  <div ref={eventPickerRef} className="relative">
+                    <button
+                      type="button"
+                      onClick={() => setShowEventPicker(o => !o)}
+                      disabled={creatingEvent}
+                      className="flex items-center gap-1 text-xs text-gray-400 dark:text-gray-500 hover:text-orange-500 dark:hover:text-orange-400 transition-colors disabled:opacity-50"
+                    >
+                      {creatingEvent ? (
+                        <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                        </svg>
+                      ) : (
+                        <span>🎉</span>
+                      )}
+                      <span>Plan event</span>
+                      <svg className={`w-3 h-3 transition-transform duration-150 ${showEventPicker ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+
+                    {showEventPicker && (
+                      <div className="absolute bottom-full left-0 mb-2 w-44 bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-xl shadow-lg py-1 z-50">
+                        <p className="px-3 pt-1.5 pb-1 text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide">
+                          What are you planning?
+                        </p>
+                        {EVENT_TYPES.map(et => {
+                          const alreadyActive = events.some(e => e.type === et.type && e.status === 'active');
+                          return (
+                            <button
+                              key={et.type}
+                              type="button"
+                              disabled={alreadyActive}
+                              onClick={() => handleCreateEvent(et.type)}
+                              className="w-full flex items-center justify-between px-3 py-1.5 text-xs text-left hover:bg-gray-50 dark:hover:bg-dark-hover transition-colors disabled:opacity-40"
+                            >
+                              <span className="flex items-center gap-2">
+                                <span>{et.icon}</span>
+                                <span className={alreadyActive ? 'text-orange-500 font-medium' : 'text-gray-700 dark:text-gray-300'}>
+                                  {et.label}
+                                </span>
+                              </span>
+                              {alreadyActive && (
+                                <svg className="w-3 h-3 text-orange-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                </svg>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 </div>
 
                 <div className="flex items-center gap-2">
