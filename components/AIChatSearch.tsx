@@ -1003,15 +1003,17 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
     <div className="w-full flex flex-col gap-4">
 
       {/* ── Event Plans Panel ── */}
-      {user && events.some(e => e.status === 'active') && (
+      {user && events.some(e => e.status === 'active') && (() => {
+        const activeWithIdx = events.map((e, i) => ({ event: e, idx: i })).filter(({ event }) => event.status === 'active');
+        const { event: latestEvent, idx: latestIdx } = activeWithIdx[activeWithIdx.length - 1];
+        const event = latestEvent;
+        const globalIdx = latestIdx;
+        const found = (event.checklist || []).filter(c => c.status !== 'pending').length;
+        const total = (event.checklist || []).length;
+        const pct = total > 0 ? Math.round((found / total) * 100) : 0;
+        return (
         <div className="bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800/40 rounded-xl overflow-hidden">
-          {events.map((event, globalIdx) => {
-            if (event.status !== 'active') return null;
-            const found = (event.checklist || []).filter(c => c.status !== 'pending').length;
-            const total = (event.checklist || []).length;
-            const pct = total > 0 ? Math.round((found / total) * 100) : 0;
-            return (
-              <div key={globalIdx} className="px-3 py-2.5">
+              <div className="px-3 py-2.5">
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2 min-w-0">
                     <span className="text-sm">🎉</span>
@@ -1078,10 +1080,9 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
                   </div>
                 )}
               </div>
-            );
-          })}
         </div>
-      )}
+        );
+      })()}
 
       {showHistory ? (
         /* ── History panel ── */
@@ -1215,7 +1216,7 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
                           </div>
                         )}
 
-                        {!msg.isLoading && msg.showCards !== false && msg.businesses && msg.businesses.length > 0 && (
+                        {!msg.isLoading && msg.businesses && msg.businesses.length > 0 && (
                           <div className="mb-3">
                             {groupBusinesses(msg.businesses).map(group => (
                               <CarouselRow
@@ -1231,18 +1232,6 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
                               />
                             ))}
                           </div>
-                        )}
-
-                        {!msg.isLoading && msg.showCards === false && msg.businesses && msg.businesses.length === 1 && (
-                          <Link
-                            href={`/business/${msg.businesses[0].slug}`}
-                            className="inline-flex items-center gap-1 text-xs text-orange-600 dark:text-orange-400 hover:underline mb-3"
-                          >
-                            View {msg.businesses[0].name} profile
-                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-                            </svg>
-                          </Link>
                         )}
 
                         {!msg.isLoading && msg.followUps && msg.followUps.length > 0 && (
