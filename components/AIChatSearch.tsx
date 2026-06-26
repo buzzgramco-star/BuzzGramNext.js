@@ -973,6 +973,8 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
     setActiveFocusedSlug(null);
     setActiveConversationId(null);
     setRatings({});
+    setShowEventPanel(false);
+    setEventsExpanded(false);
     if (!user) {
       try { sessionStorage.removeItem(GUEST_KEY); } catch { /* silent */ }
     }
@@ -984,6 +986,8 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
     setActiveConversationId(null);
     setRatings({});
     setShowHistory(false);
+    setShowEventPanel(false);
+    setEventsExpanded(false);
   };
 
   const handleShowHistory = () => {
@@ -1486,30 +1490,17 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
                         <p className="px-3 pt-1.5 pb-1 text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide">
                           What are you planning?
                         </p>
-                        {EVENT_TYPES.map(et => {
-                          const alreadyActive = events.some(e => e.type === et.type && e.status === 'active');
-                          return (
-                            <button
-                              key={et.type}
-                              type="button"
-                              disabled={alreadyActive}
-                              onClick={() => handleCreateEvent(et.type)}
-                              className="w-full flex items-center justify-between px-3 py-1.5 text-xs text-left hover:bg-gray-50 dark:hover:bg-dark-hover transition-colors disabled:opacity-40"
-                            >
-                              <span className="flex items-center gap-2">
-                                <span>{et.icon}</span>
-                                <span className={alreadyActive ? 'text-orange-500 font-medium' : 'text-gray-700 dark:text-gray-300'}>
-                                  {et.label}
-                                </span>
-                              </span>
-                              {alreadyActive && (
-                                <svg className="w-3 h-3 text-orange-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                </svg>
-                              )}
-                            </button>
-                          );
-                        })}
+                        {EVENT_TYPES.map(et => (
+                          <button
+                            key={et.type}
+                            type="button"
+                            onClick={() => handleCreateEvent(et.type)}
+                            className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-left text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-dark-hover transition-colors"
+                          >
+                            <span>{et.icon}</span>
+                            <span>{et.label}</span>
+                          </button>
+                        ))}
                       </div>
                     )}
                   </div>
