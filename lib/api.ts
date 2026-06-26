@@ -85,6 +85,32 @@ export const healthCheck = async (): Promise<{ status: string; timestamp: string
   return data;
 };
 
+// Two-factor authentication
+export const verify2FACode = async (email: string, code: string) => {
+  const { data } = await api.post('/auth/2fa/verify', { email, code });
+  return data.data as { user: import('@/types').User; token: string };
+};
+
+export const setup2FA = async () => {
+  const { data } = await api.post('/auth/2fa/setup');
+  return data as { success: boolean; message: string };
+};
+
+export const confirm2FA = async (code: string) => {
+  const { data } = await api.post('/auth/2fa/confirm', { code });
+  return data as { success: boolean; message: string };
+};
+
+export const disable2FA = async (password: string) => {
+  const { data } = await api.post('/auth/2fa/disable', { password });
+  return data as { success: boolean; message: string };
+};
+
+export const resend2FACode = async (email: string) => {
+  const { data } = await api.post('/auth/2fa/resend', { email });
+  return data as { success: boolean; message: string };
+};
+
 // Favorites
 export const getFavorites = async () => {
   const { data } = await api.get('/favorites');
