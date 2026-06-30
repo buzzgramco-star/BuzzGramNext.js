@@ -28,16 +28,15 @@ export default function HeroSection({ detectedCity }: HeroSectionProps) {
 
         {/* Headline */}
         <h1 className="text-center text-4xl sm:text-5xl md:text-6xl font-extrabold text-gray-900 dark:text-white mb-5 tracking-tight leading-tight">
-          Tell us what you need.{' '}
-          <span className="text-orange-600 dark:text-orange-500">We know who does it.</span>
+          Find the vendor{' '}
+          <span className="text-orange-600 dark:text-orange-500">your friends won&apos;t share.</span>
         </h1>
 
         {/* Subtext */}
         <p className="text-center text-lg sm:text-xl text-gray-500 dark:text-gray-400 max-w-2xl mx-auto mb-10 leading-relaxed">
-          The best local talent isn&apos;t on Google — they&apos;re home-based and Instagram-only.
-          BuzzGram AI is the first of its kind: just describe what you need and it instantly
-          surfaces the hidden nail techs, bakers, lash artists, photographers and event planners
-          in your city.
+          The best nail techs, bakers, lash artists, and event planners in your city don&apos;t show up on Google.
+          They&apos;re home-based and Instagram-only — hidden until now.
+          Just describe what you want, and BuzzGram AI finds them for you.
         </p>
 
         {/* AI Chat — the hero */}
@@ -54,9 +53,11 @@ export default function HeroSection({ detectedCity }: HeroSectionProps) {
             10 cities &amp; growing
           </span>
           <span className="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600" />
-          <span>Beauty · Food · Events · and more</span>
+          <span>Beauty · Food · Events</span>
           <span className="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600" />
-          <span>Businesses you won&apos;t find anywhere else</span>
+          <span>Only on BuzzGram</span>
+          <span className="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600" />
+          <span>Free to use</span>
         </div>
 
         {/* Business owner link */}

@@ -6,9 +6,19 @@ const features = [
         <polyline points="9 22 9 12 15 12 15 22" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
       </svg>
     ),
-    title: 'Hidden gems, finally found',
-    description: 'BuzzGram specializes in home-based and Instagram businesses — talented nail techs, bakers, photographers, and event planners who operate outside the traditional listings. The kind of vendors your friends rave about but you can never find on Google.',
+    title: 'The businesses Google can\'t find',
+    description: 'Thousands of nail techs, bakers, lash artists, photographers, and event planners built their entire business on Instagram. They have no Google listing, no Yelp page, no directory presence. BuzzGram is the only platform built specifically for them.',
     highlight: 'Home-based & Instagram businesses',
+  },
+  {
+    icon: (
+      <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.347.347a3.75 3.75 0 00-1.1 2.028l-.3 1.5a.75.75 0 01-.734.598H8.741a.75.75 0 01-.734-.598l-.3-1.5a3.75 3.75 0 00-1.1-2.028l-.347-.347z" />
+      </svg>
+    ),
+    title: 'An AI that thinks like you',
+    description: 'Don\'t type keywords — describe what you want. "Nail set under $60 this weekend" or "help me plan a bridal shower for 20 people." BuzzGram AI understands context, budget, and occasion, then surfaces exactly the right vendors.',
+    highlight: 'Conversational AI discovery',
   },
   {
     icon: (
@@ -17,19 +27,9 @@ const features = [
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
       </svg>
     ),
-    title: 'Your city, fully covered',
-    description: 'We\'re live across 10 major cities in Canada and the US — Toronto, Vancouver, Calgary, Montreal, Ottawa, New York, Los Angeles, Miami, Chicago, and Phoenix. More cities coming soon.',
+    title: '10 cities, growing fast',
+    description: 'Live across Toronto, Vancouver, Calgary, Montreal, Ottawa, New York, Los Angeles, Miami, Chicago, and Phoenix. Each city is packed with home-based businesses you won\'t find anywhere else — and we\'re adding more cities soon.',
     highlight: '10 cities across North America',
-  },
-  {
-    icon: (
-      <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.347.347a3.75 3.75 0 00-1.1 2.028l-.3 1.5a.75.75 0 01-.734.598H8.741a.75.75 0 01-.734-.598l-.3-1.5a3.75 3.75 0 00-1.1-2.028l-.347-.347z" />
-      </svg>
-    ),
-    title: 'AI that actually understands',
-    description: 'Unlike a search bar, our AI understands what you mean. Planning an event? It builds a checklist. Looking for a vendor? It ranks by relevance, budget, and vibe. Ask follow-ups, refine results, and keep the conversation going.',
-    highlight: 'Conversational AI discovery',
   },
 ];
 
@@ -40,12 +40,12 @@ export default function WhyBuzzGram() {
 
         {/* Header */}
         <div className="text-center mb-14">
-          <p className="text-xs font-semibold tracking-widest uppercase text-orange-600 dark:text-orange-500 mb-3">About BuzzGram</p>
+          <p className="text-xs font-semibold tracking-widest uppercase text-orange-600 dark:text-orange-500 mb-3">Why BuzzGram</p>
           <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-            A smarter way to find local vendors
+            Built for the businesses Google ignores
           </h2>
           <p className="text-base text-gray-500 dark:text-gray-400 max-w-2xl mx-auto leading-relaxed">
-            We built BuzzGram because the best local vendors — the ones your friends rave about — were impossible to find online. We changed that.
+            The best vendors in your city built their entire business on Instagram. They&apos;re not on Google, not on Yelp, not anywhere else. BuzzGram was built specifically to surface them.
           </p>
         </div>
 

@@ -6,7 +6,6 @@ import HowItWorks from '@/components/homepage/HowItWorks';
 import WhyBuzzGram from '@/components/homepage/WhyBuzzGram';
 import QuickValueProps from '@/components/homepage/QuickValueProps';
 import BrowseCategories from '@/components/homepage/BrowseCategories';
-import FAQ from '@/components/homepage/FAQ';
 import FinalCTA from '@/components/homepage/FinalCTA';
 
 // Force dynamic rendering for IP-based city detection
@@ -77,9 +76,6 @@ export default async function HomePage() {
 
         {/* 5. Browse by category */}
         <BrowseCategories />
-
-        {/* 6. FAQ — SEO */}
-        <FAQ />
 
         {/* 6. Final CTA */}
         <FinalCTA />

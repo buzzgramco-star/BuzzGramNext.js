@@ -6,10 +6,10 @@ export default function FinalCTA() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         {/* Simple Message */}
         <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4">
-          Ready to Connect?
+          Stop scrolling Instagram.<br className="hidden sm:block" /> Start asking BuzzGram.
         </h2>
         <p className="text-lg sm:text-xl text-orange-100 max-w-2xl mx-auto mb-10">
-          Whether you're looking for services or growing your business, get started for free
+          The nail tech your friends swear by. The baker who sells out every week. The photographer everyone loves. They&apos;re all here — free to discover.
         </p>
 
         {/* CTA Buttons */}
@@ -18,13 +18,13 @@ export default function FinalCTA() {
             href="/city/toronto"
             className="px-8 py-4 bg-white text-orange-600 font-semibold rounded-lg hover:bg-orange-50 transition-all shadow-xl hover:shadow-2xl hover:-translate-y-1 min-w-[200px]"
           >
-            Browse Businesses
+            Start Discovering
           </Link>
           <Link
             href="/business-signup"
             className="px-8 py-4 bg-transparent border-2 border-white text-white font-semibold rounded-lg hover:bg-white hover:text-orange-600 transition-all shadow-xl hover:shadow-2xl hover:-translate-y-1 min-w-[200px]"
           >
-            List Your Business
+            List Your Business Free
           </Link>
         </div>
       </div>
