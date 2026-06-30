@@ -25,7 +25,7 @@ export default function QuickValueProps() {
           <div>
             <p className="text-xs font-semibold uppercase tracking-widest text-orange-200 mb-1">OneQuote</p>
             <h2 className="text-lg sm:text-xl font-bold text-white leading-snug">
-              Skip the DMs — one request, quotes from multiple vendors.
+              Skip the DMs. Send one request and get quotes from multiple vendors.
             </h2>
             <p className="text-sm text-orange-100 mt-1">Describe your needs once and let vendors come to you.</p>
           </div>

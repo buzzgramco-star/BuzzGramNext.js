@@ -9,7 +9,7 @@ export default function FinalCTA() {
           Stop scrolling Instagram.<br className="hidden sm:block" /> Start asking BuzzGram.
         </h2>
         <p className="text-lg sm:text-xl text-orange-100 max-w-2xl mx-auto mb-10">
-          The nail tech your friends swear by. The baker who sells out every week. The photographer everyone loves. They&apos;re all here — free to discover.
+          The nail tech your friends swear by. The baker who sells out every week. The photographer everyone loves. They&apos;re all on BuzzGram and it&apos;s free.
         </p>
 
         {/* CTA Buttons */}

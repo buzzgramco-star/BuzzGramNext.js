@@ -7,7 +7,7 @@ const steps = [
       </svg>
     ),
     title: 'Describe what you need',
-    description: 'Type naturally, like texting a friend — "nail tech under $60 this weekend" or "help me plan my summer wedding." Our AI understands context, budget, and occasion.',
+    description: 'Type like you\'d text a friend. "Nail tech under $60 this weekend" or "help me plan my summer wedding." The AI gets what you mean.',
   },
   {
     number: '02',
@@ -17,7 +17,7 @@ const steps = [
       </svg>
     ),
     title: 'AI finds your best match',
-    description: 'BuzzGram AI scans hundreds of local vendors and ranks the best ones for your exact request — grouped by category so you can compare at a glance.',
+    description: 'BuzzGram AI looks through hundreds of local vendors, picks the best matches for what you asked, and groups them so you can compare at a glance.',
   },
   {
     number: '03',
@@ -27,7 +27,7 @@ const steps = [
       </svg>
     ),
     title: 'Connect & book directly',
-    description: 'Browse vendor profiles, check their Instagram portfolio, and reach out directly. No middleman, no fees — just you and the perfect vendor.',
+    description: 'Browse vendor profiles, check their Instagram portfolio, and reach out directly. No middleman, no fees. Just you and the right vendor.',
   },
 ];
 
