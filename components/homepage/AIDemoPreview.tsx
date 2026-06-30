@@ -76,8 +76,9 @@ export default function AIDemoPreview() {
   return (
     <div>
         {/* Chat window */}
-        <div className="bg-gray-50 dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-2xl p-5 sm:p-6 shadow-sm min-h-[340px] flex flex-col">
+        <div className="bg-gray-50 dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-2xl p-5 sm:p-6 shadow-sm min-h-[340px] flex flex-col justify-between">
 
+          <div>
           {/* User bubble */}
           <div className="flex justify-end mb-5">
             <div className="bg-orange-600 text-white rounded-2xl rounded-tr-sm px-4 py-2.5 max-w-xs text-sm leading-relaxed">
@@ -130,8 +131,10 @@ export default function AIDemoPreview() {
             </div>
           )}
 
-          {/* Progress dots */}
-          <div className="flex justify-center gap-1.5 mt-5 pt-4 border-t border-gray-100 dark:border-dark-border">
+          </div>
+
+          {/* Progress dots — always at bottom */}
+          <div className="flex justify-center gap-1.5 pt-4 border-t border-gray-100 dark:border-dark-border">
             {DEMOS.map((_, i) => (
               <div
                 key={i}
