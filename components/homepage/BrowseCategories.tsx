@@ -67,11 +67,11 @@ export default function BrowseCategories() {
 
         {/* Header */}
         <div className="text-center mb-10">
-          <p className="text-xs font-semibold tracking-widest uppercase text-orange-600 dark:text-orange-500 mb-3">Browse</p>
+          <p className="text-xs font-semibold tracking-widest uppercase text-orange-600 dark:text-orange-500 mb-3">Popular Categories</p>
           <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-3">
             Prefer to explore on your own?
           </h2>
-          <p className="text-base text-gray-500 dark:text-gray-400">Browse vendors by category across all our cities.</p>
+          <p className="text-base text-gray-500 dark:text-gray-400">Browse by category across all our cities.</p>
         </div>
 
         {/* City selector */}
@@ -127,6 +127,17 @@ export default function BrowseCategories() {
               </div>
             </Link>
           ))}
+
+          {/* More coming soon */}
+          <div className="relative bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800/40 dark:to-gray-700/20 border border-dashed border-gray-300 dark:border-gray-600 rounded-2xl p-6 flex flex-col items-center justify-center gap-3 text-center">
+            <div className="w-14 h-14 rounded-2xl bg-gray-100 dark:bg-gray-700/40 flex items-center justify-center text-2xl">
+              ✨
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-gray-700 dark:text-gray-300 mb-1">More coming soon</h3>
+              <p className="text-sm text-gray-400 dark:text-gray-500">New categories launching across all cities.</p>
+            </div>
+          </div>
         </div>
 
       </div>

@@ -34,9 +34,9 @@ export default function HeroSection({ detectedCity }: HeroSectionProps) {
 
         {/* Subtext */}
         <p className="text-center text-lg sm:text-xl text-gray-500 dark:text-gray-400 max-w-2xl mx-auto mb-10 leading-relaxed">
-          The best nail techs, bakers, lash artists, and event planners in your city don&apos;t show up on Google.
-          They&apos;re home-based and Instagram-only — hidden until now.
-          Just describe what you want, and BuzzGram AI finds them for you.
+          The best local talent — from beauty to food to events and more — don&apos;t show up on Google.
+          They&apos;re home-based and Instagram-only, hidden until now.
+          Just describe what you want, and BuzzGram AI finds them instantly.
         </p>
 
         {/* AI Chat — the hero */}
