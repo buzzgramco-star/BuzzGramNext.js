@@ -79,7 +79,7 @@ export default function AIDemoPreview() {
 
   return (
     <div className="bg-gray-50 dark:bg-dark-card py-16 sm:py-20 border-t border-gray-100 dark:border-dark-border">
-      <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* Header */}
         <div className="text-center mb-10">
@@ -93,7 +93,7 @@ export default function AIDemoPreview() {
         </div>
 
         {/* Chat window */}
-        <div className="bg-white dark:bg-dark-bg border border-gray-200 dark:border-dark-border rounded-2xl p-5 sm:p-6 shadow-sm min-h-[260px] flex flex-col">
+        <div className="bg-white dark:bg-dark-bg border border-gray-200 dark:border-dark-border rounded-2xl p-5 sm:p-6 shadow-sm min-h-[340px] flex flex-col">
 
           {/* User bubble */}
           <div className="flex justify-end mb-5">
