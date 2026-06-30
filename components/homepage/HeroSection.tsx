@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import AIChatSearch from '@/components/AIChatSearch';
+import AIDemoPreview from '@/components/homepage/AIDemoPreview';
 
 interface HeroSectionProps {
   detectedCity: string;
@@ -37,6 +38,16 @@ export default function HeroSection({ detectedCity }: HeroSectionProps) {
           The best local talent doesn&apos;t show up on Google. They&apos;re home-based, Instagram-only,
           and they&apos;re everywhere in your city. Just tell BuzzGram what you need and we&apos;ll find them.
         </p>
+
+        {/* Demo preview — watch before you try */}
+        <AIDemoPreview />
+
+        {/* Divider */}
+        <div className="flex items-center gap-3 my-6">
+          <div className="flex-1 h-px bg-gray-200 dark:bg-dark-border" />
+          <span className="text-sm text-gray-400 dark:text-gray-500 font-medium whitespace-nowrap">Now try it yourself</span>
+          <div className="flex-1 h-px bg-gray-200 dark:bg-dark-border" />
+        </div>
 
         {/* AI Chat — the hero */}
         <div className="bg-gray-50 dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-2xl p-5 sm:p-6 shadow-sm mb-6">

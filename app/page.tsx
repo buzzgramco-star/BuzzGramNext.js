@@ -2,8 +2,7 @@ import { Suspense } from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import HeroSection from '@/components/homepage/HeroSection';
-import HowItWorks from '@/components/homepage/HowItWorks';
-import AIDemoPreview from '@/components/homepage/AIDemoPreview';
+
 import WhyBuzzGram from '@/components/homepage/WhyBuzzGram';
 import QuickValueProps from '@/components/homepage/QuickValueProps';
 import BrowseCategories from '@/components/homepage/BrowseCategories';
@@ -66,13 +65,7 @@ export default async function HomePage() {
         {/* 1. Hero — AI chat front and center */}
         <HeroSection detectedCity="toronto" />
 
-        {/* 2. AI demo — animated preview */}
-        <AIDemoPreview />
-
-        {/* 3. How it works — 3 steps */}
-        <HowItWorks />
-
-        {/* 3. Platform overview — what BuzzGram is */}
+        {/* 2. Platform overview — what BuzzGram is */}
         <WhyBuzzGram />
 
         {/* 4. OneQuote slim banner */}

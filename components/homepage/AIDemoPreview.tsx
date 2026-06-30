@@ -73,27 +73,10 @@ export default function AIDemoPreview() {
 
   const demo = DEMOS[demoIndex];
 
-  const scrollToChat = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
   return (
-    <div className="bg-gray-50 dark:bg-dark-card py-16 sm:py-20 border-t border-gray-100 dark:border-dark-border">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-
-        {/* Header */}
-        <div className="text-center mb-10">
-          <p className="text-xs font-semibold tracking-widest uppercase text-orange-600 dark:text-orange-500 mb-3">See it in action</p>
-          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-3">
-            Just describe what you need
-          </h2>
-          <p className="text-base text-gray-500 dark:text-gray-400">
-            Watch how BuzzGram AI finds the right vendor in seconds.
-          </p>
-        </div>
-
+    <div>
         {/* Chat window */}
-        <div className="bg-white dark:bg-dark-bg border border-gray-200 dark:border-dark-border rounded-2xl p-5 sm:p-6 shadow-sm min-h-[340px] flex flex-col">
+        <div className="bg-gray-50 dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-2xl p-5 sm:p-6 shadow-sm min-h-[340px] flex flex-col">
 
           {/* User bubble */}
           <div className="flex justify-end mb-5">
@@ -162,20 +145,6 @@ export default function AIDemoPreview() {
           </div>
         </div>
 
-        {/* CTA */}
-        <div className="text-center mt-8">
-          <button
-            onClick={scrollToChat}
-            className="inline-flex items-center gap-2 px-6 py-3 bg-orange-600 text-white font-semibold text-sm rounded-xl hover:bg-orange-700 transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5"
-          >
-            Try it yourself
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
-            </svg>
-          </button>
-        </div>
-
-      </div>
     </div>
   );
 }
