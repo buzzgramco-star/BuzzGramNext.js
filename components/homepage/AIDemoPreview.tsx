@@ -76,7 +76,7 @@ export default function AIDemoPreview() {
   return (
     <div>
         {/* Chat window */}
-        <div className="bg-gray-50 dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-2xl p-5 sm:p-6 shadow-sm min-h-[340px] flex flex-col justify-between">
+        <div className="bg-gray-50 dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-2xl p-5 sm:p-6 shadow-sm min-h-[260px] flex flex-col justify-between">
 
           <div>
           {/* User bubble */}
