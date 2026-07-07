@@ -10,10 +10,13 @@ import {
 } from '@/lib/api';
 import type { ConversationSummary } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
+import AIDemoPreview from '@/components/homepage/AIDemoPreview';
 
 interface AIChatSearchProps {
   initialCitySlug?: string;
   compact?: boolean;
+  /** Plays an animated demo conversation as the empty state; dissolves on first interaction */
+  demo?: boolean;
 }
 
 interface ChatMessage {
@@ -394,7 +397,7 @@ function CarouselRow({ group, onSelect, events, onSaveVendor, savingVendor }: {
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchProps) {
+export default function AIChatSearch({ initialCitySlug, compact, demo }: AIChatSearchProps) {
   const { user } = useAuth();
   const [cities, setCities] = useState<City[]>([]);
   const [selectedCity, setSelectedCity] = useState<City | null>(null);
@@ -416,6 +419,7 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
   const [showEventPicker, setShowEventPicker] = useState(false);
   const [creatingEvent, setCreatingEvent] = useState(false);
   const [showEventPanel, setShowEventPanel] = useState(false);
+  const [demoDismissed, setDemoDismissed] = useState(false);
   const cityDropdownRef = useRef<HTMLDivElement>(null);
   const eventPickerRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -999,6 +1003,16 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
     sendMessage(input, null);  // null clears activeFocusedSlug — user typed a new intent
   };
 
+  // Tapping the demo dissolves it and hands its query to the real input, ready to send
+  const handleDemoTry = (query: string) => {
+    setDemoDismissed(true);
+    setInput(query);
+    setTimeout(() => {
+      const el = textareaRef.current;
+      if (el) { el.focus(); resizeTextarea(el); }
+    }, 0);
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -1364,6 +1378,9 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
           )}
 
           {/* ── Empty state ── */}
+          {messages.length === 0 && demo && !demoDismissed && (
+            <AIDemoPreview cityName={selectedCity?.name ?? null} onTry={handleDemoTry} />
+          )}
           {messages.length === 0 && (
             !selectedCity ? (
               <div>
@@ -1420,6 +1437,7 @@ export default function AIChatSearch({ initialCitySlug, compact }: AIChatSearchP
             }
             value={input}
             onChange={e => { if (!showHistory) { setInput(e.target.value); resizeTextarea(e.target); } }}
+            onFocus={() => { if (demo && !demoDismissed) setDemoDismissed(true); }}
             onKeyDown={handleKeyDown}
             disabled={showHistory}
             rows={1}

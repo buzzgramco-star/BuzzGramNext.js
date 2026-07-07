@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import AIChatSearch from '@/components/AIChatSearch';
-import AIDemoPreview from '@/components/homepage/AIDemoPreview';
 
 interface HeroSectionProps {
   detectedCity: string;
@@ -39,19 +38,40 @@ export default function HeroSection({ detectedCity }: HeroSectionProps) {
           and they&apos;re everywhere in your city. Just tell BuzzGram what you need and we&apos;ll find them.
         </p>
 
-        {/* Demo preview — watch before you try */}
-        <AIDemoPreview />
-
-        {/* Divider */}
-        <div className="flex items-center gap-3 my-6">
-          <div className="flex-1 h-px bg-gray-200 dark:bg-dark-border" />
-          <span className="text-sm text-gray-400 dark:text-gray-500 font-medium whitespace-nowrap">Now try it yourself</span>
-          <div className="flex-1 h-px bg-gray-200 dark:bg-dark-border" />
+        {/* AI Chat — the hero. Plays a demo conversation until the user interacts. */}
+        <div className="bg-gray-50 dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-2xl p-5 sm:p-6 shadow-sm mb-8">
+          <AIChatSearch compact demo />
         </div>
 
-        {/* AI Chat — the hero */}
-        <div className="bg-gray-50 dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-2xl p-5 sm:p-6 shadow-sm mb-6">
-          <AIChatSearch compact />
+        {/* How it works — three steps */}
+        <div className="grid sm:grid-cols-3 gap-5 sm:gap-6 mb-8 max-w-3xl mx-auto">
+          {[
+            {
+              step: '1',
+              title: 'Say what you need',
+              text: '"Nail tech under $60" or "help me plan my wedding" — just type it like you\'d text a friend.',
+            },
+            {
+              step: '2',
+              title: 'AI searches your city',
+              text: 'It knows the home-based, Instagram-only vendors that never show up on Google.',
+            },
+            {
+              step: '3',
+              title: 'Connect directly',
+              text: 'See their work, services and prices — then DM them on Instagram. No middleman.',
+            },
+          ].map(({ step, title, text }) => (
+            <div key={step} className="flex sm:flex-col items-start gap-3 sm:gap-2 text-left">
+              <span className="flex-shrink-0 w-6 h-6 rounded-full bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 text-xs font-bold flex items-center justify-center">
+                {step}
+              </span>
+              <div>
+                <p className="text-sm font-semibold text-gray-900 dark:text-white mb-0.5">{title}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">{text}</p>
+              </div>
+            </div>
+          ))}
         </div>
 
         {/* Social proof strip */}
