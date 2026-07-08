@@ -423,6 +423,11 @@ export default function AIChatSearch({ initialCitySlug, compact, demo }: AIChatS
   const cityDropdownRef = useRef<HTMLDivElement>(null);
   const eventPickerRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  // Interruption model: a new user action (typed send or card click) aborts any
+  // in-flight AI response. The generation counter lets superseded async flows
+  // detect they're stale and skip all state writes.
+  const requestSeqRef = useRef(0);
+  const abortRef = useRef<AbortController | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 
@@ -706,8 +711,19 @@ export default function AIChatSearch({ initialCitySlug, compact, demo }: AIChatS
     payload: object,
     streamingMsgId: string,
     effectiveCity: City,
+    controller: AbortController,
   ): Promise<AISearchResponse> => {
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+
+    // Inactivity timeout instead of a fixed wall: the server sends keepalive
+    // pings every 15s, so a healthy stream never goes 30s silent. This never
+    // kills a live-but-slow response, only genuinely dead connections.
+    let inactivityTimer: ReturnType<typeof setTimeout> | null = null;
+    const resetInactivity = () => {
+      if (inactivityTimer) clearTimeout(inactivityTimer);
+      inactivityTimer = setTimeout(() => controller.abort(), 30000);
+    };
+    resetInactivity();
 
     const response = await fetch(`${API_BASE_URL}/api/ai-search`, {
       method: 'POST',
@@ -716,7 +732,7 @@ export default function AIChatSearch({ initialCitySlug, compact, demo }: AIChatS
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
       body: JSON.stringify(payload),
-      signal: AbortSignal.timeout(35000),
+      signal: controller.signal,
     });
 
     if (response.status === 429) {
@@ -738,6 +754,7 @@ export default function AIChatSearch({ initialCitySlug, compact, demo }: AIChatS
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
+        resetInactivity();
 
         buffer += decoder.decode(value, { stream: true });
         const lines = buffer.split('\n');
@@ -776,6 +793,7 @@ export default function AIChatSearch({ initialCitySlug, compact, demo }: AIChatS
         if (donePayload) break;
       }
     } finally {
+      if (inactivityTimer) clearTimeout(inactivityTimer);
       reader.cancel().catch(() => {});
     }
 
@@ -785,7 +803,7 @@ export default function AIChatSearch({ initialCitySlug, compact, demo }: AIChatS
 
   const sendMessage = useCallback(async (text: string, explicitSlug?: string | null) => {
     const trimmed = text.trim();
-    if (!trimmed || isLoading) return;
+    if (!trimmed) return;
 
     // If city not yet detected, try to infer it from the user's message text
     let effectiveCity = selectedCity;
@@ -797,6 +815,19 @@ export default function AIChatSearch({ initialCitySlug, compact, demo }: AIChatS
     if (!effectiveCity) {
       showToast('Select your city first — pick one below or mention it in chat.');
       return;
+    }
+
+    // Interrupt any in-flight response — a new user action (typed message or
+    // card click) supersedes whatever the AI was still writing. Finalize the
+    // superseded bubble with whatever already streamed in; drop it if empty.
+    // Must stay synchronous up to the seq increment below so the superseded
+    // flow's catch/finally (microtasks) already see themselves as stale.
+    if (abortRef.current) {
+      abortRef.current.abort();
+      abortRef.current = null;
+      setMessages(prev => prev
+        .map(m => m.isLoading ? { ...m, isLoading: false } : m)
+        .filter(m => !(m.role === 'assistant' && !m.isLoading && !m.content && !(m.businesses?.length))));
     }
 
     const userMsg: ChatMessage = { id: uid(), role: 'user', content: trimmed };
@@ -816,6 +847,10 @@ export default function AIChatSearch({ initialCitySlug, compact, demo }: AIChatS
 
     const slugToSend = explicitSlug === null ? undefined : explicitSlug ?? (activeFocusedSlug ?? undefined);
 
+    const seq = ++requestSeqRef.current;
+    const controller = new AbortController();
+    abortRef.current = controller;
+
     try {
       const data = await callAIStream(
         {
@@ -826,7 +861,9 @@ export default function AIChatSearch({ initialCitySlug, compact, demo }: AIChatS
         },
         loadingId,
         effectiveCity,
+        controller,
       );
+      if (seq !== requestSeqRef.current) return; // superseded by a newer request
 
       if (data.showCards === false && data.data?.length === 1) {
         setActiveFocusedSlug(data.data[0].slug);
@@ -887,6 +924,10 @@ export default function AIChatSearch({ initialCitySlug, compact, demo }: AIChatS
         try { sessionStorage.setItem(GUEST_KEY, JSON.stringify(toSave)); } catch { /* silent */ }
       }
     } catch (error: any) {
+      // Superseded by a newer request — its interrupt already cleaned up our
+      // bubble; touching state here would clobber the new request's UI.
+      if (seq !== requestSeqRef.current) return;
+
       const errorText = error?.is429
         ? user
           ? 'AI search daily limit reached.'
@@ -897,9 +938,12 @@ export default function AIChatSearch({ initialCitySlug, compact, demo }: AIChatS
         m.id === loadingId ? { ...m, content: errorText, isLoading: false, isError: true } : m
       ));
     } finally {
-      setIsLoading(false);
+      if (seq === requestSeqRef.current) {
+        setIsLoading(false);
+        abortRef.current = null;
+      }
     }
-  }, [messages, selectedCity, isLoading, user, activeFocusedSlug, cities, activeConversationId, callAIStream]);
+  }, [messages, selectedCity, user, activeFocusedSlug, cities, activeConversationId, callAIStream, sessionId]);
 
   // Retry an errored AI message in-place — replaces the error bubble with loading
   // then with the real response. Does NOT add a new user message to the thread.
@@ -922,6 +966,10 @@ export default function AIChatSearch({ initialCitySlug, compact, demo }: AIChatS
 
     const slugToSend = activeFocusedSlug ?? undefined;
 
+    const seq = ++requestSeqRef.current;
+    const controller = new AbortController();
+    abortRef.current = controller;
+
     try {
       const data = await callAIStream(
         {
@@ -932,7 +980,9 @@ export default function AIChatSearch({ initialCitySlug, compact, demo }: AIChatS
         },
         errorMsgId,
         selectedCity,
+        controller,
       );
+      if (seq !== requestSeqRef.current) return; // superseded by a newer request
 
       if (data.showCards === false && data.data?.length === 1) {
         setActiveFocusedSlug(data.data[0].slug);
@@ -995,6 +1045,7 @@ export default function AIChatSearch({ initialCitySlug, compact, demo }: AIChatS
         try { sessionStorage.setItem(GUEST_KEY, JSON.stringify(toSave)); } catch { /* silent */ }
       }
     } catch (error: any) {
+      if (seq !== requestSeqRef.current) return; // superseded — new request owns the UI
       const errorText = error?.is429
         ? user
           ? 'AI search daily limit reached.'
@@ -1004,7 +1055,10 @@ export default function AIChatSearch({ initialCitySlug, compact, demo }: AIChatS
         m.id === errorMsgId ? { ...m, content: errorText, isLoading: false, isError: true } : m
       ));
     } finally {
-      setIsLoading(false);
+      if (seq === requestSeqRef.current) {
+        setIsLoading(false);
+        abortRef.current = null;
+      }
     }
   }, [messages, selectedCity, isLoading, user, activeFocusedSlug, cities, activeConversationId, callAIStream]);
 
