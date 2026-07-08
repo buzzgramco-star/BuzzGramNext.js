@@ -750,6 +750,16 @@ export default function AIChatSearch({ initialCitySlug, compact, demo }: AIChatS
           try {
             const event = JSON.parse(raw);
             if (event.t === 'ping') continue;
+            if (event.t === 'candidates' && Array.isArray(event.data) && event.data.length > 0) {
+              // Provisional results from retrieval — render cards immediately while
+              // the AI writes. The done event fully replaces this message, so the
+              // final AI ranking always supersedes these.
+              setMessages(prev => prev.map(m =>
+                m.id === streamingMsgId
+                  ? { ...m, businesses: event.data, showCards: true, isLoading: false }
+                  : m
+              ));
+            }
             if (event.t === 'chunk' && event.text) {
               setMessages(prev => prev.map(m =>
                 m.id === streamingMsgId
