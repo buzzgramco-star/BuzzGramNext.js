@@ -826,7 +826,10 @@ export default function AIChatSearch({ initialCitySlug, compact, demo }: AIChatS
       abortRef.current.abort();
       abortRef.current = null;
       setMessages(prev => prev
-        .map(m => m.isLoading ? { ...m, isLoading: false } : m)
+        .map(m => m.isLoading
+          // Trim the dangling partial word so interrupted text ends cleanly
+          ? { ...m, isLoading: false, content: m.content ? m.content.replace(/\s+\S*$/, '') + ' …' : '' }
+          : m)
         .filter(m => !(m.role === 'assistant' && !m.isLoading && !m.content && !(m.businesses?.length))));
     }
 
