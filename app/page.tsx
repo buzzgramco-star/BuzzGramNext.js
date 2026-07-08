@@ -8,9 +8,6 @@ import QuickValueProps from '@/components/homepage/QuickValueProps';
 import BrowseCategories from '@/components/homepage/BrowseCategories';
 import FinalCTA from '@/components/homepage/FinalCTA';
 
-// Force dynamic rendering for IP-based city detection
-export const dynamic = 'force-dynamic';
-
 // Schema.org Organization structured data for SEO/AEO
 const organizationSchema = {
   '@context': 'https://schema.org',
@@ -63,7 +60,7 @@ export default async function HomePage() {
 
       <div className="min-h-screen bg-white dark:bg-dark-bg flex flex-col">
         {/* 1. Hero — AI chat front and center */}
-        <HeroSection detectedCity="toronto" />
+        <HeroSection />
 
         {/* 2. Platform overview — what BuzzGram is */}
         <WhyBuzzGram />

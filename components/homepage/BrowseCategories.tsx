@@ -74,12 +74,15 @@ export default function BrowseCategories() {
           <p className="text-base text-gray-500 dark:text-gray-400">Browse by category across all our cities.</p>
         </div>
 
-        {/* City selector */}
+        {/* City selector — real links so crawlers can reach city pages;
+            JS intercepts the click so pills switch the category cards as before */}
         <div className="flex flex-wrap justify-center gap-2 mb-10">
           {CITIES.map(city => (
-            <button
+            <Link
               key={city.slug}
-              onClick={() => setSelectedCity(city.slug)}
+              href={`/city/${city.slug}`}
+              prefetch={false}
+              onClick={e => { e.preventDefault(); setSelectedCity(city.slug); }}
               className={`px-3.5 py-1.5 rounded-full text-sm font-medium transition-all duration-200 ${
                 selectedCity === city.slug
                   ? 'bg-orange-600 text-white shadow-md scale-105'
@@ -87,7 +90,7 @@ export default function BrowseCategories() {
               }`}
             >
               {city.name}
-            </button>
+            </Link>
           ))}
         </div>
 

@@ -3,11 +3,7 @@
 import Link from 'next/link';
 import AIChatSearch from '@/components/AIChatSearch';
 
-interface HeroSectionProps {
-  detectedCity: string;
-}
-
-export default function HeroSection({ detectedCity }: HeroSectionProps) {
+export default function HeroSection() {
   return (
     <div className="relative bg-white dark:bg-dark-bg overflow-hidden">
       {/* Subtle background accent */}
