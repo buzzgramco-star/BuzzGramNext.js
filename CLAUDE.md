@@ -38,12 +38,17 @@ frontend-nextjs/
 │   │   └── [slug]/
 │   │       ├── page.tsx          # Blog detail SSR page (structured data, metadata)
 │   │       └── BlogDetailClient.tsx # Client component (progress bar, TOC sidebar)
+│   ├── faq/                      # FAQ page (moved off homepage Jun 30)
+│   ├── event-plans/[token]/      # Public shared event plan view (from AI event planner)
 │   ├── admin/                    # Admin dashboard
 │   ├── business-dashboard/       # Business owner dashboard (includes service management)
 │   ├── quote/                    # Quote request pages
-│   ├── login/                    # Login page
+│   ├── login/                    # Login page (includes 2FA code step)
 │   ├── register/                 # Registration page
-│   └── profile/                  # User profile
+│   ├── forgot-password/          # Request password reset email
+│   ├── reset-password/           # Set new password via emailed token
+│   ├── verify-email/             # Email verification landing page
+│   └── profile/                  # User profile (includes 2FA setup/disable)
 ├── components/                   # React components
 │   ├── Header.tsx                # Navigation header with auth
 │   ├── Footer.tsx                # Footer with links
@@ -52,7 +57,10 @@ frontend-nextjs/
 │   ├── ServiceManagementModal.tsx # Add/edit service modal (supports optional owner callbacks)
 │   ├── GeneralQuoteModal.tsx     # General quote request modal
 │   ├── ThemeToggle.tsx           # Dark mode toggle
-│   └── GoogleAuthButton.tsx      # Google OAuth button
+│   ├── GoogleAuthButton.tsx      # Google OAuth button
+│   ├── AIChatSearch.tsx          # AI chat (homepage hero + floating popup; SSE streaming, events, history)
+│   ├── FloatingAIChat.tsx        # Floating AI chat launcher used on city pages
+│   └── homepage/                 # Homepage sections (HeroSection, AIDemoPreview, BrowseCategories, …)
 ├── contexts/                     # React Context providers
 │   ├── AuthContext.tsx           # Authentication state
 │   └── ThemeContext.tsx          # Dark mode theme state
@@ -373,7 +381,59 @@ Blog content is stored as HTML in the database and rendered via `dangerouslySetI
 - CTA section at bottom linking to homepage and blog listing
 - Contains `formatDate` internally — **never pass functions as props from Server to Client Component**
 
+## Recent Changes (July 2026)
+
+### Demo Merged Into Chat + How-It-Works Strip (Jul 7, 2026)
+- `AIDemoPreview` no longer renders as a standalone box — it plays **inside `AIChatSearch` as its empty state**, behind a new opt-in `demo` prop (only the homepage hero passes it; `FloatingAIChat` and city pages are unaffected)
+- Demo dissolves on first interaction: focusing the textarea dismisses it; **tapping the demo pre-fills its current query** into the real input (focused, resized, ready to send)
+- Demo queries personalize with the selected city (e.g. "nail tech in Toronto under $60"), loop pauses on hover, `prefers-reduced-motion` renders a static completed frame, vendor cards are white for contrast, progress dots are dark-mode safe
+- Hero: removed the old demo box + "Now try it yourself" divider; added a **3-step how-it-works strip** under the chat (Say what you need → AI searches your city → Connect directly)
+- Note: demo vendors are still fictional — swapping in real businesses is a known TODO
+
+### Homepage Static Rendering + Crawlable City Links (Jul 7, 2026)
+- **Removed `force-dynamic` from `app/page.tsx`** — it existed for server-side IP city detection that was never built (detection is client-side in AIChatSearch via ipapi.co). Homepage is now statically rendered and served from Vercel's CDN. Removed the dead `detectedCity` prop from HeroSection.
+- **City pills in `BrowseCategories` are now real `<Link href="/city/[slug]">` elements** with `prefetch={false}` and an intercepted click that preserves the old behavior (pill switches the category-card destinations). All 10 city links now appear in the prerendered HTML for crawlers — previously they were `<button>`s and Google only saw the 3 Toronto category links.
+- **IMPORTANT**: do not re-add `force-dynamic` to the homepage; nothing in it varies per request
+
 ## Recent Changes (June 2026)
+
+### Homepage Revamp (Jun 30, 2026)
+- FAQ moved off the homepage to a standalone `/faq` page (footer link added)
+- `HowItWorks` section removed from the homepage (component file remains; `/how-it-works` page exists)
+- Copy humanized across all homepage sections (em dashes removed, broader subheadline)
+- `AIDemoPreview` added: animated chat simulation (3 rotating scenarios: nails, wedding planning, birthday cake) — initially a standalone section, moved inside the hero, then merged into the chat itself on Jul 7 (see above)
+
+### Email OTP Two-Factor Authentication (Jun 26, 2026)
+- Login page gains a second step: when the backend responds `requires2FA`, user enters the 6-digit emailed code
+- Profile page: enable 2FA (setup → emailed code → confirm), disable 2FA (requires password)
+- New `lib/api.ts` functions: `verify2FACode`, `setup2FA`, `confirm2FA`, `disable2FA`, `resend2FACode` (hit `/auth/2fa/*`)
+- `AuthContext` updated to handle the two-step login flow
+
+### AI Event Planning UI (Jun 24–26, 2026)
+All in `components/AIChatSearch.tsx` unless noted:
+- **Event panel** above the thread for the latest active event: label, date, progress bar (`found/total` checklist categories), expandable checklist chips showing saved vendor per category
+- **Manual "Plan Event" picker** in the input bar — `EVENT_TYPES` (wedding, bridal shower, baby shower, gender reveal, birthday, bachelorette, sweet 16, graduation), each with an `EVENT_CHECKLISTS` category list; visible to guests but prompts sign-in
+- **Save vendor to plan** from result cards; share links via `createEventShareLink` → public page `app/event-plans/[token]/page.tsx`
+- **`CATEGORY_KEYWORDS` / `matchesEventCategory`**: stem-based matching between checklist categories and DB subcategory names ("Bakery" matches "Home Bakers") — exact string equality fails, keep this in mind when adding categories
+- Vendor carousel auto-triggers after event creation; event scoping fixed to the latest active event only
+
+### SSE Streaming + Response Cache (Jun 19, 2026)
+- AI responses now **stream token-by-token** over Server-Sent Events — `callAIStream` in AIChatSearch consumes the stream and renders progressively, then processes the final `done` event for structured data (businesses, followUps, checklist)
+- Pairs with a backend in-memory response cache (see backend CLAUDE.md)
+
+### Floating Chat on City Pages (Jun 12–18, 2026)
+- New `components/FloatingAIChat.tsx` — floating launcher button that opens AIChatSearch in a popup; added to all city pages
+- `CityPageClient` switched from inline chat to the floating popup (Jun 18) for UI consistency
+- Instagram DM links added to AI responses
+
+### Conversation History Overhaul (Jun 13–14, 2026)
+Replaced the original per-city conversation storage (documented under Jun 11 below) with **user-scoped conversation history**:
+- Logged-in users: multiple named conversations via `/api/conversations` (list/create/update/delete) — `getConversations`, `getConversationById`, `createConversation`, `updateConversation`, `deleteConversation` in `lib/api.ts`
+- History panel inside the chat: list conversations with title/message count/date, load one, delete, "+ New chat"
+- Each conversation stores its `citySlug`; loading a conversation restores its city
+- Selected city persists in `localStorage` (`buzzgram-city`) across remounts; guest chats persist in `sessionStorage`
+- IP city detection hardened: fallback service + `METRO_ALIASES` (suburbs map to supported cities, e.g. Mississauga → Toronto); auto-detects city from message text when none selected
+- Retry button on failed AI messages; errors filtered out of saved history
 
 ### AI Chat Search Feature — feature/ai-search branch (Jun 11, 2026)
 
@@ -412,6 +472,63 @@ getAIConversation(citySlug)      // GET /api/ai-conversations/:citySlug → mess
 saveAIConversation(citySlug, messages)  // PUT → { autoDeleted: boolean }
 deleteAIConversation(citySlug)   // DELETE
 ```
+
+### AI Chat City Dropdown & Hero Copy (Jun 15, 2026)
+
+#### City Dropdown in `components/AIChatSearch.tsx`
+Replaced the static city name text with an interactive dropdown for manual city switching:
+- `cityDropdownOpen` state + `cityDropdownRef` ref
+- `useEffect` on `cityDropdownRef` closes the dropdown on click/touch outside
+- Button shows city name + pin icon + chevron that rotates 180° when open
+- Clicking a city calls `setSelectedCity(city)`, clears `activeFocusedSlug`, closes dropdown
+- Active city shows orange text + checkmark icon
+- Dropdown hidden when `cities.length === 0` (still loading)
+
+#### Hero marketing copy in `components/homepage/HeroSection.tsx`
+- **Eyebrow badge**: "AI-Powered Business Discovery" → "Meet the AI that knows your city"
+- **Subtitle**: "The best local talent isn't on Google — they're home-based and Instagram-only. BuzzGram AI is the first of its kind: just describe what you need and it instantly surfaces the hidden nail techs, bakers, lash artists, photographers and event planners in your city."
+- **Social proof strip**:
+  - "Home-based & Instagram businesses" → "Businesses you won't find anywhere else"
+  - "10 cities" → "10 cities & growing"
+  - "Beauty · Food · Events" → "Beauty · Food · Events · and more"
+
+### AI Data Capture — Phases 2–4 (Jun 17, 2026)
+
+#### Phase 2 — Session tracking + event tracking in `components/AIChatSearch.tsx`
+- `SESSION_KEY = 'buzzgram-session-id'` constant — localStorage key for the analytics session UUID
+- `sessionId` state (`useState<string | null>(null)`)
+- Session init `useEffect` (runs once on mount): calls `POST /api/ai-sessions` with `existingSessionId` from localStorage if present. Stores/updates `buzzgram-session-id` in localStorage. Silent fail — tracking must never break the chat.
+- `trackEvent` useCallback: fire-and-forget `POST /api/ai-events` with `{ sessionId, eventType, payload }`. Silent fail.
+- `sessionId` passed with every `POST /api/ai-search` call (both `sendMessage` and `retryMessage`)
+- `CarouselRow.onSelect` now calls `trackEvent('business_click', { businessSlug: slug })` before `sendMessage`
+- Follow-up chip `onClick` calls `trackEvent('followup_click', { text: suggestion })` before `sendMessage`
+
+#### Phase 3 — Thumbs up/down feedback in `components/AIChatSearch.tsx`
+- `ratings` state: `Record<string, 'up' | 'down'>` — keyed by `msg.id`
+- `handleRating(msgId, rating)` useCallback: toggles off if same rating clicked again; fires `trackEvent('thumbs_up' | 'thumbs_down', { messageId })` on new rating
+- `setRatings({})` called in both `handleClearChat` and `handleNewChat`
+- Thumbs buttons rendered after follow-up chips on every completed, non-error assistant message
+- Visual states: grey (unrated) → green thumbs up / red thumbs down when selected
+- Dependency array: `[ratings, trackEvent]`
+
+#### Phase 4 — AI Analytics in Admin Dashboard
+
+**`lib/api.ts`**
+- Added `getAIStats()` — `GET /admin/ai-stats` — returns sessions, queries, events, topQueries, topBusinesses, sessionsByCity, avgResponseMs
+
+**`app/admin/page.tsx`**
+- Added `showAIStats` state and `{ data: aiStats, isLoading: aiStatsLoading }` useQuery (lazy — only fetches when expanded)
+- Stats grid changed from `xl:grid-cols-5` to `lg:grid-cols-3` to accommodate 6th card cleanly
+- **AI Analytics stat card** (indigo): shows total sessions + today count, expands on click
+- **Expanded section** contains:
+  - 4 summary cards: Sessions (with 24h/7d breakdowns), Queries, Satisfaction % (thumbs_up / total ratings), Avg Response Time
+  - Session Sources: Guest vs Authenticated counts
+  - Interaction Events: business_click, followup_click, thumbs_up, thumbs_down counts
+  - Sessions by City table
+  - Top 10 Queries table (with count)
+  - Most Clicked Businesses table (slug + click count)
+- `downloadAIStatsCSV()` function: builds a multi-section CSV client-side from `aiStats` (no backend call). CSV includes Summary, Session Sources, Interaction Events, Sessions by City, Top Queries, Most Clicked Businesses.
+- **Export CSV** button in section header — only visible once data has loaded
 
 ## Recent Changes (March 2026)
 
@@ -611,6 +728,7 @@ NEXT_PUBLIC_API_URL=https://backend-production-f30d.up.railway.app
 NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=your_cloud_name
 NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET=your_preset
 NEXT_PUBLIC_GOOGLE_CLIENT_ID=your_google_client_id
+NEXT_PUBLIC_AI_PREVIEW_KEY=...  # PREVIEW ENVIRONMENT ONLY — sent as X-Preview-Key on /api/ai-search for unlimited team testing; must NEVER be set on Production (would disable AI rate limits for everyone)
 ```
 
 ### Deploy
@@ -645,4 +763,6 @@ npm run build
 - SEO: All city pages must have metadata, structured data, and FAQPage schema
 - Dark mode: Test both light and dark themes when making UI changes
 - Use TodoWrite tool to track multi-step tasks
-- Vercel deployments are automatic on git push to main
+- Vercel deployments are automatic on git push to main; pushes to feature branches create preview deployments only
+- Homepage must stay statically rendered — no `force-dynamic`, no per-request logic in `app/page.tsx` (city detection is client-side in AIChatSearch)
+- The AI demo (`AIDemoPreview`) only renders inside AIChatSearch when the `demo` prop is passed — currently homepage hero only
