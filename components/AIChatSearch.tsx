@@ -31,6 +31,8 @@ interface ChatMessage {
   focusedSlug?: string;
   isLoading?: boolean;
   isError?: boolean;
+  /** 429 from the AI limiter — rendered as a signup/upsell card, not a retryable error */
+  isRateLimit?: boolean;
 }
 
 interface AISearchResponse {
@@ -937,14 +939,17 @@ export default function AIChatSearch({ initialCitySlug, compact, demo }: AIChatS
       // bubble; touching state here would clobber the new request's UI.
       if (seq !== requestSeqRef.current) return;
 
-      const errorText = error?.is429
+      const is429 = !!error?.is429;
+      if (is429) trackEvent('rate_limit_hit', { guest: !user });
+
+      const errorText = is429
         ? user
-          ? 'AI search daily limit reached.'
-          : 'Daily AI search limit reached. Sign up free for 20 AI searches per day.'
+          ? "You've reached today's AI search limit — it resets tomorrow."
+          : "You've used your free searches for today."
         : 'Something went wrong. Please try again.';
 
       setMessages(prev => prev.map(m =>
-        m.id === loadingId ? { ...m, content: errorText, isLoading: false, isError: true } : m
+        m.id === loadingId ? { ...m, content: errorText, isLoading: false, isError: true, isRateLimit: is429 } : m
       ));
     } finally {
       if (seq === requestSeqRef.current) {
@@ -952,7 +957,7 @@ export default function AIChatSearch({ initialCitySlug, compact, demo }: AIChatS
         abortRef.current = null;
       }
     }
-  }, [messages, selectedCity, user, activeFocusedSlug, cities, activeConversationId, callAIStream, sessionId]);
+  }, [messages, selectedCity, user, activeFocusedSlug, cities, activeConversationId, callAIStream, sessionId, trackEvent]);
 
   // Retry an errored AI message in-place — replaces the error bubble with loading
   // then with the real response. Does NOT add a new user message to the thread.
@@ -1055,13 +1060,15 @@ export default function AIChatSearch({ initialCitySlug, compact, demo }: AIChatS
       }
     } catch (error: any) {
       if (seq !== requestSeqRef.current) return; // superseded — new request owns the UI
-      const errorText = error?.is429
+      const is429 = !!error?.is429;
+      if (is429) trackEvent('rate_limit_hit', { guest: !user });
+      const errorText = is429
         ? user
-          ? 'AI search daily limit reached.'
-          : 'Daily AI search limit reached. Sign up free for 20 AI searches per day.'
+          ? "You've reached today's AI search limit — it resets tomorrow."
+          : "You've used your free searches for today."
         : 'Something went wrong. Please try again.';
       setMessages(prev => prev.map(m =>
-        m.id === errorMsgId ? { ...m, content: errorText, isLoading: false, isError: true } : m
+        m.id === errorMsgId ? { ...m, content: errorText, isLoading: false, isError: true, isRateLimit: is429 } : m
       ));
     } finally {
       if (seq === requestSeqRef.current) {
@@ -1069,7 +1076,7 @@ export default function AIChatSearch({ initialCitySlug, compact, demo }: AIChatS
         abortRef.current = null;
       }
     }
-  }, [messages, selectedCity, isLoading, user, activeFocusedSlug, cities, activeConversationId, callAIStream]);
+  }, [messages, selectedCity, isLoading, user, activeFocusedSlug, cities, activeConversationId, callAIStream, sessionId, trackEvent]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -1340,12 +1347,12 @@ export default function AIChatSearch({ initialCitySlug, compact, demo }: AIChatS
                         )}
 
                         {!msg.isLoading && msg.content && (
-                          <p className={`text-sm leading-relaxed whitespace-pre-line ${msg.isError ? 'text-red-500 dark:text-red-400' : 'text-gray-700 dark:text-gray-300'} ${(msg.checklist?.length || msg.businesses?.length) ? 'mb-4' : ''}`}>
+                          <p className={`text-sm leading-relaxed whitespace-pre-line ${msg.isError && !msg.isRateLimit ? 'text-red-500 dark:text-red-400' : 'text-gray-700 dark:text-gray-300'} ${(msg.checklist?.length || msg.businesses?.length) ? 'mb-4' : ''}`}>
                             {msg.isError ? msg.content : renderMarkdown(msg.content)}
                           </p>
                         )}
 
-                        {msg.isError && !msg.isLoading && (
+                        {msg.isError && !msg.isLoading && !msg.isRateLimit && (
                           <button
                             type="button"
                             onClick={() => retryMessage(msg.id)}
@@ -1357,6 +1364,42 @@ export default function AIChatSearch({ initialCitySlug, compact, demo }: AIChatS
                             </svg>
                             Try again
                           </button>
+                        )}
+
+                        {/* Rate limit hit — the highest-intent moment for a guest signup */}
+                        {msg.isRateLimit && !msg.isLoading && (
+                          !user ? (
+                            <div className="mt-3 rounded-xl border border-orange-200 dark:border-orange-800 bg-orange-50 dark:bg-orange-900/20 p-4">
+                              <p className="text-sm font-semibold text-gray-900 dark:text-white mb-1">
+                                Keep the conversation going — free
+                              </p>
+                              <p className="text-xs text-gray-600 dark:text-gray-400 mb-3 leading-relaxed">
+                                A free account gets you 20 AI searches every day, saved conversations, and event planning.
+                              </p>
+                              <div className="flex flex-wrap gap-2">
+                                <Link
+                                  href="/register"
+                                  onClick={() => trackEvent('rate_limit_signup_click')}
+                                  className="px-4 py-2 rounded-lg bg-orange-600 hover:bg-orange-700 text-white text-xs font-semibold transition-colors"
+                                >
+                                  Sign up free
+                                </Link>
+                                <Link
+                                  href="/login"
+                                  className="px-4 py-2 rounded-lg border border-gray-300 dark:border-dark-border text-gray-700 dark:text-gray-300 hover:border-orange-400 hover:text-orange-600 dark:hover:text-orange-400 text-xs font-semibold transition-colors bg-white dark:bg-dark-card"
+                                >
+                                  Log in
+                                </Link>
+                              </div>
+                            </div>
+                          ) : selectedCity ? (
+                            <Link
+                              href={`/city/${selectedCity.slug}`}
+                              className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-orange-600 dark:text-orange-400 hover:underline"
+                            >
+                              Browse {selectedCity.name} vendors directly →
+                            </Link>
+                          ) : null
                         )}
 
                         {!msg.isLoading && msg.checklist && msg.checklist.length > 0 && (

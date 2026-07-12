@@ -9,7 +9,12 @@ const CATEGORIES = [
     slug: 'beauty',
     emoji: '💄',
     tagline: 'Nails, hair, makeup & more',
-    subs: ['Nails', 'Hair', 'Makeup', 'Lashes', 'Skincare'],
+    subs: [
+      { label: 'Nails', slug: 'nails' },
+      { label: 'Hair', slug: 'hair' },
+      { label: 'Makeup', slug: 'makeup' },
+      { label: 'Lashes', slug: 'lashes' },
+    ],
     gradient: 'from-rose-50 to-orange-50 dark:from-rose-900/10 dark:to-orange-900/10',
     border: 'border-rose-100 dark:border-rose-900/20',
     hoverBorder: 'hover:border-rose-300 dark:hover:border-rose-700',
@@ -22,7 +27,11 @@ const CATEGORIES = [
     slug: 'food',
     emoji: '🍰',
     tagline: 'Bakers, catering & home chefs',
-    subs: ['Bakers', 'Catering', 'Meal Prep', 'Desserts', 'Specialty'],
+    subs: [
+      { label: 'Bakery', slug: 'bakery' },
+      { label: 'Catering', slug: 'catering' },
+      { label: 'Private Chefs', slug: 'chef' },
+    ],
     gradient: 'from-amber-50 to-orange-50 dark:from-amber-900/10 dark:to-orange-900/10',
     border: 'border-amber-100 dark:border-amber-900/20',
     hoverBorder: 'hover:border-amber-300 dark:hover:border-amber-700',
@@ -35,7 +44,11 @@ const CATEGORIES = [
     slug: 'events',
     emoji: '🎉',
     tagline: 'Photographers, decor & planners',
-    subs: ['Photographers', 'Event Decor', 'Planners', 'Catering', 'Entertainment'],
+    subs: [
+      { label: 'Photography', slug: 'photography' },
+      { label: 'Event Decor', slug: 'decor' },
+      { label: 'Planning', slug: 'planning' },
+    ],
     gradient: 'from-violet-50 to-orange-50 dark:from-violet-900/10 dark:to-orange-900/10',
     border: 'border-violet-100 dark:border-violet-900/20',
     hoverBorder: 'hover:border-violet-300 dark:hover:border-violet-700',
@@ -97,11 +110,18 @@ export default function BrowseCategories() {
         {/* Category cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
           {CATEGORIES.map(cat => (
-            <Link
+            // Card is a div with an overlay Link (not a wrapping <Link>) so the
+            // subcategory pills can be real crawlable links — nested <a> is invalid HTML
+            <div
               key={cat.slug}
-              href={`/city/${selectedCity}/${cat.slug}`}
               className={`group relative bg-gradient-to-br ${cat.gradient} border ${cat.border} ${cat.hoverBorder} rounded-2xl p-6 flex flex-col gap-4 hover:-translate-y-2 hover:shadow-xl transition-all duration-300`}
             >
+              <Link
+                href={`/city/${selectedCity}/${cat.slug}`}
+                className="absolute inset-0 rounded-2xl"
+                aria-label={`${cat.name} in ${CITIES.find(c => c.slug === selectedCity)?.name ?? 'your city'}`}
+              />
+
               {/* Arrow */}
               <div className={`absolute top-5 right-5 ${cat.arrowColor} opacity-0 group-hover:opacity-100 transition-all duration-200 group-hover:translate-x-1`}>
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -119,16 +139,21 @@ export default function BrowseCategories() {
                 <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">{cat.name}</h3>
                 <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">{cat.tagline}</p>
 
-                {/* Subcategory pills */}
-                <div className="flex flex-wrap gap-1.5">
+                {/* Subcategory pills — real links, stacked above the card overlay */}
+                <div className="relative z-10 flex flex-wrap gap-1.5">
                   {cat.subs.map(sub => (
-                    <span key={sub} className={`text-xs font-medium px-2.5 py-1 rounded-full ${cat.subColor}`}>
-                      {sub}
-                    </span>
+                    <Link
+                      key={sub.slug}
+                      href={`/city/${selectedCity}/${cat.slug}/${sub.slug}`}
+                      prefetch={false}
+                      className={`text-xs font-medium px-2.5 py-1 rounded-full ${cat.subColor} hover:ring-1 hover:ring-current transition-shadow`}
+                    >
+                      {sub.label}
+                    </Link>
                   ))}
                 </div>
               </div>
-            </Link>
+            </div>
           ))}
 
           {/* More coming soon */}
