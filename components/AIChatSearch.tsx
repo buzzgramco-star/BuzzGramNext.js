@@ -725,11 +725,17 @@ export default function AIChatSearch({ initialCitySlug, compact, demo }: AIChatS
     };
     resetInactivity();
 
+    // NEXT_PUBLIC_AI_PREVIEW_KEY is set only in Vercel's Preview environment —
+    // preview builds get unlimited AI searches, the production bundle never
+    // contains the key so production traffic is always rate limited.
+    const previewKey = process.env.NEXT_PUBLIC_AI_PREVIEW_KEY;
+
     const response = await fetch(`${API_BASE_URL}/api/ai-search`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...(previewKey ? { 'X-Preview-Key': previewKey } : {}),
       },
       body: JSON.stringify(payload),
       signal: controller.signal,
