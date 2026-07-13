@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Reveal from '@/components/Reveal';
 
 export default function FinalCTA() {
   // Server-rendered href defaults to Toronto; after mount, respect the city the
@@ -18,6 +19,7 @@ export default function FinalCTA() {
   return (
     <div className="bg-gradient-to-r from-orange-600 to-orange-700 dark:from-orange-700 dark:to-orange-800 py-16 sm:py-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <Reveal>
         {/* Simple Message */}
         <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4">
           Stop scrolling Instagram.<br className="hidden sm:block" /> Start asking BuzzGram.
@@ -41,6 +43,7 @@ export default function FinalCTA() {
             List Your Business Free
           </Link>
         </div>
+        </Reveal>
       </div>
     </div>
   );

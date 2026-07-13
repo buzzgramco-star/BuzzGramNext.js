@@ -1,3 +1,5 @@
+import Reveal from '@/components/Reveal';
+
 const features = [
   {
     icon: (
@@ -7,7 +9,7 @@ const features = [
       </svg>
     ),
     title: 'The businesses Google can\'t find',
-    description: 'Thousands of nail techs, bakers, lash artists, photographers, and event planners run their whole business through Instagram. No Google listing, no Yelp page. BuzzGram is the only place to find them.',
+    description: 'Thousands of vendors run entirely on Instagram. No Google listing, no Yelp page. BuzzGram is the only place to find them.',
     highlight: 'Home-based & Instagram businesses',
   },
   {
@@ -17,7 +19,7 @@ const features = [
       </svg>
     ),
     title: 'An AI that thinks like you',
-    description: 'Skip the keyword guessing. Just say what you need: "Nail set under $60 this weekend" or "help me plan a bridal shower for 20 people." The AI figures it out and shows you the right vendors.',
+    description: 'No keyword guessing. Say what you need, like you\'d text a friend, and the AI finds the right vendors.',
     highlight: 'Conversational AI discovery',
   },
   {
@@ -28,7 +30,7 @@ const features = [
       </svg>
     ),
     title: '10 cities, growing fast',
-    description: 'Live across Toronto, Vancouver, Calgary, Montreal, Ottawa, New York, Los Angeles, Miami, Chicago, and Phoenix. Each city has hundreds of home-based businesses you won\'t find anywhere else. And we\'re adding more cities soon.',
+    description: 'Live across Toronto, Vancouver, Calgary, Montreal, Ottawa, New York, Los Angeles, Miami, Chicago, and Phoenix. More coming soon.',
     highlight: '10 cities across North America',
   },
 ];
@@ -52,9 +54,9 @@ export default function WhyBuzzGram() {
         {/* Feature cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {features.map((f, i) => (
+            <Reveal key={i} delay={i * 120}>
             <div
-              key={i}
-              className="bg-white dark:bg-dark-bg border border-gray-200 dark:border-dark-border rounded-2xl p-6 flex flex-col gap-4 hover:shadow-md hover:border-orange-200 dark:hover:border-orange-800 transition-all"
+              className="bg-white dark:bg-dark-bg border border-gray-200 dark:border-dark-border rounded-2xl p-6 flex flex-col gap-4 hover:shadow-md hover:border-orange-200 dark:hover:border-orange-800 transition-all h-full"
             >
               <div className="w-12 h-12 rounded-xl bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 flex items-center justify-center flex-shrink-0">
                 {f.icon}
@@ -67,6 +69,7 @@ export default function WhyBuzzGram() {
                 <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">{f.description}</p>
               </div>
             </div>
+            </Reveal>
           ))}
         </div>
 

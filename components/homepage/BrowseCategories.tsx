@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Reveal from '@/components/Reveal';
 
 const CATEGORIES = [
   {
@@ -108,6 +109,7 @@ export default function BrowseCategories() {
         </div>
 
         {/* Category cards */}
+        <Reveal>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
           {CATEGORIES.map(cat => (
             // Card is a div with an overlay Link (not a wrapping <Link>) so the
@@ -167,6 +169,7 @@ export default function BrowseCategories() {
             </div>
           </div>
         </div>
+        </Reveal>
 
       </div>
     </div>

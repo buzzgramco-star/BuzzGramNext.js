@@ -37,7 +37,10 @@ function dispatchPrefill(query: string) {
   window.dispatchEvent(new CustomEvent('buzzgram:prefill', { detail: text }));
 }
 
-const PILL_LOOK = 'bg-white/80 dark:bg-dark-card/80 border-orange-100 dark:border-orange-900/30 text-gray-500 dark:text-gray-400';
+// dark mode gets brighter text, a present orange border, and a soft glow so
+// pills read as lit chips against the dark hero instead of blending away
+const PILL_LOOK =
+  'bg-white/80 dark:bg-dark-card/90 border-orange-100 dark:border-orange-600/50 text-gray-500 dark:text-gray-200 dark:shadow-[0_0_14px_rgba(249,115,22,0.18)]';
 
 // tx/ty shift a pill by a fraction of its own size — used by orbit slots to
 // straddle the box edge (e.g. tx '-55%' hangs half the pill outside the left edge)
@@ -68,9 +71,9 @@ const ORBIT_SLOTS: Slot[] = [
 ];
 
 const DEPTH = [
-  'opacity-50 scale-90',
-  'opacity-70 scale-100',
-  'opacity-90 scale-105 shadow-sm',
+  'opacity-50 dark:opacity-75 scale-90',
+  'opacity-70 dark:opacity-90 scale-100',
+  'opacity-90 dark:opacity-100 scale-105 shadow-sm',
 ];
 
 const CYCLE_MS = 3800;
