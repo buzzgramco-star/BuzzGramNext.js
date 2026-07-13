@@ -24,6 +24,14 @@ interface FloatingUseCasesProps {
   interactive?: boolean;
 }
 
+// strip the leading emoji — only the words belong in the chat input
+function dispatchPrefill(query: string) {
+  const text = query.replace(/^[^\p{L}\p{N}]+\s*/u, '');
+  window.dispatchEvent(new CustomEvent('buzzgram:prefill', { detail: text }));
+}
+
+const PILL_LOOK = 'bg-white/80 dark:bg-dark-card/80 border-orange-100 dark:border-orange-900/30 text-gray-500 dark:text-gray-400';
+
 // Hand-placed slots in the hero's side margins, avoiding the centered content
 // column. depth: 0 = far (small, faint), 2 = near (bigger, clearer) — three
 // layers give the field a sense of space. r = resting rotation.
@@ -73,9 +81,7 @@ export default function FloatingUseCases({ pills, interactive = false }: Floatin
 
   const handlePick = (query: string) => {
     if (!interactive) return;
-    // strip the leading emoji — only the words belong in the chat input
-    const text = query.replace(/^[^\p{L}\p{N}]+\s*/u, '');
-    window.dispatchEvent(new CustomEvent('buzzgram:prefill', { detail: text }));
+    dispatchPrefill(query);
   };
 
   return (
@@ -127,6 +133,57 @@ export default function FloatingUseCases({ pills, interactive = false }: Floatin
           </span>
         );
       })}
+    </div>
+  );
+}
+
+/**
+ * Mobile counterpart of the floating field: a slim auto-scrolling marquee of
+ * the same pills, in the page flow (never behind content). Shown below lg,
+ * where the floating field hides. Pauses while touched; reduced-motion users
+ * get a static row they can flick manually.
+ */
+export function UseCaseTicker({ pills, interactive = false }: FloatingUseCasesProps) {
+  const pillClass = `flex-shrink-0 px-3.5 py-2 rounded-full text-xs font-medium border whitespace-nowrap ${PILL_LOOK}`;
+
+  const renderRow = (ariaHidden: boolean) =>
+    pills.map((pill, i) =>
+      interactive && !ariaHidden ? (
+        <button
+          key={i}
+          type="button"
+          onClick={() => dispatchPrefill(pill)}
+          className={`${pillClass} active:border-orange-400 active:text-orange-600`}
+        >
+          {pill}
+        </button>
+      ) : (
+        <span key={i} className={pillClass} aria-hidden={ariaHidden}>
+          {pill}
+        </span>
+      )
+    );
+
+  return (
+    <div className="lg:hidden relative overflow-hidden motion-reduce:overflow-x-auto">
+      <style>{`
+        @keyframes fuc-marquee { to { transform: translateX(-50%); } }
+        .fuc-track {
+          width: max-content;
+          animation: fuc-marquee ${Math.max(pills.length * 3, 18)}s linear infinite;
+        }
+        .fuc-track:active { animation-play-state: paused; }
+        @media (prefers-reduced-motion: reduce) {
+          .fuc-track { animation: none !important; }
+        }
+      `}</style>
+      <div className="fuc-track flex gap-2 py-1">
+        {renderRow(false)}
+        {renderRow(true)}
+      </div>
+      {/* edge fades so pills dissolve at the strip's ends */}
+      <div className="pointer-events-none absolute inset-y-0 left-0 w-8 bg-gradient-to-r from-white dark:from-dark-bg to-transparent" />
+      <div className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-white dark:from-dark-bg to-transparent" />
     </div>
   );
 }

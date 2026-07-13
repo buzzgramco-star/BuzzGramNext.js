@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import AIChatSearch from '@/components/AIChatSearch';
-import FloatingUseCases from '@/components/homepage/FloatingUseCases';
+import FloatingUseCases, { UseCaseTicker } from '@/components/homepage/FloatingUseCases';
 
 // Clickable — each pre-fills the chat via buzzgram:prefill
 const USE_CASE_PILLS = [
@@ -50,8 +50,13 @@ export default function HeroSection() {
         </p>
 
         {/* AI Chat — the hero. Plays a demo conversation until the user interacts. */}
-        <div className="bg-gray-50 dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-2xl p-5 sm:p-6 shadow-sm mb-8">
+        <div className="bg-gray-50 dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-2xl p-5 sm:p-6 shadow-sm mb-4 lg:mb-8">
           <AIChatSearch compact demo />
+        </div>
+
+        {/* Mobile: tappable use-case ticker feeds the chat (floating field is lg+) */}
+        <div className="mb-8 lg:hidden">
+          <UseCaseTicker pills={USE_CASE_PILLS} interactive />
         </div>
 
         {/* How it works — three steps */}
