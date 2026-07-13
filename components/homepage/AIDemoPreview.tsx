@@ -103,17 +103,21 @@ export default function AIDemoPreview({ cityName, onTry }: AIDemoPreviewProps) {
   }, [showVendors, isHovered, reducedMotion]);
 
   const handleTry = () => onTry?.(query);
+  // Without onTry the demo is display-only: no tap affordance, no misleading hint
+  const interactive = !!onTry;
 
   return (
     <div
-      role="button"
-      tabIndex={0}
-      aria-label={`Try this search: ${query}`}
-      onClick={handleTry}
-      onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleTry(); } }}
+      {...(interactive ? {
+        role: 'button',
+        tabIndex: 0,
+        'aria-label': `Try this search: ${query}`,
+        onClick: handleTry,
+        onKeyDown: (e: React.KeyboardEvent) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleTry(); } },
+      } : {})}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className="group cursor-pointer rounded-xl -m-1 p-1 transition-colors hover:bg-white/60 dark:hover:bg-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500"
+      className={`group rounded-xl -m-1 p-1 focus:outline-none ${interactive ? 'cursor-pointer transition-colors hover:bg-white/60 dark:hover:bg-white/5 focus-visible:ring-2 focus-visible:ring-orange-500' : ''}`}
     >
       {/* Label row */}
       <div className="flex items-center justify-between mb-3">
@@ -121,9 +125,11 @@ export default function AIDemoPreview({ cityName, onTry }: AIDemoPreviewProps) {
           <span className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse" />
           Live demo
         </span>
-        <span className="text-[11px] font-medium text-orange-600 dark:text-orange-400 opacity-70 group-hover:opacity-100 transition-opacity">
-          Tap to try it yourself →
-        </span>
+        {interactive && (
+          <span className="text-[11px] font-medium text-orange-600 dark:text-orange-400 opacity-70 group-hover:opacity-100 transition-opacity">
+            Tap to try it yourself →
+          </span>
+        )}
       </div>
 
       {/* User bubble */}

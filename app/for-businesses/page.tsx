@@ -6,16 +6,16 @@ import Footer from '@/components/Footer';
 import AIDemoPreview from '@/components/homepage/AIDemoPreview';
 
 export const metadata: Metadata = {
-  title: 'List Your Home-Based Business Free | BuzzGram for Businesses',
+  title: 'The First AI That Recommends Your Business | BuzzGram for Businesses',
   description:
-    'BuzzGram is a free directory where home-based and Instagram businesses get found through AI-powered search. List your nail, hair, lash, baking, catering, photography or event business free and reach customers searching in your city.',
+    'BuzzGram AI is the first of its kind: an AI that recommends real local businesses by name. Launching soon. List your home-based or Instagram business free and be in its answers from day one.',
   alternates: {
     canonical: 'https://www.buzzgram.co/for-businesses',
   },
   openGraph: {
-    title: 'Your Next Client Is Searching For You | BuzzGram for Businesses',
+    title: 'The First AI That Sends Customers to Your Business | BuzzGram',
     description:
-      'You run your business through Instagram. BuzzGram puts you in front of the people searching for exactly what you do in your city. Free listing, no commission.',
+      'When someone in your city tells BuzzGram AI what they need, it recommends real local businesses by name. Launching soon. List free and be in its answers from day one.',
     url: 'https://www.buzzgram.co/for-businesses',
     type: 'website',
   },
@@ -171,19 +171,21 @@ export default function ForBusinessesPage() {
           <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-14 sm:pt-24 sm:pb-20 text-center">
             <div className="flex justify-center mb-6">
               <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 text-orange-700 dark:text-orange-400 text-xs font-semibold tracking-wide uppercase">
-                For nail techs, bakers, photographers &amp; every home-based business
+                <span className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse" />
+                BuzzGram AI is launching soon
               </span>
             </div>
 
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-gray-900 dark:text-white mb-5 tracking-tight leading-tight">
-              Your next client is{' '}
-              <span className="text-orange-600 dark:text-orange-500">searching for you right now.</span>
+              The first AI that sends customers{' '}
+              <span className="text-orange-600 dark:text-orange-500">to your business.</span>
             </h1>
 
             <p className="text-lg sm:text-xl text-gray-500 dark:text-gray-400 max-w-2xl mx-auto mb-10 leading-relaxed">
-              You run your whole business through Instagram. Your work speaks for itself, but only to
-              people who already follow you. BuzzGram puts you in front of the people searching for
-              exactly what you do in your city.
+              When someone in your city tells our AI what they need, it recommends real local
+              businesses by name: nail techs, bakers, photographers, and every home-based business
+              in between. Nothing like it exists anywhere else. List free today and be in its
+              answers from day one.
             </p>
 
             <Link
@@ -232,7 +234,8 @@ export default function ForBusinessesPage() {
                 BuzzGram is the first platform where an AI actually recommends local businesses in
                 conversation. Someone types &quot;I need a lash tech under $80&quot; and the AI answers
                 with real vendors: names, services, prices, and a link straight to their Instagram.
-                If that&apos;s you, you just got a customer you never had to find.
+                If that&apos;s you, you just got a customer you never had to find. It&apos;s launching
+                soon, and businesses listed now are in its answers from day one.
               </p>
             </div>
 
