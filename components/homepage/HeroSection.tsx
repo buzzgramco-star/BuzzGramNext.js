@@ -2,6 +2,19 @@
 
 import Link from 'next/link';
 import AIChatSearch from '@/components/AIChatSearch';
+import FloatingUseCases from '@/components/homepage/FloatingUseCases';
+
+// Clickable — each pre-fills the chat via buzzgram:prefill
+const USE_CASE_PILLS = [
+  'nail tech under $60',
+  'help me plan my wedding',
+  'custom cake by Saturday',
+  'lash fill tomorrow',
+  'photographer for a gender reveal',
+  'decor for a sweet 16',
+  'braids this weekend',
+  'private chef for date night',
+];
 
 export default function HeroSection() {
   return (
@@ -11,6 +24,8 @@ export default function HeroSection() {
         <div className="absolute -top-40 -right-40 w-96 h-96 bg-orange-100 dark:bg-orange-900/10 rounded-full blur-3xl opacity-60" />
         <div className="absolute -bottom-20 -left-20 w-72 h-72 bg-orange-50 dark:bg-orange-900/5 rounded-full blur-3xl opacity-60" />
       </div>
+
+      <FloatingUseCases pills={USE_CASE_PILLS} interactive />
 
       <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-12 sm:pt-24 sm:pb-16">
 

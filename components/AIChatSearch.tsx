@@ -1093,6 +1093,19 @@ export default function AIChatSearch({ initialCitySlug, compact, demo }: AIChatS
     }, 0);
   };
 
+  // Floating use-case pills (FloatingUseCases prototype) pre-fill the chat the
+  // same way a demo tap does. Ref keeps the listener stable across renders.
+  const demoTryRef = useRef(handleDemoTry);
+  demoTryRef.current = handleDemoTry;
+  useEffect(() => {
+    const onPrefill = (e: Event) => {
+      const query = (e as CustomEvent<string>).detail;
+      if (typeof query === 'string' && query) demoTryRef.current(query);
+    };
+    window.addEventListener('buzzgram:prefill', onPrefill);
+    return () => window.removeEventListener('buzzgram:prefill', onPrefill);
+  }, []);
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
