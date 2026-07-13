@@ -4,6 +4,25 @@ import Link from 'next/link';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import AIDemoPreview from '@/components/homepage/AIDemoPreview';
+import FloatingUseCases from '@/components/homepage/FloatingUseCases';
+
+// Demand flowing past — the pitch is that these requests are waiting for
+// vendors. More entries than visible slots: FloatingUseCases cycles a fresh
+// one in every few seconds, so demand reads as live.
+const DEMAND_PILLS = [
+  '✨ Lash tech needed · Toronto',
+  '💍 Wedding planner wanted · Miami',
+  '🎂 Custom cake order · Chicago',
+  '📸 Birthday photographer · NYC',
+  '💇‍♀️ Braids this weekend · Calgary',
+  '🎈 Party decor · Vancouver',
+  '👨‍🍳 Private chef for 10 · LA',
+  '💄 Makeup artist · Montreal',
+  '💅 Gel set tomorrow · Ottawa',
+  '🎉 Sweet 16 planner · Phoenix',
+  '🧁 Cupcakes for 50 · Toronto',
+  '📷 Engagement shoot · Vancouver',
+];
 
 export const metadata: Metadata = {
   title: 'The First AI That Recommends Your Business | BuzzGram for Businesses',
@@ -167,6 +186,8 @@ export default function ForBusinessesPage() {
             <div className="absolute -top-40 -right-40 w-96 h-96 bg-orange-100 dark:bg-orange-900/10 rounded-full blur-3xl opacity-60" />
             <div className="absolute -bottom-20 -left-20 w-72 h-72 bg-orange-50 dark:bg-orange-900/5 rounded-full blur-3xl opacity-60" />
           </div>
+
+          <FloatingUseCases pills={DEMAND_PILLS} />
 
           <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-14 sm:pt-24 sm:pb-20 text-center">
             <div className="flex justify-center mb-6">
