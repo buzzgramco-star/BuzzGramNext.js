@@ -21,7 +21,8 @@ function BusinessSignupPageContent() {
   const [businessName, setBusinessName] = useState('');
   const [instagramHandle, setInstagramHandle] = useState('');
   const [cityId, setCityId] = useState<number | ''>('');
-  const [categoryId, setCategoryId] = useState<number | ''>('');
+  // 'other' = business doesn't fit current categories; sent to the backend as-is
+  const [categoryId, setCategoryId] = useState<number | '' | 'other'>('');
   const [subcategoryId, setSubcategoryId] = useState<number | ''>('');
   const [additionalInfo, setAdditionalInfo] = useState('');
 
@@ -282,7 +283,10 @@ function BusinessSignupPageContent() {
                     name="categoryId"
                     required
                     value={categoryId}
-                    onChange={(e) => setCategoryId(Number(e.target.value))}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      setCategoryId(v === 'other' ? 'other' : v ? Number(v) : '');
+                    }}
                     className="appearance-none rounded-lg relative block w-full px-3 py-2 border border-gray-300 dark:border-dark-border placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white bg-white dark:bg-dark-card focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                   >
                     <option value="">Select a category</option>
@@ -291,7 +295,13 @@ function BusinessSignupPageContent() {
                         {category.name}
                       </option>
                     ))}
+                    <option value="other">Other / not listed</option>
                   </select>
+                  {categoryId === 'other' && (
+                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                      No problem! Tell us what your business does in the Additional Info box below.
+                    </p>
+                  )}
                 </div>
 
                 {/* Subcategory */}
@@ -302,10 +312,10 @@ function BusinessSignupPageContent() {
                   <select
                     id="subcategoryId"
                     name="subcategoryId"
-                    required
+                    required={categoryId !== 'other'}
                     value={subcategoryId}
                     onChange={(e) => setSubcategoryId(Number(e.target.value))}
-                    disabled={!categoryId}
+                    disabled={!categoryId || categoryId === 'other'}
                     className="appearance-none rounded-lg relative block w-full px-3 py-2 border border-gray-300 dark:border-dark-border placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white bg-white dark:bg-dark-card focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <option value="">Select a subcategory</option>
@@ -318,6 +328,11 @@ function BusinessSignupPageContent() {
                   {!categoryId && (
                     <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                       Please select a category first
+                    </p>
+                  )}
+                  {categoryId === 'other' && (
+                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                      Not needed for &quot;Other&quot;
                     </p>
                   )}
                 </div>

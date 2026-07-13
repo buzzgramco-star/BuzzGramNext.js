@@ -42,6 +42,18 @@ export default function Footer() {
               How It Works
             </Link>
             <Link
+              href="/for-businesses"
+              className="text-sm text-gray-600 dark:text-gray-400 hover:text-orange-600 dark:hover:text-orange-400 transition-colors"
+            >
+              For Businesses
+            </Link>
+            <Link
+              href="/faq"
+              className="text-sm text-gray-600 dark:text-gray-400 hover:text-orange-600 dark:hover:text-orange-400 transition-colors"
+            >
+              FAQ
+            </Link>
+            <Link
               href="/terms"
               className="text-sm text-gray-600 dark:text-gray-400 hover:text-orange-600 dark:hover:text-orange-400 transition-colors"
             >
