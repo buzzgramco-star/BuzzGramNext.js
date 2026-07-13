@@ -4,7 +4,8 @@ import Link from 'next/link';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import AIDemoPreview from '@/components/homepage/AIDemoPreview';
-import FloatingUseCases from '@/components/homepage/FloatingUseCases';
+import FloatingUseCases, { UseCaseTicker } from '@/components/homepage/FloatingUseCases';
+import Reveal from '@/components/Reveal';
 
 // Demand flowing past — the pitch is that these requests are waiting for
 // vendors. More entries than visible slots: FloatingUseCases cycles a fresh
@@ -84,7 +85,7 @@ const faqSchema = {
 const PROBLEMS = [
   {
     title: 'The algorithm decides who sees you',
-    text: 'You post your best set, your best cake, your best shoot. Instagram shows it to a fraction of your followers. New customers? They never see it at all.',
+    text: 'You post your best work. Instagram shows it to a fraction of your followers. New customers never see it.',
     icon: (
       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
@@ -93,7 +94,7 @@ const PROBLEMS = [
   },
   {
     title: "You're invisible on Google",
-    text: 'No storefront means no Google listing. Someone two blocks away is searching "nail tech near me" and finding a salon chain instead of you.',
+    text: 'No storefront, no Google listing. Someone two blocks away is searching for what you do and finding a chain instead.',
     icon: (
       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -114,7 +115,7 @@ const PROBLEMS = [
 const FEATURES = [
   {
     title: 'A page that ranks on Google',
-    text: 'Your profile lives on pages built to rank for "[your service] in [your city]". The SEO you could never do from an Instagram bio.',
+    text: 'Your profile lives on pages built to rank for "[your service] in [your city]". SEO an Instagram bio can\'t do.',
   },
   {
     title: 'AI recommendations',
@@ -122,11 +123,11 @@ const FEATURES = [
   },
   {
     title: 'Quote requests, delivered',
-    text: 'Customers describe what they need once, and it lands in your dashboard. No more "how much?" DMs going nowhere.',
+    text: 'Customer requests land straight in your dashboard. No more "how much?" DMs going nowhere.',
   },
   {
     title: 'Your menu, your prices',
-    text: 'List services with real pricing: "Full set from $45". Customers arrive already knowing what you charge, and existing clients always see your latest prices and deals.',
+    text: 'List services with real pricing. New customers arrive knowing what you charge; existing clients see your latest prices and deals.',
   },
   {
     title: 'Reviews you can answer',
@@ -134,7 +135,7 @@ const FEATURES = [
   },
   {
     title: 'Straight to your DMs',
-    text: "We don't sit in the middle. Customers connect with you directly on Instagram. No commission, no gatekeeping.",
+    text: 'Customers connect with you directly on Instagram. No commission, no gatekeeping.',
   },
 ];
 
@@ -180,44 +181,65 @@ export default function ForBusinessesPage() {
 
       <div className="min-h-screen bg-white dark:bg-dark-bg flex flex-col">
 
-        {/* 1. Hero */}
+        {/* 1. Hero — pitch left, live demo right, demand pills orbiting the demo */}
         <div className="relative bg-white dark:bg-dark-bg overflow-hidden">
           <div className="absolute inset-0 pointer-events-none">
             <div className="absolute -top-40 -right-40 w-96 h-96 bg-orange-100 dark:bg-orange-900/10 rounded-full blur-3xl opacity-60" />
             <div className="absolute -bottom-20 -left-20 w-72 h-72 bg-orange-50 dark:bg-orange-900/5 rounded-full blur-3xl opacity-60" />
           </div>
 
-          <FloatingUseCases pills={DEMAND_PILLS} />
+          <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-14 sm:pt-20 sm:pb-16">
+            <div className="grid lg:grid-cols-2 gap-10 lg:gap-14 items-center">
+              {/* Pitch */}
+              <div className="text-center lg:text-left">
+                <div className="flex justify-center lg:justify-start mb-6">
+                  <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 text-orange-700 dark:text-orange-400 text-xs font-semibold tracking-wide uppercase">
+                    <span className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse" />
+                    BuzzGram AI is launching soon
+                  </span>
+                </div>
 
-          <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-14 sm:pt-24 sm:pb-20 text-center">
-            <div className="flex justify-center mb-6">
-              <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 text-orange-700 dark:text-orange-400 text-xs font-semibold tracking-wide uppercase">
-                <span className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse" />
-                BuzzGram AI is launching soon
-              </span>
+                <h1 className="text-4xl sm:text-5xl font-extrabold text-gray-900 dark:text-white mb-5 tracking-tight leading-tight">
+                  The first AI that sends customers{' '}
+                  <span className="text-orange-600 dark:text-orange-500">to your business.</span>
+                </h1>
+
+                <p className="text-lg text-gray-500 dark:text-gray-400 max-w-2xl mx-auto lg:mx-0 mb-8 leading-relaxed">
+                  When someone in your city tells our AI what they need, it recommends real local
+                  businesses by name: nail techs, bakers, photographers, and every home-based
+                  business in between. Nothing like it exists anywhere else. List free today and
+                  be in its answers from day one.
+                </p>
+
+                <Link
+                  href="/business-signup"
+                  className="inline-block px-8 py-4 bg-orange-600 hover:bg-orange-700 text-white font-semibold rounded-xl transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+                >
+                  List my business free
+                </Link>
+                <p className="mt-3 text-sm text-gray-400 dark:text-gray-500">
+                  Free. No credit card. You keep your Instagram, your clients, your prices.
+                </p>
+              </div>
+
+              {/* Live demo with demand pills pinned around its edges */}
+              <div className="min-w-0">
+                <div className="relative">
+                  <FloatingUseCases pills={DEMAND_PILLS} variant="orbit" />
+                  <div className="bg-gray-50 dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-2xl p-5 shadow-sm min-w-0">
+                    <AIDemoPreview />
+                  </div>
+                </div>
+                <p className="text-center text-sm text-gray-400 dark:text-gray-500 mt-7">
+                  Every one of those recommendations could be you.
+                </p>
+              </div>
             </div>
 
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-gray-900 dark:text-white mb-5 tracking-tight leading-tight">
-              The first AI that sends customers{' '}
-              <span className="text-orange-600 dark:text-orange-500">to your business.</span>
-            </h1>
-
-            <p className="text-lg sm:text-xl text-gray-500 dark:text-gray-400 max-w-2xl mx-auto mb-10 leading-relaxed">
-              When someone in your city tells our AI what they need, it recommends real local
-              businesses by name: nail techs, bakers, photographers, and every home-based business
-              in between. Nothing like it exists anywhere else. List free today and be in its
-              answers from day one.
-            </p>
-
-            <Link
-              href="/business-signup"
-              className="inline-block px-8 py-4 bg-orange-600 hover:bg-orange-700 text-white font-semibold rounded-xl transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5"
-            >
-              List my business free
-            </Link>
-            <p className="mt-3 text-sm text-gray-400 dark:text-gray-500">
-              Free. No credit card. You keep your Instagram, your clients, your prices.
-            </p>
+            {/* Mobile: demand requests scroll past as a ticker, right under the demo */}
+            <div className="mt-8 lg:hidden">
+              <UseCaseTicker pills={DEMAND_PILLS} />
+            </div>
           </div>
         </div>
 
@@ -229,47 +251,36 @@ export default function ForBusinessesPage() {
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {PROBLEMS.map((p, i) => (
-                <div key={i} className="bg-white dark:bg-dark-bg border border-gray-200 dark:border-dark-border rounded-2xl p-6">
+                <Reveal key={i} delay={i * 120}>
+                <div className="bg-white dark:bg-dark-bg border border-gray-200 dark:border-dark-border rounded-2xl p-6 h-full">
                   <div className="w-11 h-11 rounded-xl bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 flex items-center justify-center mb-4">
                     {p.icon}
                   </div>
                   <h3 className="text-base font-bold text-gray-900 dark:text-white mb-2">{p.title}</h3>
                   <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">{p.text}</p>
                 </div>
+                </Reveal>
               ))}
             </div>
           </div>
         </div>
 
-        {/* 3. The AI section */}
-        <div className="py-16 sm:py-24">
-          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 grid md:grid-cols-2 gap-10 items-center">
-            <div>
-              <p className="text-xs font-semibold tracking-widest uppercase text-orange-600 dark:text-orange-500 mb-3">
-                The BuzzGram difference
-              </p>
-              <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-4 leading-tight">
-                When someone asks our AI for what you do, it says your name.
-              </h2>
-              <p className="text-base text-gray-500 dark:text-gray-400 leading-relaxed">
-                BuzzGram is the first platform where an AI actually recommends local businesses in
-                conversation. Someone types &quot;I need a lash tech under $80&quot; and the AI answers
-                with real vendors: names, services, prices, and a link straight to their Instagram.
-                If that&apos;s you, you just got a customer you never had to find. It&apos;s launching
-                soon, and businesses listed now are in its answers from day one.
-              </p>
-            </div>
-
-            {/* Live demo — same animated chat simulation as the homepage.
-                min-w-0 lets the vendor-card scroll row shrink instead of blowing out the grid */}
-            <div className="min-w-0">
-              <div className="bg-gray-50 dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-2xl p-5 shadow-sm min-w-0">
-                <AIDemoPreview />
-              </div>
-              <p className="text-center text-sm text-gray-400 dark:text-gray-500 mt-3">
-                Every one of those recommendations could be you.
-              </p>
-            </div>
+        {/* 3. The claim, spelled out (demo lives in the hero now) */}
+        <div className="py-14 sm:py-20">
+          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <Reveal>
+            <p className="text-xs font-semibold tracking-widest uppercase text-orange-600 dark:text-orange-500 mb-3">
+              The BuzzGram difference
+            </p>
+            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-4 leading-tight">
+              When someone asks our AI for what you do, it says your name.
+            </h2>
+            <p className="text-base text-gray-500 dark:text-gray-400 leading-relaxed">
+              Someone types &quot;I need a lash tech under $80&quot; and the AI answers with real
+              vendors: names, prices, and a link straight to their Instagram. Launching soon.
+              Businesses listed now are in its answers from day one.
+            </p>
+            </Reveal>
           </div>
         </div>
 
@@ -281,18 +292,22 @@ export default function ForBusinessesPage() {
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
               {FEATURES.map((f, i) => (
-                <div key={i} className="bg-white dark:bg-dark-bg border border-gray-200 dark:border-dark-border rounded-2xl p-6">
+                <Reveal key={i} delay={(i % 3) * 100}>
+                <div className="bg-white dark:bg-dark-bg border border-gray-200 dark:border-dark-border rounded-2xl p-6 h-full">
                   <h3 className="text-base font-bold text-gray-900 dark:text-white mb-2">{f.title}</h3>
                   <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">{f.text}</p>
                 </div>
+                </Reveal>
               ))}
             </div>
 
             {/* Direct-payment banner */}
+            <Reveal>
             <div className="bg-gradient-to-r from-orange-600 to-orange-500 dark:from-orange-700 dark:to-orange-600 rounded-2xl px-8 py-8 text-center">
               <p className="text-2xl sm:text-3xl font-extrabold text-white mb-1">Free to list. Customers pay you directly.</p>
               <p className="text-sm text-orange-100">We don&apos;t process bookings or sit in the payment loop. Your clients, and your revenue, stay yours.</p>
             </div>
+            </Reveal>
           </div>
         </div>
 
@@ -303,14 +318,16 @@ export default function ForBusinessesPage() {
               Live in your city in three steps
             </h2>
             <div className="grid sm:grid-cols-3 gap-8">
-              {STEPS.map(({ step, title, text }) => (
-                <div key={step} className="text-center">
+              {STEPS.map(({ step, title, text }, i) => (
+                <Reveal key={step} delay={i * 120}>
+                <div className="text-center">
                   <div className="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 text-base font-bold flex items-center justify-center mx-auto mb-4">
                     {step}
                   </div>
                   <h3 className="text-base font-bold text-gray-900 dark:text-white mb-2">{title}</h3>
                   <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">{text}</p>
                 </div>
+                </Reveal>
               ))}
             </div>
             <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-10">
@@ -333,6 +350,7 @@ export default function ForBusinessesPage() {
             <h2 className="text-center text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-10">
               Questions, answered
             </h2>
+            <Reveal>
             <div className="space-y-3">
               {FAQS.map(({ q, a }, i) => (
                 <details
@@ -349,6 +367,7 @@ export default function ForBusinessesPage() {
                 </details>
               ))}
             </div>
+            </Reveal>
           </div>
         </div>
 
