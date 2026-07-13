@@ -3,6 +3,7 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import AIDemoPreview from '@/components/homepage/AIDemoPreview';
 
 export const metadata: Metadata = {
   title: 'List Your Home-Based Business Free | BuzzGram for Businesses',
@@ -35,7 +36,11 @@ const FAQS = [
   },
   {
     q: 'Do you take a cut of my bookings?',
-    a: 'No. Customers contact you directly on Instagram. Your money is your money.',
+    a: "No. Customers contact and pay you directly on Instagram. We don't process payments or bookings.",
+  },
+  {
+    q: "My business isn't beauty, food, or events. Can I still join?",
+    a: "Yes. Beauty, food, and events are our biggest categories today, but we welcome home-based and Instagram businesses of all kinds. Submit yours and we'll fit you in as new categories open up.",
   },
   {
     q: 'What cities are you in?',
@@ -166,7 +171,7 @@ export default function ForBusinessesPage() {
           <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-14 sm:pt-24 sm:pb-20 text-center">
             <div className="flex justify-center mb-6">
               <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 text-orange-700 dark:text-orange-400 text-xs font-semibold tracking-wide uppercase">
-                For nail techs, bakers, lash artists, photographers &amp; planners
+                For nail techs, bakers, photographers &amp; every home-based business
               </span>
             </div>
 
@@ -231,31 +236,14 @@ export default function ForBusinessesPage() {
               </p>
             </div>
 
-            {/* Static mock chat — the recommended vendor is "you" */}
-            <div className="bg-gray-50 dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-2xl p-5 shadow-sm">
-              <div className="flex justify-end mb-4">
-                <div className="bg-orange-600 text-white text-sm px-4 py-2.5 rounded-2xl rounded-br-md max-w-[85%]">
-                  I need a lash tech in Toronto under $80
-                </div>
+            {/* Live demo — same animated chat simulation as the homepage */}
+            <div>
+              <div className="bg-gray-50 dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-2xl p-5 shadow-sm">
+                <AIDemoPreview />
               </div>
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-lg bg-orange-600 flex items-center justify-center flex-shrink-0">
-                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.347.347a3.75 3.75 0 00-1.1 2.028l-.3 1.5a.75.75 0 01-.734.598H8.741a.75.75 0 01-.734-.598l-.3-1.5a3.75 3.75 0 00-1.1-2.028l-.347-.347z" />
-                  </svg>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 mb-1.5 uppercase tracking-wide">BuzzGram AI</p>
-                  <p className="text-sm text-gray-700 dark:text-gray-300 mb-3">
-                    Great news, I found a few lash artists in your budget. This one has classic sets from $65:
-                  </p>
-                  <div className="bg-white dark:bg-dark-bg border-2 border-dashed border-orange-300 dark:border-orange-700 rounded-xl p-3 w-48">
-                    <p className="text-sm font-bold text-gray-900 dark:text-white">Your Business</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">@yourhandle</p>
-                    <p className="text-xs text-orange-600 dark:text-orange-400 font-medium mt-1.5">View profile →</p>
-                  </div>
-                </div>
-              </div>
+              <p className="text-center text-sm text-gray-400 dark:text-gray-500 mt-3">
+                Every one of those recommendations could be you.
+              </p>
             </div>
           </div>
         </div>
@@ -275,10 +263,10 @@ export default function ForBusinessesPage() {
               ))}
             </div>
 
-            {/* 0% banner */}
+            {/* Direct-payment banner */}
             <div className="bg-gradient-to-r from-orange-600 to-orange-500 dark:from-orange-700 dark:to-orange-600 rounded-2xl px-8 py-8 text-center">
-              <p className="text-2xl sm:text-3xl font-extrabold text-white mb-1">We take 0% of your money.</p>
-              <p className="text-sm text-orange-100">No commission. No booking fees. Customers pay you, not us.</p>
+              <p className="text-2xl sm:text-3xl font-extrabold text-white mb-1">Free to list. Customers pay you directly.</p>
+              <p className="text-sm text-orange-100">We don&apos;t process bookings or sit in the payment loop. Your clients, and your revenue, stay yours.</p>
             </div>
           </div>
         </div>
