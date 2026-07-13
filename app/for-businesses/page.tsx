@@ -239,9 +239,10 @@ export default function ForBusinessesPage() {
               </p>
             </div>
 
-            {/* Live demo — same animated chat simulation as the homepage */}
-            <div>
-              <div className="bg-gray-50 dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-2xl p-5 shadow-sm">
+            {/* Live demo — same animated chat simulation as the homepage.
+                min-w-0 lets the vendor-card scroll row shrink instead of blowing out the grid */}
+            <div className="min-w-0">
+              <div className="bg-gray-50 dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-2xl p-5 shadow-sm min-w-0">
                 <AIDemoPreview />
               </div>
               <p className="text-center text-sm text-gray-400 dark:text-gray-500 mt-3">
