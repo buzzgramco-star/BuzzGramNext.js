@@ -6,16 +6,22 @@ import Footer from '@/components/Footer';
 import AIDemoPreview from '@/components/homepage/AIDemoPreview';
 import FloatingUseCases from '@/components/homepage/FloatingUseCases';
 
-// Demand flowing past — the pitch is that these requests are waiting for vendors
+// Demand flowing past — the pitch is that these requests are waiting for
+// vendors. More entries than visible slots: FloatingUseCases cycles a fresh
+// one in every few seconds, so demand reads as live.
 const DEMAND_PILLS = [
-  'Lash tech needed · Toronto',
-  'Wedding planner wanted · Miami',
-  'Custom cake order · Chicago',
-  'Birthday photographer · NYC',
-  'Braids this weekend · Calgary',
-  'Party decor · Vancouver',
-  'Private chef for 10 · LA',
-  'Makeup artist · Montreal',
+  '✨ Lash tech needed · Toronto',
+  '💍 Wedding planner wanted · Miami',
+  '🎂 Custom cake order · Chicago',
+  '📸 Birthday photographer · NYC',
+  '💇‍♀️ Braids this weekend · Calgary',
+  '🎈 Party decor · Vancouver',
+  '👨‍🍳 Private chef for 10 · LA',
+  '💄 Makeup artist · Montreal',
+  '💅 Gel set tomorrow · Ottawa',
+  '🎉 Sweet 16 planner · Phoenix',
+  '🧁 Cupcakes for 50 · Toronto',
+  '📷 Engagement shoot · Vancouver',
 ];
 
 export const metadata: Metadata = {

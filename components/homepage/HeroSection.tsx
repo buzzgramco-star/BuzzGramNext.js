@@ -6,14 +6,14 @@ import FloatingUseCases from '@/components/homepage/FloatingUseCases';
 
 // Clickable — each pre-fills the chat via buzzgram:prefill
 const USE_CASE_PILLS = [
-  'nail tech under $60',
-  'help me plan my wedding',
-  'custom cake by Saturday',
-  'lash fill tomorrow',
-  'photographer for a gender reveal',
-  'decor for a sweet 16',
-  'braids this weekend',
-  'private chef for date night',
+  '💅 nail tech under $60',
+  '💍 help me plan my wedding',
+  '🎂 custom cake by Saturday',
+  '✨ lash fill tomorrow',
+  '📸 photographer for a gender reveal',
+  '🎀 decor for a sweet 16',
+  '💇‍♀️ braids this weekend',
+  '👨‍🍳 private chef for date night',
 ];
 
 export default function HeroSection() {
