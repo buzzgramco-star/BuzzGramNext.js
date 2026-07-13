@@ -163,9 +163,10 @@ export default function AIDemoPreview({ cityName, onTry }: AIDemoPreviewProps) {
                 <div>
                   <p className="text-sm text-gray-700 dark:text-gray-300 mb-3 leading-relaxed">{demo.response}</p>
 
-                  {/* Vendor cards */}
+                  {/* Vendor cards — max-w-full forces the scroll container to clip
+                      instead of propagating its min-content width up the layout */}
                   <div
-                    className="flex gap-3 overflow-x-auto pb-1 transition-opacity duration-500"
+                    className="flex gap-3 overflow-x-auto pb-1 max-w-full transition-opacity duration-500"
                     style={{ opacity: showVendors ? 1 : 0 }}
                   >
                     {demo.vendors.map((v, i) => (

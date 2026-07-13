@@ -33,7 +33,7 @@ export default function CookieConsent() {
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 p-4 bg-white dark:bg-dark-card border-t border-gray-200 dark:border-dark-border shadow-lg">
       <div className="max-w-7xl mx-auto">
-        <div className="flex items-start gap-4">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-start gap-4">
           {/* Cookie Icon */}
           <div className="flex-shrink-0 hidden sm:block">
             <div className="w-12 h-12 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center">
@@ -66,7 +66,7 @@ export default function CookieConsent() {
           </div>
 
           {/* Buttons */}
-          <div className="flex flex-col sm:flex-row gap-2 flex-shrink-0">
+          <div className="flex flex-row items-center justify-end sm:justify-start gap-2 flex-shrink-0">
             <button
               onClick={handleClose}
               className="px-4 py-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 text-sm font-medium transition-colors"
