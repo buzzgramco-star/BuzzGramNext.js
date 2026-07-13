@@ -89,7 +89,7 @@ export default function HeroSection() {
         {/* Business owner link */}
         <div className="text-center">
           <Link
-            href="/business-signup"
+            href="/for-businesses"
             className="text-sm text-gray-500 dark:text-gray-400 hover:text-orange-600 dark:hover:text-orange-400 transition-colors font-medium"
           >
             Are you a business owner? List your business FREE →

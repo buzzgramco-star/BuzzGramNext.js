@@ -35,7 +35,7 @@ export default function FinalCTA() {
             Start Discovering
           </Link>
           <Link
-            href="/business-signup"
+            href="/for-businesses"
             className="px-8 py-4 bg-transparent border-2 border-white text-white font-semibold rounded-lg hover:bg-white hover:text-orange-600 transition-all shadow-xl hover:shadow-2xl hover:-translate-y-1 min-w-[200px]"
           >
             List Your Business Free
