@@ -180,46 +180,62 @@ export default function ForBusinessesPage() {
 
       <div className="min-h-screen bg-white dark:bg-dark-bg flex flex-col">
 
-        {/* 1. Hero */}
+        {/* 1. Hero — pitch left, live demo right, demand pills orbiting the demo */}
         <div className="relative bg-white dark:bg-dark-bg overflow-hidden">
           <div className="absolute inset-0 pointer-events-none">
             <div className="absolute -top-40 -right-40 w-96 h-96 bg-orange-100 dark:bg-orange-900/10 rounded-full blur-3xl opacity-60" />
             <div className="absolute -bottom-20 -left-20 w-72 h-72 bg-orange-50 dark:bg-orange-900/5 rounded-full blur-3xl opacity-60" />
           </div>
 
-          <FloatingUseCases pills={DEMAND_PILLS} />
+          <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-14 sm:pt-20 sm:pb-16">
+            <div className="grid lg:grid-cols-2 gap-10 lg:gap-14 items-center">
+              {/* Pitch */}
+              <div className="text-center lg:text-left">
+                <div className="flex justify-center lg:justify-start mb-6">
+                  <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 text-orange-700 dark:text-orange-400 text-xs font-semibold tracking-wide uppercase">
+                    <span className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse" />
+                    BuzzGram AI is launching soon
+                  </span>
+                </div>
 
-          <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-14 sm:pt-24 sm:pb-20 text-center">
-            <div className="flex justify-center mb-6">
-              <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 text-orange-700 dark:text-orange-400 text-xs font-semibold tracking-wide uppercase">
-                <span className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse" />
-                BuzzGram AI is launching soon
-              </span>
+                <h1 className="text-4xl sm:text-5xl font-extrabold text-gray-900 dark:text-white mb-5 tracking-tight leading-tight">
+                  The first AI that sends customers{' '}
+                  <span className="text-orange-600 dark:text-orange-500">to your business.</span>
+                </h1>
+
+                <p className="text-lg text-gray-500 dark:text-gray-400 max-w-2xl mx-auto lg:mx-0 mb-8 leading-relaxed">
+                  When someone in your city tells our AI what they need, it recommends real local
+                  businesses by name: nail techs, bakers, photographers, and every home-based
+                  business in between. Nothing like it exists anywhere else. List free today and
+                  be in its answers from day one.
+                </p>
+
+                <Link
+                  href="/business-signup"
+                  className="inline-block px-8 py-4 bg-orange-600 hover:bg-orange-700 text-white font-semibold rounded-xl transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+                >
+                  List my business free
+                </Link>
+                <p className="mt-3 text-sm text-gray-400 dark:text-gray-500">
+                  Free. No credit card. You keep your Instagram, your clients, your prices.
+                </p>
+              </div>
+
+              {/* Live demo with demand pills pinned around its edges */}
+              <div className="min-w-0">
+                <div className="relative">
+                  <FloatingUseCases pills={DEMAND_PILLS} variant="orbit" />
+                  <div className="bg-gray-50 dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-2xl p-5 shadow-sm min-w-0">
+                    <AIDemoPreview />
+                  </div>
+                </div>
+                <p className="text-center text-sm text-gray-400 dark:text-gray-500 mt-7">
+                  Every one of those recommendations could be you.
+                </p>
+              </div>
             </div>
 
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-gray-900 dark:text-white mb-5 tracking-tight leading-tight">
-              The first AI that sends customers{' '}
-              <span className="text-orange-600 dark:text-orange-500">to your business.</span>
-            </h1>
-
-            <p className="text-lg sm:text-xl text-gray-500 dark:text-gray-400 max-w-2xl mx-auto mb-10 leading-relaxed">
-              When someone in your city tells our AI what they need, it recommends real local
-              businesses by name: nail techs, bakers, photographers, and every home-based business
-              in between. Nothing like it exists anywhere else. List free today and be in its
-              answers from day one.
-            </p>
-
-            <Link
-              href="/business-signup"
-              className="inline-block px-8 py-4 bg-orange-600 hover:bg-orange-700 text-white font-semibold rounded-xl transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5"
-            >
-              List my business free
-            </Link>
-            <p className="mt-3 text-sm text-gray-400 dark:text-gray-500">
-              Free. No credit card. You keep your Instagram, your clients, your prices.
-            </p>
-
-            {/* Mobile: demand requests scroll past as a ticker (floating field is lg+) */}
+            {/* Mobile: demand requests scroll past as a ticker, right under the demo */}
             <div className="mt-8 lg:hidden">
               <UseCaseTicker pills={DEMAND_PILLS} />
             </div>
@@ -246,35 +262,22 @@ export default function ForBusinessesPage() {
           </div>
         </div>
 
-        {/* 3. The AI section */}
-        <div className="py-16 sm:py-24">
-          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 grid md:grid-cols-2 gap-10 items-center">
-            <div>
-              <p className="text-xs font-semibold tracking-widest uppercase text-orange-600 dark:text-orange-500 mb-3">
-                The BuzzGram difference
-              </p>
-              <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-4 leading-tight">
-                When someone asks our AI for what you do, it says your name.
-              </h2>
-              <p className="text-base text-gray-500 dark:text-gray-400 leading-relaxed">
-                BuzzGram is the first platform where an AI actually recommends local businesses in
-                conversation. Someone types &quot;I need a lash tech under $80&quot; and the AI answers
-                with real vendors: names, services, prices, and a link straight to their Instagram.
-                If that&apos;s you, you just got a customer you never had to find. It&apos;s launching
-                soon, and businesses listed now are in its answers from day one.
-              </p>
-            </div>
-
-            {/* Live demo — same animated chat simulation as the homepage.
-                min-w-0 lets the vendor-card scroll row shrink instead of blowing out the grid */}
-            <div className="min-w-0">
-              <div className="bg-gray-50 dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-2xl p-5 shadow-sm min-w-0">
-                <AIDemoPreview />
-              </div>
-              <p className="text-center text-sm text-gray-400 dark:text-gray-500 mt-3">
-                Every one of those recommendations could be you.
-              </p>
-            </div>
+        {/* 3. The claim, spelled out (demo lives in the hero now) */}
+        <div className="py-14 sm:py-20">
+          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <p className="text-xs font-semibold tracking-widest uppercase text-orange-600 dark:text-orange-500 mb-3">
+              The BuzzGram difference
+            </p>
+            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-4 leading-tight">
+              When someone asks our AI for what you do, it says your name.
+            </h2>
+            <p className="text-base text-gray-500 dark:text-gray-400 leading-relaxed">
+              BuzzGram is the first platform where an AI actually recommends local businesses in
+              conversation. Someone types &quot;I need a lash tech under $80&quot; and the AI answers
+              with real vendors: names, services, prices, and a link straight to their Instagram.
+              If that&apos;s you, you just got a customer you never had to find. It&apos;s launching
+              soon, and businesses listed now are in its answers from day one.
+            </p>
           </div>
         </div>
 

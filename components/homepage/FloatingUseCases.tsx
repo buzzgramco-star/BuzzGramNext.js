@@ -22,6 +22,13 @@ interface FloatingUseCasesProps {
   pills: string[];
   /** Pills dispatch buzzgram:prefill on click (homepage — feeds the real chat) */
   interactive?: boolean;
+  /**
+   * 'field' — spread across a full-width hero's side margins (homepage).
+   * 'orbit' — hugged around one box (parent must be `relative`; pills peek out
+   * from behind its edges — the box itself should also be `relative` to paint
+   * on top). Used around the for-businesses demo.
+   */
+  variant?: 'field' | 'orbit';
 }
 
 // strip the leading emoji — only the words belong in the chat input
@@ -32,10 +39,14 @@ function dispatchPrefill(query: string) {
 
 const PILL_LOOK = 'bg-white/80 dark:bg-dark-card/80 border-orange-100 dark:border-orange-900/30 text-gray-500 dark:text-gray-400';
 
+// tx/ty shift a pill by a fraction of its own size — used by orbit slots to
+// straddle the box edge (e.g. tx '-55%' hangs half the pill outside the left edge)
+type Slot = { style: React.CSSProperties; depth: 0 | 1 | 2; r: string; tx?: string; ty?: string };
+
 // Hand-placed slots in the hero's side margins, avoiding the centered content
 // column. depth: 0 = far (small, faint), 2 = near (bigger, clearer) — three
 // layers give the field a sense of space. r = resting rotation.
-const SLOTS: Array<{ style: React.CSSProperties; depth: 0 | 1 | 2; r: string }> = [
+const FIELD_SLOTS: Slot[] = [
   { style: { top: '14%', left: '2%' }, depth: 1, r: '-2deg' },
   { style: { top: '36%', left: '5%' }, depth: 2, r: '1.5deg' },
   { style: { top: '58%', left: '2%' }, depth: 0, r: '2deg' },
@@ -46,6 +57,16 @@ const SLOTS: Array<{ style: React.CSSProperties; depth: 0 | 1 | 2; r: string }> 
   { style: { top: '82%', right: '5%' }, depth: 0, r: '-2deg' },
 ];
 
+// Edges of a single box — each pill straddles the border (tx/ty push it
+// halfway out), painted above the box like notifications pinned to the demo
+const ORBIT_SLOTS: Slot[] = [
+  { style: { top: '-2%', left: '30%' }, depth: 1, r: '-1.5deg', ty: '-60%' },
+  { style: { top: '34%', right: '0%' }, depth: 2, r: '1.5deg', tx: '60%' },
+  { style: { top: '12%', left: '0%' }, depth: 0, r: '2deg', tx: '-45%' },
+  { style: { bottom: '16%', right: '0%' }, depth: 1, r: '-2deg', tx: '55%' },
+  { style: { bottom: '0%', left: '4%' }, depth: 2, r: '1deg', ty: '48%' },
+];
+
 const DEPTH = [
   'opacity-50 scale-90',
   'opacity-70 scale-100',
@@ -54,19 +75,20 @@ const DEPTH = [
 
 const CYCLE_MS = 3800;
 
-export default function FloatingUseCases({ pills, interactive = false }: FloatingUseCasesProps) {
+export default function FloatingUseCases({ pills, interactive = false, variant = 'field' }: FloatingUseCasesProps) {
+  const slots = variant === 'orbit' ? ORBIT_SLOTS : FIELD_SLOTS;
   // visible[i] = index into pills; extras beyond the slots rotate in over time
-  const [visible, setVisible] = useState<number[]>(() => SLOTS.map((_, i) => i % pills.length));
+  const [visible, setVisible] = useState<number[]>(() => slots.map((_, i) => i % pills.length));
   // bump forces the enter animation to replay on the slot that just swapped
   const [bump, setBump] = useState<Record<number, number>>({});
 
   useEffect(() => {
-    if (interactive || pills.length <= SLOTS.length) return; // clickable pills stay put
+    if (interactive || pills.length <= slots.length) return; // clickable pills stay put
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
     const id = setInterval(() => {
       setVisible(prev => {
-        const slot = Math.floor(Math.random() * SLOTS.length);
+        const slot = Math.floor(Math.random() * slots.length);
         const inUse = new Set(prev);
         const candidates = pills.map((_, i) => i).filter(i => !inUse.has(i));
         if (candidates.length === 0) return prev;
@@ -77,7 +99,7 @@ export default function FloatingUseCases({ pills, interactive = false }: Floatin
       });
     }, CYCLE_MS);
     return () => clearInterval(id);
-  }, [interactive, pills]);
+  }, [interactive, pills, slots]);
 
   const handlePick = (query: string) => {
     if (!interactive) return;
@@ -85,14 +107,17 @@ export default function FloatingUseCases({ pills, interactive = false }: Floatin
   };
 
   return (
-    <div className="absolute inset-0 pointer-events-none hidden lg:block" aria-hidden="true">
+    <div
+      className={`absolute inset-0 pointer-events-none hidden lg:block ${variant === 'orbit' ? 'z-10' : ''}`}
+      aria-hidden="true"
+    >
       <style>{`
         @keyframes fuc-drift {
-          from { transform: translateY(-7px) rotate(var(--fuc-r, 0deg)); }
-          to { transform: translateY(7px) rotate(var(--fuc-r, 0deg)); }
+          from { transform: translate(var(--fuc-tx, 0px), calc(var(--fuc-ty, 0px) - 7px)) rotate(var(--fuc-r, 0deg)); }
+          to { transform: translate(var(--fuc-tx, 0px), calc(var(--fuc-ty, 0px) + 7px)) rotate(var(--fuc-r, 0deg)); }
         }
         @keyframes fuc-enter {
-          from { opacity: 0; transform: translateY(14px) scale(.92) rotate(var(--fuc-r, 0deg)); }
+          from { opacity: 0; transform: translate(var(--fuc-tx, 0px), calc(var(--fuc-ty, 0px) + 14px)) scale(.92) rotate(var(--fuc-r, 0deg)); }
         }
         .fuc-pill {
           animation:
@@ -103,15 +128,20 @@ export default function FloatingUseCases({ pills, interactive = false }: Floatin
           .fuc-pill { animation: none !important; }
         }
       `}</style>
-      {SLOTS.map((slot, i) => {
+      {slots.map((slot, i) => {
         const pill = pills[visible[i]];
         if (!pill) return null;
         const style: React.CSSProperties = {
           ...slot.style,
           '--fuc-r': slot.r,
+          '--fuc-tx': slot.tx ?? '0px',
+          '--fuc-ty': slot.ty ?? '0px',
           '--fuc-dur': `${6 + (i % 3)}s`,
           '--fuc-drift-delay': `-${(i * 1.7) % 7}s`,
           '--fuc-enter-delay': bump[i] ? '0s' : `${0.15 + i * 0.12}s`,
+          // base transform keeps the straddle offset when animations are
+          // disabled (reduced motion) — keyframes carry the same vars
+          transform: 'translate(var(--fuc-tx, 0px), var(--fuc-ty, 0px)) rotate(var(--fuc-r, 0deg))',
         } as React.CSSProperties;
         const common = `fuc-pill absolute px-3.5 py-2 rounded-full text-xs font-medium border whitespace-nowrap backdrop-blur-sm ${DEPTH[slot.depth]}`;
         const look = 'bg-white/80 dark:bg-dark-card/80 border-orange-100 dark:border-orange-900/30 text-gray-500 dark:text-gray-400';
