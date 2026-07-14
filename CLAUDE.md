@@ -39,6 +39,7 @@ frontend-nextjs/
 │   │       ├── page.tsx          # Blog detail SSR page (structured data, metadata)
 │   │       └── BlogDetailClient.tsx # Client component (progress bar, TOC sidebar)
 │   ├── faq/                      # FAQ page (moved off homepage Jun 30)
+│   ├── for-businesses/           # Vendor acquisition page (live on production; FAQPage schema)
 │   ├── event-plans/[token]/      # Public shared event plan view (from AI event planner)
 │   ├── admin/                    # Admin dashboard
 │   ├── business-dashboard/       # Business owner dashboard (includes service management)
@@ -60,7 +61,8 @@ frontend-nextjs/
 │   ├── GoogleAuthButton.tsx      # Google OAuth button
 │   ├── AIChatSearch.tsx          # AI chat (homepage hero + floating popup; SSE streaming, events, history)
 │   ├── FloatingAIChat.tsx        # Floating AI chat launcher used on city pages
-│   └── homepage/                 # Homepage sections (HeroSection, AIDemoPreview, BrowseCategories, …)
+│   ├── Reveal.tsx                # Scroll-into-view fade-up wrapper (fires once, reduced-motion safe)
+│   └── homepage/                 # Homepage sections (HeroSection, AIDemoPreview, FloatingUseCases, …)
 ├── contexts/                     # React Context providers
 │   ├── AuthContext.tsx           # Authentication state
 │   └── ThemeContext.tsx          # Dark mode theme state
@@ -382,6 +384,39 @@ Blog content is stored as HTML in the database and rendered via `dangerouslySetI
 - Contains `formatDate` internally — **never pass functions as props from Server to Client Component**
 
 ## Recent Changes (July 2026)
+
+### IMPORTANT — Branch State Ahead of AI Launch (as of Jul 14, 2026)
+- **`main` (production, buzzgram.co)**: pre-AI site **plus** the `/for-businesses` page and its dependencies (`FloatingUseCases`, `Reveal`, `AIDemoPreview`), the mobile overflow fixes, and the "Other" signup option. **No AI chat, no homepage changes.**
+- **`feature/ai-search` (preview)**: everything — AI chat, event planner, all homepage changes, plus identical copies of everything on main. Shared files are kept byte-identical on both branches so the launch merge is conflict-free.
+- Production updates ship by copying specific files onto a branch off `main` in a worktree, building, and pushing — never by merging the feature branch (that's the launch step).
+
+### For-Businesses Vendor Acquisition Page (Jul 13–14, 2026) — LIVE ON PRODUCTION
+`app/for-businesses/page.tsx` — static pitch page for home-based/Instagram vendors, AI-first with "launching soon" framing:
+- **Two-column hero (lg+)**: pitch/CTA left, live `AIDemoPreview` right with demand pills pinned to the box edges (`FloatingUseCases` `orbit` variant, cycling every ~4s from a 12-request pool). Mobile stacks pitch → demo → `UseCaseTicker`
+- Sections: pain points, "BuzzGram difference" (text-only — demo lives in hero), 6-feature grid, "Free to list. Customers pay you directly." banner (deliberately present-tense — no permanent 0%-commission promise), how-it-works, FAQ with **FAQPage JSON-LD**, final CTA
+- FAQ includes "not beauty/food/events?" answer backed by the signup form's "Other / not listed" category option (`categoryId: 'other'` → email-only backend endpoint)
+- Funnel: homepage hero owner link, FinalCTA button, footer "For Businesses" link → `/for-businesses` → `/business-signup`. In sitemap at 0.9
+- Copy is deliberately terse (~30-40% cut Jul 14); scroll reveals on cards/sections
+
+### New Shared Components (Jul 13–14, 2026)
+- **`components/homepage/FloatingUseCases.tsx`**: ambient use-case pills. `variant='field'` (spread across hero margins — homepage, preview only) or `'orbit'` (pinned around one box — for-businesses hero). `interactive` makes pills dispatch a `buzzgram:prefill` CustomEvent that `AIChatSearch` listens for to pre-fill the chat. Cycles pills when pool > slots (non-interactive only). Desktop-only (`hidden lg:block`); dark mode uses bright text + orange border + glow. Exports **`UseCaseTicker`**: mobile marquee variant, in-flow, pauses on touch, static+flickable under reduced-motion
+- **`components/Reveal.tsx`**: IntersectionObserver fade-up on scroll into view; fires once; `delay` staggers siblings; reduced-motion shows instantly. Used on card grids/sections of homepage + for-businesses
+
+### AI Chat Conversion & UX (Jul 12–14, 2026) — feature branch only
+- **Rate-limit 429 is a conversion moment**: guests get an orange signup/login card ("Keep the conversation going — free") instead of red error text; logged-in users get a "resets tomorrow" note + browse link. No retry button on rate limits (would just 429 again). Fires `rate_limit_hit` / `rate_limit_signup_click` events. New `isRateLimit` flag on ChatMessage
+- **Mobile placeholder fix**: long placeholders wrapped into the input's bottom controls at 375px — short variants below `sm` via matchMedia + `placeholder:` nowrap/ellipsis guard
+
+### Homepage (Jul 12–14, 2026) — feature branch only
+- Subcategory pills in `BrowseCategories` are real crawlable links (`/city/[city]/[cat]/[sub]`); card restructured with an overlay `<Link>` because nested anchors are invalid HTML. Dropped pills for nonexistent subcategories (Skincare, Meal Prep, Desserts, Specialty, Entertainment — they would have 404'd)
+- `FinalCTA` "Start Discovering" reads persisted `buzzgram-city` from localStorage (Toronto fallback)
+- `WhyBuzzGram` card copy tightened; clickable pill field + ticker in hero (see FloatingUseCases)
+
+### Mobile Overflow Fixes (Jul 13, 2026) — LIVE ON PRODUCTION
+Playwright audit at 375px found ~100px horizontal scroll on every page:
+- **Footer link row never wrapped** (site-wide offender) — now `flex-wrap`
+- **CookieConsent** stacked horizontally — now vertical on mobile
+- **AIDemoPreview vendor row** propagated min-content width — `max-w-full` + `min-w-0` containment
+- Audit method worth repeating before releases: headless Chrome at 375px, compare `scrollWidth` vs `clientWidth`, walk offending elements
 
 ### Demo Merged Into Chat + How-It-Works Strip (Jul 7, 2026)
 - `AIDemoPreview` no longer renders as a standalone box — it plays **inside `AIChatSearch` as its empty state**, behind a new opt-in `demo` prop (only the homepage hero passes it; `FloatingAIChat` and city pages are unaffected)
