@@ -422,6 +422,16 @@ export default function AIChatSearch({ initialCitySlug, compact, demo }: AIChatS
   const [creatingEvent, setCreatingEvent] = useState(false);
   const [showEventPanel, setShowEventPanel] = useState(false);
   const [demoDismissed, setDemoDismissed] = useState(false);
+  // Long placeholders wrap on narrow screens and collide with the input bar's
+  // bottom controls — swap in short variants below sm
+  const [narrowScreen, setNarrowScreen] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 639px)');
+    const update = () => setNarrowScreen(mq.matches);
+    update();
+    mq.addEventListener('change', update);
+    return () => mq.removeEventListener('change', update);
+  }, []);
   const cityDropdownRef = useRef<HTMLDivElement>(null);
   const eventPickerRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -1557,11 +1567,11 @@ export default function AIChatSearch({ initialCitySlug, compact, demo }: AIChatS
             ref={textareaRef}
             placeholder={
               showHistory
-                ? 'Select a conversation above or start a new one'
+                ? narrowScreen ? 'Select a conversation above' : 'Select a conversation above or start a new one'
                 : !selectedCity
-                  ? 'Pick your city above, or just ask — e.g. "Show me nail techs in Toronto"'
+                  ? narrowScreen ? 'Pick your city above, or just ask' : 'Pick your city above, or just ask — e.g. "Show me nail techs in Toronto"'
                   : messages.length === 0
-                    ? "Ask anything... e.g. I'm getting married this summer, help me plan"
+                    ? narrowScreen ? 'Ask anything...' : "Ask anything... e.g. I'm getting married this summer, help me plan"
                     : 'Ask a follow-up...'
             }
             value={input}
@@ -1570,7 +1580,7 @@ export default function AIChatSearch({ initialCitySlug, compact, demo }: AIChatS
             onKeyDown={handleKeyDown}
             disabled={showHistory}
             rows={1}
-            className="w-full px-5 pt-4 pb-14 text-base bg-transparent text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none resize-none leading-relaxed disabled:opacity-60"
+            className="w-full px-5 pt-4 pb-14 text-base bg-transparent text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 placeholder:whitespace-nowrap placeholder:overflow-hidden placeholder:text-ellipsis focus:outline-none resize-none leading-relaxed disabled:opacity-60"
             style={{ minHeight: '60px', maxHeight: '160px' }}
           />
           <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
