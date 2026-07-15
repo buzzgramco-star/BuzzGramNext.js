@@ -258,6 +258,21 @@ function MiniBusinessCard({
     c => c.status !== 'pending' && c.vendorSlug === business.slug
   );
 
+  // AI-only imports (listed=false) have no public profile page yet — link
+  // straight to Instagram instead. `listed` is undefined on older API
+  // responses, which should behave like a normal (listed) business.
+  const hasProfile = business.listed !== false;
+
+  // Lowest priced service, matching the homepage demo's "From $X" style. The
+  // AI search response returns a flat services list (parents and their price
+  // variations as siblings, linked only by parentServiceId) rather than a
+  // nested tree, and pricing commonly lives on the variation rather than the
+  // parent group — so the minimum is taken across the whole list, not just
+  // top-level entries.
+  const startingPrice = (business.services || [])
+    .filter(s => typeof s.priceNumeric === 'number')
+    .reduce((min: number | null, s) => (min === null || s.priceNumeric! < min ? s.priceNumeric! : min), null);
+
   return (
     <div
       onClick={() => onSelect(business.name, business.slug)}
@@ -297,23 +312,43 @@ function MiniBusinessCard({
         </p>
       )}
       {business.city && (
-        <p className="text-xs text-gray-400 dark:text-gray-500 truncate flex items-center gap-1 mb-2">
+        <p className="text-xs text-gray-400 dark:text-gray-500 truncate flex items-center gap-1 mb-1">
           <svg className="w-3 h-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
           </svg>
           {business.city.name}
         </p>
       )}
-      <Link
-        href={`/business/${business.slug}`}
-        onClick={e => e.stopPropagation()}
-        className="mt-auto text-xs text-orange-500 dark:text-orange-400 hover:underline flex items-center gap-0.5"
-      >
-        View profile
-        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-        </svg>
-      </Link>
+      {startingPrice !== null && (
+        <p className="text-xs font-medium text-gray-600 dark:text-gray-300 mb-2">
+          From ${startingPrice}
+        </p>
+      )}
+      {hasProfile ? (
+        <Link
+          href={`/business/${business.slug}`}
+          onClick={e => e.stopPropagation()}
+          className="mt-auto text-xs text-orange-500 dark:text-orange-400 hover:underline flex items-center gap-0.5"
+        >
+          View profile
+          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+          </svg>
+        </Link>
+      ) : business.instagramUrl ? (
+        <a
+          href={business.instagramUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={e => e.stopPropagation()}
+          className="mt-auto text-xs text-orange-500 dark:text-orange-400 hover:underline flex items-center gap-0.5"
+        >
+          View Instagram
+          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+          </svg>
+        </a>
+      ) : null}
     </div>
   );
 }

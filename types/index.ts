@@ -29,6 +29,7 @@ export interface BusinessService {
   businessId: number;
   serviceName: string;
   price: string | null;
+  priceNumeric?: number | null;
   duration: string | null;
   displayOrder: number;
   parentServiceId: number | null;
@@ -54,6 +55,10 @@ export interface Business {
   email: string | null;
   imageUrl: string | null;
   featured: boolean;
+  // Directory visibility, independent of active/paused status. false = AI-only
+  // (findable by the AI, not on the public directory yet) — undefined on
+  // older API responses that predate this field should be treated as listed.
+  listed?: boolean;
   claimedAt: string | null;
   approvedAt: string | null;
   createdAt: string;
