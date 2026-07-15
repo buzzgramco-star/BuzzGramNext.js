@@ -76,6 +76,8 @@ export interface BusinessSearchParams {
   search?: string;
   includeInactive?: boolean;
   includeUnlisted?: boolean;
+  onlyUnlisted?: boolean;
+  limit?: number;
 }
 
 export interface QuoteRequest {

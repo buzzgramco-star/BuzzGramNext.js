@@ -101,14 +101,15 @@ function AdminDashboardContent() {
   });
 
   // AI-only businesses (listed=false) — imported via CSV, findable by the AI
-  // but not yet public listings. includeUnlisted=true returns both listed and
-  // unlisted businesses, so filter client-side to just the unlisted ones.
-  const { data: allForAIOnly, isLoading: aiOnlyLoading } = useQuery({
-    queryKey: ['businessesIncludeUnlisted'],
-    queryFn: () => getBusinesses({ includeUnlisted: true }),
+  // but not yet public listings. onlyUnlisted filters server-side, unlike
+  // includeUnlisted (a mixed listed+unlisted superset that silently drops
+  // unlisted rows once total business count exceeds the default page limit —
+  // found this the hard way: only ~21 of 111 showed up before this fix).
+  const { data: aiOnlyBusinesses, isLoading: aiOnlyLoading } = useQuery({
+    queryKey: ['businessesOnlyUnlisted'],
+    queryFn: () => getBusinesses({ onlyUnlisted: true, limit: 5000 }),
     enabled: showAIOnlyBusinesses,
   });
-  const aiOnlyBusinesses = allForAIOnly?.filter((b) => b.listed === false) || [];
 
   // Search businesses query - only fetch when search is not empty
   const { data: searchResults, isLoading: isSearching } = useQuery({
@@ -166,7 +167,7 @@ function AdminDashboardContent() {
       updateBusinessListed(businessId, listed),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['adminStats'] });
-      queryClient.invalidateQueries({ queryKey: ['businessesIncludeUnlisted'] });
+      queryClient.invalidateQueries({ queryKey: ['businessesOnlyUnlisted'] });
       queryClient.invalidateQueries({ queryKey: ['businessSearch'] });
       setTogglingListedId(null);
     },
@@ -686,7 +687,7 @@ function AdminDashboardContent() {
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600 dark:text-gray-400">AI-Only Businesses</p>
                   <p className="text-2xl font-semibold text-gray-900 dark:text-white">
-                    {showAIOnlyBusinesses ? aiOnlyBusinesses.length : '—'}
+                    {showAIOnlyBusinesses ? (aiOnlyBusinesses?.length ?? '—') : '—'}
                   </p>
                   <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Not public yet</p>
                 </div>
@@ -1099,7 +1100,7 @@ function AdminDashboardContent() {
         {showAIOnlyBusinesses && (
           <div className="bg-white dark:bg-dark-card rounded-xl border border-gray-200 dark:border-dark-border p-6 mb-6">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
-              AI-Only Businesses ({aiOnlyBusinesses.length})
+              AI-Only Businesses ({aiOnlyBusinesses?.length ?? 0})
             </h3>
             <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
               Imported businesses findable by the AI but not yet shown on the public directory.
@@ -1110,7 +1111,7 @@ function AdminDashboardContent() {
               <div className="text-center py-8">
                 <LoadingSpinner />
               </div>
-            ) : aiOnlyBusinesses.length > 0 ? (
+            ) : aiOnlyBusinesses && aiOnlyBusinesses.length > 0 ? (
               <div className="space-y-3">
                 {aiOnlyBusinesses.map((business) => (
                   <div
