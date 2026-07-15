@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
+import { Metadata } from 'next';
 import { headers } from 'next/headers';
+import Link from 'next/link';
 import { getCities, getCategories, getSubcategories } from '@/lib/api';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -13,8 +15,56 @@ import FinalCTA from '@/components/homepage/FinalCTA';
 // Force dynamic rendering for IP-based city detection
 export const dynamic = 'force-dynamic';
 
+// Homepage-only pause ahead of launch (Jul 2026). Every other route (city
+// pages, business pages, /for-businesses, /business-signup, login,
+// dashboards) is completely unaffected — only this file's content changes.
+// Flip back to false to restore the full homepage instantly, no other
+// changes needed.
+const COMING_SOON = true;
+
+export const metadata: Metadata = COMING_SOON ? {
+  title: 'BuzzGram — Launching Soon',
+  description: 'BuzzGram is putting the finishing touches on an AI that helps you find the best home-based and Instagram-only businesses in your city. Launching soon.',
+} : {};
+
+function ComingSoonPage() {
+  return (
+    <>
+      <Suspense fallback={<div className="h-16" />}>
+        <Header />
+      </Suspense>
+      <div className="min-h-screen bg-white dark:bg-dark-bg flex flex-col">
+        <div className="flex-1 flex items-center justify-center px-4 py-24">
+          <div className="max-w-xl text-center">
+            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 text-orange-700 dark:text-orange-400 text-xs font-semibold tracking-wide uppercase mb-6">
+              <span className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse" />
+              Launching soon
+            </span>
+            <h1 className="text-4xl sm:text-5xl font-extrabold text-gray-900 dark:text-white mb-5 tracking-tight leading-tight">
+              Something&apos;s cooking.
+            </h1>
+            <p className="text-lg text-gray-500 dark:text-gray-400 leading-relaxed mb-8">
+              We&apos;re putting the finishing touches on BuzzGram — an AI that helps you find the
+              best home-based and Instagram-only businesses in your city. Check back soon.
+            </p>
+            <Link
+              href="/for-businesses"
+              className="inline-block px-6 py-3 bg-orange-600 hover:bg-orange-700 text-white font-semibold rounded-xl transition-all shadow-lg hover:shadow-xl"
+            >
+              Are you a business owner? List free before we launch →
+            </Link>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    </>
+  );
+}
+
 // Server Component - SSR for SEO
 export default async function HomePage() {
+  if (COMING_SOON) return <ComingSoonPage />;
+
   try {
     // Get detected city from middleware
     const headersList = await headers();
