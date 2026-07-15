@@ -385,10 +385,27 @@ Blog content is stored as HTML in the database and rendered via `dangerouslySetI
 
 ## Recent Changes (July 2026)
 
-### IMPORTANT — Branch State Ahead of AI Launch (as of Jul 14, 2026)
-- **`main` (production, buzzgram.co)**: pre-AI site **plus** the `/for-businesses` page and its dependencies (`FloatingUseCases`, `Reveal`, `AIDemoPreview`), the mobile overflow fixes, and the "Other" signup option. **No AI chat, no homepage changes.**
-- **`feature/ai-search` (preview)**: everything — AI chat, event planner, all homepage changes, plus identical copies of everything on main. Shared files are kept byte-identical on both branches so the launch merge is conflict-free.
+### IMPORTANT — Branch State Ahead of AI Launch (as of Jul 15, 2026)
+- **`main` (production, buzzgram.co)**: pre-AI site **plus** the `/for-businesses` page and its dependencies (`FloatingUseCases`, `Reveal`, `AIDemoPreview`), the mobile overflow fixes, the "Other" signup option, the `listed` visibility flag, and (as of Jul 15) a homepage pause — see below. **No AI chat.**
+- **`app/page.tsx` has FULLY DIVERGED between the two branches — they are not the same file evolving over time, they're two different homepages.** `main`'s version is the older one: `force-dynamic`, server-side IP detection via `x-detected-city` header, sections `HeroSection`/`CategoryShowcase`/`QuickValueProps`/`CitiesGridMatrix`/`FAQ`/`FinalCTA`. It was **never updated** with the "Homepage Static Rendering" or "Demo Merged Into Chat" work below — those entries describe `feature/ai-search`'s homepage only. Don't assume "the homepage" means the same file on both branches — check which branch before touching it. (Discovered Jul 15 while building the coming-soon pause below; a public API smoke-test caught it, not code inspection.)
+- **`feature/ai-search` (preview)**: everything — AI chat, event planner, all homepage changes (static, `WhyBuzzGram`/`BrowseCategories`/pill field), plus identical copies of the shared files that are also on main (`/for-businesses`, `FloatingUseCases`, `Reveal`, mobile fixes, `listed` support). Shared files are kept byte-identical on both branches so the launch merge is conflict-free.
 - Production updates ship by copying specific files onto a branch off `main` in a worktree, building, and pushing — never by merging the feature branch (that's the launch step).
+
+### Homepage Coming-Soon Pause (Jul 15, 2026) — LIVE ON PRODUCTION
+`main`'s `app/page.tsx` is gated behind a single `const COMING_SOON = true` at the top of the file. When true, `HomePage()` returns early with a `ComingSoonPage()` — real `<Header/>` (Login/Sign Up still reachable) and `<Footer/>` (all existing links, including For Businesses), a "Launching soon" message, and a CTA into `/for-businesses` — **before** any of the existing data-fetching (`getCities`/`getCategories`/`getSubcategories`) or IP-header logic runs. `export const dynamic = 'force-dynamic'` and the full original homepage body are untouched below the early return.
+- **Scope is homepage-only.** Every other route (city pages, business pages, `/for-businesses`, `/business-signup`, login, dashboards, admin) is unaffected — verified directly against production (200s on all of them) after deploying this.
+- **Revert**: flip `COMING_SOON` to `false`, commit, push to `main`. Nothing else to change — the original homepage code path is still there, just currently unreached.
+- Page-level `metadata` export also branches on the flag ("BuzzGram — Launching Soon" vs the normal SEO title/description).
+- Built and verified via the worktree-off-`main` pattern (see Branch State note); confirmed live with direct curl checks against `buzzgram.co`, not just the build output.
+
+### AI-Only Business Cards: Instagram Link + "From $X" Pricing (Jul 15, 2026) — feature branch only
+Companion to the backend's `listed` visibility flag and CSV import (see backend CLAUDE.md). In `MiniBusinessCard` (`components/AIChatSearch.tsx`):
+- **`hasProfile = business.listed !== false`** — when false, the card's bottom link goes straight to `business.instagramUrl` (new tab, "View Instagram" label) instead of `/business/[slug]`, since AI-only imports have no public profile page yet. `listed` undefined (older API responses) behaves as listed, matching the backend default.
+- **"From $X" price line**, styled like the homepage demo — takes the **minimum `priceNumeric` across the full flat `services` array**, not just top-level entries. Verified against seeded test data that this matters: the AI search response returns services as a flat list (parent group + variations as siblings linked only by `parentServiceId`, not a nested tree), and pricing on imported businesses almost always lives on the variation, not the parent group name — a top-level-only search found nothing for most of them.
+- Added `listed?: boolean` to the `Business` type and `priceNumeric?: number | null` to `BusinessService` (`types/index.ts`).
+
+### Manual Event-Type Picker Parked for Launch (Jul 14, 2026) — feature branch only
+The "🎉 Plan event" dropdown button in the chat input bar (pick a type → instant checklist, no typing) is hidden behind `MANUAL_EVENT_PICKER_ENABLED = false` in `AIChatSearch.tsx`. Scope is only this manual shortcut UI — the AI's own conversational planning detection (typing "help me plan my wedding" → checklist + event) is untouched and still fully active, matching the unchanged homepage demo/marketing copy. Flip the flag back to `true` to restore; no other changes needed.
 
 ### For-Businesses Vendor Acquisition Page (Jul 13–14, 2026) — LIVE ON PRODUCTION
 `app/for-businesses/page.tsx` — static pitch page for home-based/Instagram vendors, AI-first with "launching soon" framing:
@@ -425,10 +442,10 @@ Playwright audit at 375px found ~100px horizontal scroll on every page:
 - Hero: removed the old demo box + "Now try it yourself" divider; added a **3-step how-it-works strip** under the chat (Say what you need → AI searches your city → Connect directly)
 - Note: demo vendors are still fictional — swapping in real businesses is a known TODO
 
-### Homepage Static Rendering + Crawlable City Links (Jul 7, 2026)
+### Homepage Static Rendering + Crawlable City Links (Jul 7, 2026) — feature branch only
 - **Removed `force-dynamic` from `app/page.tsx`** — it existed for server-side IP city detection that was never built (detection is client-side in AIChatSearch via ipapi.co). Homepage is now statically rendered and served from Vercel's CDN. Removed the dead `detectedCity` prop from HeroSection.
 - **City pills in `BrowseCategories` are now real `<Link href="/city/[slug]">` elements** with `prefetch={false}` and an intercepted click that preserves the old behavior (pill switches the category-card destinations). All 10 city links now appear in the prerendered HTML for crawlers — previously they were `<button>`s and Google only saw the 3 Toronto category links.
-- **IMPORTANT**: do not re-add `force-dynamic` to the homepage; nothing in it varies per request
+- **IMPORTANT**: do not re-add `force-dynamic` to this (feature branch) homepage; nothing in it varies per request. **This never happened on `main`** — production's homepage kept `force-dynamic` and IP-header detection the whole time (see Branch State note above and the Jul 15 coming-soon entry below).
 
 ## Recent Changes (June 2026)
 
@@ -799,5 +816,6 @@ npm run build
 - Dark mode: Test both light and dark themes when making UI changes
 - Use TodoWrite tool to track multi-step tasks
 - Vercel deployments are automatic on git push to main; pushes to feature branches create preview deployments only
-- Homepage must stay statically rendered — no `force-dynamic`, no per-request logic in `app/page.tsx` (city detection is client-side in AIChatSearch)
+- Homepage must stay statically rendered — no `force-dynamic`, no per-request logic in `app/page.tsx` (city detection is client-side in AIChatSearch). **This rule only applies to `feature/ai-search`'s homepage — `main`'s `app/page.tsx` is a different, older file that still has `force-dynamic` and was never migrated.** Check which branch before assuming which rule applies (see Branch State note under Recent Changes).
 - The AI demo (`AIDemoPreview`) only renders inside AIChatSearch when the `demo` prop is passed — currently homepage hero only
+- `main`'s `app/page.tsx` currently has `COMING_SOON = true` (Jul 15, 2026) — check that flag before assuming what the live homepage shows or touching that file
