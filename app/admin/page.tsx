@@ -9,7 +9,7 @@ import Link from 'next/link';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { getAdminStats, getAIStats, getAllUsers, getGeneralQuotes, getAllBusinessQuotes, getBusinesses, deleteBusiness, updateBusinessStatus, deleteUser, updateUserStatus, getBusinessClaims, approveBusinessClaim, rejectBusinessClaim, getBusinessRegistrations, approveBusinessRegistration, rejectBusinessRegistration, getAllReviews, toggleReviewVisibility, deleteReview, deleteAdminService, duplicateAdminService } from '@/lib/api';
+import { getAdminStats, getAIStats, getAllUsers, getGeneralQuotes, getAllBusinessQuotes, getBusinesses, deleteBusiness, updateBusinessStatus, updateBusinessListed, deleteUser, updateUserStatus, getBusinessClaims, approveBusinessClaim, rejectBusinessClaim, getBusinessRegistrations, approveBusinessRegistration, rejectBusinessRegistration, getAllReviews, toggleReviewVisibility, deleteReview, deleteAdminService, duplicateAdminService } from '@/lib/api';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import StarRating from '@/components/StarRating';
 import BlogManagement from '@/components/BlogManagement';
@@ -28,6 +28,8 @@ function AdminDashboardContent() {
   const [showReviews, setShowReviews] = useState(false);
   const [showBlogs, setShowBlogs] = useState(false);
   const [showAIStats, setShowAIStats] = useState(false);
+  const [showAIOnlyBusinesses, setShowAIOnlyBusinesses] = useState(false);
+  const [togglingListedId, setTogglingListedId] = useState<number | null>(null);
   const [editingBlog, setEditingBlog] = useState<BlogPost | null>(null);
   const [creatingBlog, setCreatingBlog] = useState(false);
   const [claimFilter, setClaimFilter] = useState<'claims' | 'registrations'>('claims');
@@ -98,6 +100,16 @@ function AdminDashboardContent() {
     enabled: showAIStats,
   });
 
+  // AI-only businesses (listed=false) — imported via CSV, findable by the AI
+  // but not yet public listings. includeUnlisted=true returns both listed and
+  // unlisted businesses, so filter client-side to just the unlisted ones.
+  const { data: allForAIOnly, isLoading: aiOnlyLoading } = useQuery({
+    queryKey: ['businessesIncludeUnlisted'],
+    queryFn: () => getBusinesses({ includeUnlisted: true }),
+    enabled: showAIOnlyBusinesses,
+  });
+  const aiOnlyBusinesses = allForAIOnly?.filter((b) => b.listed === false) || [];
+
   // Search businesses query - only fetch when search is not empty
   const { data: searchResults, isLoading: isSearching } = useQuery({
     queryKey: ['businessSearch', businessSearch],
@@ -145,6 +157,30 @@ function AdminDashboardContent() {
     const newStatus = currentStatus === 'active' ? 'paused' : 'active';
     setTogglingBusinessId(businessId);
     toggleStatusMutation.mutate({ businessId, status: newStatus });
+  };
+
+  // Toggle listed mutation — promotes an AI-only business to a full public
+  // listing, or moves one back to AI-only
+  const toggleListedMutation = useMutation({
+    mutationFn: ({ businessId, listed }: { businessId: number; listed: boolean }) =>
+      updateBusinessListed(businessId, listed),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['adminStats'] });
+      queryClient.invalidateQueries({ queryKey: ['businessesIncludeUnlisted'] });
+      queryClient.invalidateQueries({ queryKey: ['businessSearch'] });
+      setTogglingListedId(null);
+    },
+    onError: (error: any) => {
+      alert(error.response?.data?.message || 'Failed to update business listing');
+      setTogglingListedId(null);
+    },
+  });
+
+  const handleToggleListed = (businessId: number, currentlyListed: boolean, businessName: string) => {
+    const action = currentlyListed ? 'move back to AI-only (hide from the public directory)' : 'promote to a full public listing';
+    if (!window.confirm(`Are you sure you want to ${action} for "${businessName}"?`)) return;
+    setTogglingListedId(businessId);
+    toggleListedMutation.mutate({ businessId, listed: !currentlyListed });
   };
 
   // Delete user mutation
@@ -633,6 +669,33 @@ function AdminDashboardContent() {
               </svg>
             </div>
           </button>
+
+          <button
+            onClick={() => setShowAIOnlyBusinesses(!showAIOnlyBusinesses)}
+            className="w-full bg-white dark:bg-dark-card rounded-xl border border-gray-200 dark:border-dark-border p-6 hover:border-teal-500 dark:hover:border-teal-500 transition-all cursor-pointer text-left"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <div className="w-12 h-12 bg-teal-100 dark:bg-teal-900/20 rounded-lg flex items-center justify-center">
+                    <svg className="w-6 h-6 text-teal-600 dark:text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                  </div>
+                </div>
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">AI-Only Businesses</p>
+                  <p className="text-2xl font-semibold text-gray-900 dark:text-white">
+                    {showAIOnlyBusinesses ? aiOnlyBusinesses.length : '—'}
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Not public yet</p>
+                </div>
+              </div>
+              <svg className={`w-5 h-5 text-gray-400 transition-transform ${showAIOnlyBusinesses ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+          </button>
         </div>
 
         {/* Expandable Businesses Breakdown */}
@@ -1029,6 +1092,68 @@ function AdminDashboardContent() {
                 </p>
               )}
             </div>
+          </div>
+        )}
+
+        {/* Expandable AI-Only Businesses List */}
+        {showAIOnlyBusinesses && (
+          <div className="bg-white dark:bg-dark-card rounded-xl border border-gray-200 dark:border-dark-border p-6 mb-6">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
+              AI-Only Businesses ({aiOnlyBusinesses.length})
+            </h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+              Imported businesses findable by the AI but not yet shown on the public directory.
+              Promote one to make it a full listing.
+            </p>
+
+            {aiOnlyLoading ? (
+              <div className="text-center py-8">
+                <LoadingSpinner />
+              </div>
+            ) : aiOnlyBusinesses.length > 0 ? (
+              <div className="space-y-3">
+                {aiOnlyBusinesses.map((business) => (
+                  <div
+                    key={business.id}
+                    className="p-4 rounded-lg border border-gray-200 dark:border-dark-border bg-gray-50 dark:bg-dark-bg"
+                  >
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <h5 className="font-medium text-gray-900 dark:text-white mb-1">
+                          {business.name}
+                        </h5>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          {business.city?.name} • {business.category?.name}
+                          {business.subcategory?.name ? ` • ${business.subcategory.name}` : ''}
+                        </p>
+                        <span className="inline-block mt-2 px-2 py-1 rounded text-xs font-medium bg-teal-100 dark:bg-teal-900/20 text-teal-800 dark:text-teal-400">
+                          AI-only
+                        </span>
+                      </div>
+
+                      <button
+                        onClick={() => handleToggleListed(business.id, business.listed === true, business.name)}
+                        disabled={togglingListedId === business.id}
+                        className="px-3 py-2 bg-teal-100 dark:bg-teal-900/20 text-teal-800 dark:text-teal-400 hover:bg-teal-200 dark:hover:bg-teal-900/30 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed ml-4"
+                        title="Promote to a full public listing"
+                      >
+                        {togglingListedId === business.id ? (
+                          <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                          </svg>
+                        ) : (
+                          'Promote to Listing'
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-gray-500 dark:text-gray-400 py-4">
+                No AI-only businesses right now.
+              </p>
+            )}
           </div>
         )}
 

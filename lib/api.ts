@@ -206,6 +206,12 @@ export const updateBusinessStatus = async (businessId: number, status: string) =
   return data;
 };
 
+// Admin: Promote an AI-only business to a full public listing, or the reverse
+export const updateBusinessListed = async (businessId: number, listed: boolean) => {
+  const { data } = await api.put(`/admin/businesses/${businessId}`, { listed });
+  return data;
+};
+
 // Admin: Create a new business
 export const createAdminBusiness = async (businessData: {
   name: string;

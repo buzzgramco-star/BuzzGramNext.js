@@ -75,6 +75,7 @@ export interface BusinessSearchParams {
   subcategoryId?: number;
   search?: string;
   includeInactive?: boolean;
+  includeUnlisted?: boolean;
 }
 
 export interface QuoteRequest {
