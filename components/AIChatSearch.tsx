@@ -61,6 +61,13 @@ const EXAMPLE_PROMPTS = [
   'Event planner for a party',
 ];
 
+// Parked for launch (Jul 14, 2026): the manual event-type picker button/dropdown
+// in the input bar is hidden. The AI's own conversational planning detection
+// (typing "help me plan my wedding" -> checklist + event) is untouched and
+// stays fully active — this flag affects ONLY the manual shortcut UI below.
+// Flip back to true to re-enable; no other code changes needed.
+const MANUAL_EVENT_PICKER_ENABLED = false;
+
 const EVENT_TYPES = [
   { type: 'wedding',       label: 'Wedding',       icon: '💍' },
   { type: 'bridal_shower', label: 'Bridal Shower', icon: '👰' },
@@ -1658,7 +1665,7 @@ export default function AIChatSearch({ initialCitySlug, compact, demo }: AIChatS
                 </div>
 
                 {/* Event planner picker — always visible; guests prompted to log in */}
-                {!showHistory && (
+                {!showHistory && MANUAL_EVENT_PICKER_ENABLED && (
                   <div ref={eventPickerRef} className="relative">
                     <button
                       type="button"
