@@ -283,7 +283,7 @@ function MiniBusinessCard({
   return (
     <div
       onClick={() => onSelect(business.name, business.slug)}
-      className="cursor-pointer bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-xl p-3 hover:shadow-md hover:border-orange-300 dark:hover:border-orange-500 transition-all group flex flex-col relative"
+      className="cursor-pointer bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-xl p-3 hover:shadow-md hover:border-orange-300 dark:hover:border-orange-500 transition-all group flex flex-col relative h-full"
     >
       {showBookmark && (
         <button
@@ -310,13 +310,25 @@ function MiniBusinessCard({
           )}
         </button>
       )}
-      <p className="text-sm font-semibold text-gray-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors line-clamp-2 leading-snug mb-2 pr-6">
+      <p className="text-sm font-semibold text-gray-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors truncate mb-2 pr-6">
         {business.name}
       </p>
       {business.instagramHandle && (
-        <p className="text-xs text-gray-500 dark:text-gray-400 truncate mb-1.5">
-          {business.instagramHandle}
-        </p>
+        business.instagramUrl ? (
+          <a
+            href={business.instagramUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={e => e.stopPropagation()}
+            className="text-xs text-orange-500 dark:text-orange-400 hover:underline truncate mb-1.5 block"
+          >
+            {business.instagramHandle}
+          </a>
+        ) : (
+          <p className="text-xs text-gray-500 dark:text-gray-400 truncate mb-1.5">
+            {business.instagramHandle}
+          </p>
+        )
       )}
       {business.city && (
         <p className="text-xs text-gray-400 dark:text-gray-500 truncate flex items-center gap-1 mb-1">
