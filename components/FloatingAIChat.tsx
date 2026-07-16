@@ -36,12 +36,12 @@ export default function FloatingAIChat({ citySlug }: Props) {
         />
       )}
 
-      {/* Panel — bottom sheet on mobile, floating card on desktop */}
+      {/* Panel — full-screen takeover on mobile (Siri/iMessage-style), floating card on desktop */}
       <div
         className={`fixed z-50 transition-all duration-300 ease-out
-          bottom-0 left-0 right-0 rounded-t-2xl
-          sm:bottom-6 sm:right-6 sm:left-auto sm:w-[460px] sm:rounded-2xl
-          bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border shadow-2xl
+          inset-0
+          sm:inset-auto sm:bottom-6 sm:right-6 sm:w-[460px] sm:rounded-2xl
+          bg-white dark:bg-dark-card sm:border sm:border-gray-200 sm:dark:border-dark-border shadow-2xl
           ${open ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0 pointer-events-none'}
         `}
       >
@@ -67,9 +67,12 @@ export default function FloatingAIChat({ citySlug }: Props) {
           </button>
         </div>
 
-        {/* Chat — compact keeps messages scrolling internally so panel stays bounded */}
+        {/* Chat — compact keeps messages scrolling internally so panel stays bounded.
+            fullHeight fills the mobile full-screen panel; falls back to the normal
+            420px cap at sm: automatically (see AIChatSearch), so this is safe on
+            the small desktop floating card too. */}
         <div className="p-4 sm:p-5">
-          <AIChatSearch initialCitySlug={citySlug} compact />
+          <AIChatSearch initialCitySlug={citySlug} compact fullHeight />
         </div>
       </div>
     </>

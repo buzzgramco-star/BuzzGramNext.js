@@ -17,6 +17,13 @@ interface AIChatSearchProps {
   compact?: boolean;
   /** Plays an animated demo conversation as the empty state; dissolves on first interaction */
   demo?: boolean;
+  /** Fires when the user first engages the input (focus) — lets a parent switch
+   *  to a full-screen mobile layout (Siri/iMessage-style takeover) without this
+   *  component knowing anything about that; it just reports "someone started". */
+  onEngage?: () => void;
+  /** Widens the compact mode's fixed 420px scroll cap to fill a full-screen
+   *  mobile container instead. No effect unless `compact` is also set. */
+  fullHeight?: boolean;
 }
 
 interface ChatMessage {
@@ -441,7 +448,14 @@ function CarouselRow({ group, onSelect, events, onSaveVendor, savingVendor }: {
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-export default function AIChatSearch({ initialCitySlug, compact, demo }: AIChatSearchProps) {
+export default function AIChatSearch({ initialCitySlug, compact, demo, onEngage, fullHeight }: AIChatSearchProps) {
+  // fullHeight bakes in its own sm: fallback to the normal 420px cap, so
+  // callers can pass it unconditionally (e.g. "always full height on mobile
+  // popups") without tracking viewport width themselves — at sm: and up this
+  // is always identical to the plain compact behavior.
+  const scrollCapClass = compact
+    ? (fullHeight ? 'max-h-[calc(100dvh-220px)] sm:max-h-[420px] overflow-y-auto pr-1' : 'max-h-[420px] overflow-y-auto pr-1')
+    : '';
   const { user } = useAuth();
   const [cities, setCities] = useState<City[]>([]);
   const [selectedCity, setSelectedCity] = useState<City | null>(null);
@@ -1346,7 +1360,7 @@ export default function AIChatSearch({ initialCitySlug, compact, demo }: AIChatS
               No saved conversations yet.
             </p>
           ) : (
-            <div className={`space-y-1.5 ${compact ? 'max-h-[420px] overflow-y-auto pr-1' : ''}`}>
+            <div className={`space-y-1.5 ${scrollCapClass}`}>
               {conversations.map(conv => (
                 <div
                   key={conv.id}
@@ -1384,7 +1398,7 @@ export default function AIChatSearch({ initialCitySlug, compact, demo }: AIChatS
           {messages.length > 0 && (
             <div
               ref={messagesContainerRef}
-              className={`space-y-5 ${compact ? 'max-h-[420px] overflow-y-auto pr-1' : ''}`}
+              className={`space-y-5 ${scrollCapClass}`}
             >
               {messages.map(msg => (
                 <div key={msg.id}>
@@ -1618,7 +1632,7 @@ export default function AIChatSearch({ initialCitySlug, compact, demo }: AIChatS
             }
             value={input}
             onChange={e => { if (!showHistory) { setInput(e.target.value); resizeTextarea(e.target); } }}
-            onFocus={() => { if (demo && !demoDismissed) setDemoDismissed(true); }}
+            onFocus={() => { if (demo && !demoDismissed) setDemoDismissed(true); onEngage?.(); }}
             onKeyDown={handleKeyDown}
             disabled={showHistory}
             rows={1}

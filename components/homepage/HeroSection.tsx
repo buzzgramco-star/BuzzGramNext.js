@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import AIChatSearch from '@/components/AIChatSearch';
 import FloatingUseCases, { UseCaseTicker } from '@/components/homepage/FloatingUseCases';
@@ -17,6 +18,21 @@ const USE_CASE_PILLS = [
 ];
 
 export default function HeroSection() {
+  // Mobile-only Siri/iMessage-style takeover: the instant someone engages the
+  // input (or taps the demo, which focuses it), the chat expands to cover the
+  // full viewport instead of sitting inline in the hero. Same AIChatSearch
+  // instance throughout — this only repositions its wrapper via CSS, so
+  // messages/focus/state are never lost switching in or out.
+  const [mobileExpanded, setMobileExpanded] = useState(false);
+
+  useEffect(() => {
+    if (!mobileExpanded) return;
+    if (!window.matchMedia('(max-width: 639px)').matches) return; // desktop: no-op, no scroll lock
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = prevOverflow; };
+  }, [mobileExpanded]);
+
   return (
     <div className="relative bg-white dark:bg-dark-bg overflow-hidden">
       {/* Subtle background accent */}
@@ -49,9 +65,30 @@ export default function HeroSection() {
           and they&apos;re everywhere in your city. Just tell BuzzGram what you need and we&apos;ll find them.
         </p>
 
-        {/* AI Chat — the hero. Plays a demo conversation until the user interacts. */}
-        <div className="bg-gray-50 dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-2xl p-5 sm:p-6 shadow-sm mb-4 lg:mb-8">
-          <AIChatSearch compact demo />
+        {/* AI Chat — the hero. Plays a demo conversation until the user interacts.
+            On mobile, engaging the input expands this to a full-screen takeover
+            (sm: classes below restore the normal inline hero box on desktop). */}
+        <div
+          className={
+            mobileExpanded
+              ? 'fixed inset-0 z-50 bg-white dark:bg-dark-bg p-3 pt-4 sm:static sm:inset-auto sm:z-auto sm:mb-4 lg:mb-8 sm:bg-gray-50 sm:dark:bg-dark-card sm:border sm:border-gray-200 sm:dark:border-dark-border sm:rounded-2xl sm:p-6 sm:shadow-sm'
+              : 'bg-gray-50 dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-2xl p-5 sm:p-6 shadow-sm mb-4 lg:mb-8'
+          }
+        >
+          {mobileExpanded && (
+            <button
+              type="button"
+              onClick={() => setMobileExpanded(false)}
+              className="sm:hidden flex items-center gap-1 text-sm font-medium text-gray-500 dark:text-gray-400 px-2 py-1 mb-2"
+              aria-label="Close chat"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+              Close
+            </button>
+          )}
+          <AIChatSearch compact demo onEngage={() => setMobileExpanded(true)} fullHeight={mobileExpanded} />
         </div>
 
         {/* Mobile: tappable use-case ticker feeds the chat (floating field is lg+) */}
