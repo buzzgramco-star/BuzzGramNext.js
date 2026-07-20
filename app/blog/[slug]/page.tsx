@@ -10,6 +10,29 @@ type Props = {
   params: Promise<{ slug: string }>;
 };
 
+// Pulls Q&A pairs out of a post's own "<h2>FAQ</h2>" section (written directly
+// in the blog content) to build FAQPage schema — crawler-only, renders nothing;
+// human readers already see the same FAQ as part of the article body.
+function extractFaqSchema(html: string) {
+  const faqSection = html.match(/<h2[^>]*>\s*FAQ\s*<\/h2>([\s\S]*)$/i);
+  if (!faqSection) return null;
+
+  const strip = (s: string) => s.replace(/<[^>]+>/g, '').trim();
+  const qaPattern = /<h3[^>]*>([\s\S]*?)<\/h3>\s*<p[^>]*>([\s\S]*?)<\/p>/gi;
+  const mainEntity: { '@type': string; name: string; acceptedAnswer: { '@type': string; text: string } }[] = [];
+
+  let match;
+  while ((match = qaPattern.exec(faqSection[1])) !== null) {
+    const question = strip(match[1]);
+    const answer = strip(match[2]);
+    if (question && answer) {
+      mainEntity.push({ '@type': 'Question', name: question, acceptedAnswer: { '@type': 'Answer', text: answer } });
+    }
+  }
+
+  return mainEntity.length > 0 ? mainEntity : null;
+}
+
 // Generate metadata for SEO
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   try {
@@ -65,16 +88,27 @@ export default async function BlogDetailPage({ params }: Props) {
       },
     };
 
+    const faqEntities = extractFaqSchema(blog.content);
+    const faqStructuredData = faqEntities
+      ? { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faqEntities }
+      : null;
+
     return (
       <>
         <Suspense fallback={<div className="h-16" />}>
           <Header />
         </Suspense>
-        {/* Add structured data */}
+        {/* Structured data for Google/LLM crawlers only — no visible UI */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
         />
+        {faqStructuredData && (
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(faqStructuredData) }}
+          />
+        )}
 
         <div className="min-h-screen bg-white dark:bg-dark-bg flex flex-col">
           <BlogDetailClient blog={blog} />
