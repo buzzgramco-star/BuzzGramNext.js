@@ -3,9 +3,20 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import type { BlogPost } from '@/types';
+import AIDemoPreview from '@/components/homepage/AIDemoPreview';
 
 type Props = {
   blog: BlogPost;
+};
+
+// Maps specific posts to a single locked AIDemoPreview scenario (index into
+// its DEMOS array) so the embedded demo stays focused on that post's topic
+// instead of cycling through unrelated categories. Display-only, same as
+// the for-businesses page — no onTry, no live chat required.
+const BLOG_DEMO_INDEX: Record<string, number> = {
+  'how-to-find-a-nail-tech-near-you': 0,
+  'custom-birthday-cakes-near-you': 2,
+  'get-discovered-by-local-customers-without-ads': 3,
 };
 
 export default function BlogDetailClient({ blog }: Props) {
@@ -141,10 +152,15 @@ export default function BlogDetailClient({ blog }: Props) {
       </div>
 
       {/* Content with Sidebar Layout */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 min-w-0">
         <div className="flex gap-12">
           {/* Main Content */}
           <article className="flex-1 min-w-0">
+            {BLOG_DEMO_INDEX[blog.slug] !== undefined && (
+              <div className="mb-10 bg-gray-50 dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-2xl p-5 shadow-sm">
+                <AIDemoPreview fixedIndex={BLOG_DEMO_INDEX[blog.slug]} />
+              </div>
+            )}
             <div
               className="blog-content max-w-none break-words"
               dangerouslySetInnerHTML={{ __html: blog.content }}
