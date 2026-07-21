@@ -19,6 +19,11 @@ const BLOG_DEMO_INDEX: Record<string, number> = {
   'get-discovered-by-local-customers-without-ads': 3,
 };
 
+// Posts that get the full cycling demo (all categories, same as the
+// homepage/for-businesses) instead of being locked to one — for posts
+// introducing the platform broadly rather than one specific category.
+const BLOG_FULL_DEMO_SLUGS = new Set(['introducing-buzzgram-ai']);
+
 export default function BlogDetailClient({ blog }: Props) {
   const [activeSection, setActiveSection] = useState('');
   const [readProgress, setReadProgress] = useState(0);
@@ -156,7 +161,7 @@ export default function BlogDetailClient({ blog }: Props) {
         <div className="flex gap-12">
           {/* Main Content */}
           <article className="flex-1 min-w-0">
-            {BLOG_DEMO_INDEX[blog.slug] !== undefined && (
+            {(BLOG_DEMO_INDEX[blog.slug] !== undefined || BLOG_FULL_DEMO_SLUGS.has(blog.slug)) && (
               <div className="mb-10 bg-gray-50 dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-2xl p-5 shadow-sm">
                 <AIDemoPreview fixedIndex={BLOG_DEMO_INDEX[blog.slug]} showDetail />
               </div>
