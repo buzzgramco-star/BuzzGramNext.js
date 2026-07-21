@@ -158,7 +158,7 @@ export default function BlogDetailClient({ blog }: Props) {
           <article className="flex-1 min-w-0">
             {BLOG_DEMO_INDEX[blog.slug] !== undefined && (
               <div className="mb-10 bg-gray-50 dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-2xl p-5 shadow-sm">
-                <AIDemoPreview fixedIndex={BLOG_DEMO_INDEX[blog.slug]} />
+                <AIDemoPreview fixedIndex={BLOG_DEMO_INDEX[blog.slug]} showDetail />
               </div>
             )}
             <div

@@ -6,6 +6,9 @@ interface DemoVendor {
   name: string;
   handle: string;
   detail: string;
+  /** Full services + pricing, shown in the optional "select a business" detail
+   *  panel (showDetail). Only the spotlighted vendor (vendors[0]) needs this. */
+  services?: { name: string; price: string }[];
 }
 
 interface Demo {
@@ -19,7 +22,14 @@ const DEMOS: Demo[] = [
     buildQuery: city => city ? `nail tech in ${city} under $60` : 'nail tech under $60 this weekend',
     response: "Found some great nail techs available this weekend under $60. All home-based and Instagram-only.",
     vendors: [
-      { name: 'Glam Nails by Sara', handle: '@glamnailsbysara', detail: 'Full Set · From $45' },
+      {
+        name: 'Glam Nails by Sara', handle: '@glamnailsbysara', detail: 'Full Set · From $45',
+        services: [
+          { name: 'Full Set', price: '$45' },
+          { name: 'Fill', price: '$35' },
+          { name: 'Gel Manicure', price: '$30' },
+        ],
+      },
       { name: 'Polish & Co.', handle: '@polishandco', detail: 'Gel Mani · $55' },
       { name: 'Nails by Mia', handle: '@nailsbymia_', detail: 'Acrylic Set · From $50' },
     ],
@@ -28,7 +38,14 @@ const DEMOS: Demo[] = [
     buildQuery: () => 'help me plan my summer wedding',
     response: "Let's get your wedding sorted. Here are some vendors I'd recommend to start with.",
     vendors: [
-      { name: 'Events by Leila', handle: '@eventsbyleila', detail: 'Full Planning · From $1,200' },
+      {
+        name: 'Events by Leila', handle: '@eventsbyleila', detail: 'Full Planning · From $1,200',
+        services: [
+          { name: 'Full Wedding Planning', price: 'From $1,200' },
+          { name: 'Day-of Coordination', price: 'From $500' },
+          { name: 'Partial Planning', price: 'From $800' },
+        ],
+      },
       { name: 'Bloom & Co.', handle: '@bloomandco_', detail: 'Florals & Decor · From $400' },
       { name: 'Capture Moments', handle: '@capturemoments', detail: 'Photography · From $800' },
     ],
@@ -37,7 +54,14 @@ const DEMOS: Demo[] = [
     buildQuery: city => city ? `custom birthday cake in ${city} under $100` : 'custom birthday cake under $100',
     response: "Here are some home bakers who do custom birthday cakes under $100.",
     vendors: [
-      { name: 'Sweet by Danielle', handle: '@sweetbydanielle', detail: 'Custom Cakes · From $80' },
+      {
+        name: 'Sweet by Danielle', handle: '@sweetbydanielle', detail: 'Custom Cakes · From $80',
+        services: [
+          { name: 'Custom Birthday Cake', price: 'From $80' },
+          { name: 'Cupcake Set (12)', price: '$40' },
+          { name: 'Cake Pops (dozen)', price: '$35' },
+        ],
+      },
       { name: 'Cakes by Priya', handle: '@cakesbypriya', detail: 'Birthday Cakes · From $75' },
       { name: 'The Cake Lab', handle: '@thecakelab_', detail: 'Custom Cakes · From $90' },
     ],
@@ -49,7 +73,14 @@ const DEMOS: Demo[] = [
     buildQuery: () => 'photographer for a gender reveal',
     response: "Here are some talented local photographers for your gender reveal.",
     vendors: [
-      { name: 'Capture Moments', handle: '@capturemoments', detail: 'Event Photography · From $300' },
+      {
+        name: 'Capture Moments', handle: '@capturemoments', detail: 'Event Photography · From $300',
+        services: [
+          { name: 'Event Photography (2hr)', price: 'From $300' },
+          { name: 'Full Day Coverage', price: 'From $650' },
+          { name: 'Photo + Video Bundle', price: 'From $850' },
+        ],
+      },
       { name: 'Lens & Light Co.', handle: '@lensandlightco', detail: 'Photo & Video · From $450' },
       { name: 'Golden Hour Studio', handle: '@goldenhourstudio_', detail: 'Full Event Coverage · From $500' },
     ],
@@ -57,6 +88,14 @@ const DEMOS: Demo[] = [
 ];
 
 type Phase = 'typing' | 'thinking' | 'responding';
+type DetailStep = 'none' | 'selected' | 'detail';
+
+// Timings for the optional extra "select a business, then show its services
+// and pricing" tail (showDetail). Kept separate from the core typing/thinking/
+// responding timings above so that path is never touched by this addition.
+const SELECT_DELAY = 1200; // after vendor cards appear, wait this long before highlighting one
+const DETAIL_DELAY = 700;  // after the highlight, wait this long before revealing its services panel
+const DETAIL_HOLD = 3000;  // once the panel is shown, hold this long before the loop advances
 
 interface AIDemoPreviewProps {
   /** Personalizes demo queries, e.g. "nail tech in Toronto under $60" */
@@ -68,14 +107,21 @@ interface AIDemoPreviewProps {
    *  e.g. embedding just the nail-tech scenario in a nail-tech blog post.
    *  Also hides the progress dots, since there's nothing to switch between. */
   fixedIndex?: number;
+  /** Adds an extra step after the vendor cards appear: one card is highlighted
+   *  as "selected", then a services + pricing panel reveals for it — showing
+   *  what happens after a customer picks a result, not just the search itself.
+   *  Purely additive and opt-in: omitting this prop (as for-businesses and the
+   *  blog embeds do) leaves the original behavior completely unchanged. */
+  showDetail?: boolean;
 }
 
-export default function AIDemoPreview({ cityName, onTry, fixedIndex }: AIDemoPreviewProps) {
+export default function AIDemoPreview({ cityName, onTry, fixedIndex, showDetail }: AIDemoPreviewProps) {
   const [demoIndex, setDemoIndex] = useState(fixedIndex ?? 0);
   const [loopCount, setLoopCount] = useState(0);
   const [phase, setPhase] = useState<Phase>('typing');
   const [typedChars, setTypedChars] = useState(0);
   const [showVendors, setShowVendors] = useState(false);
+  const [detailStep, setDetailStep] = useState<DetailStep>('none');
   const [isHovered, setIsHovered] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
 
@@ -94,6 +140,7 @@ export default function AIDemoPreview({ cityName, onTry, fixedIndex }: AIDemoPre
       setTypedChars(query.length);
       setPhase('responding');
       setShowVendors(true);
+      setDetailStep(showDetail ? 'detail' : 'none');
       return;
     }
 
@@ -101,6 +148,7 @@ export default function AIDemoPreview({ cityName, onTry, fixedIndex }: AIDemoPre
     setTypedChars(0);
     setPhase('typing');
     setShowVendors(false);
+    setDetailStep('none');
 
     const CHAR_DELAY = 48;
     for (let i = 1; i <= query.length; i++) {
@@ -108,26 +156,34 @@ export default function AIDemoPreview({ cityName, onTry, fixedIndex }: AIDemoPre
     }
 
     const typingEnd = query.length * CHAR_DELAY + 500;
+    const vendorsAt = typingEnd + 1800;
     timeouts.push(setTimeout(() => setPhase('thinking'), typingEnd));
     timeouts.push(setTimeout(() => setPhase('responding'), typingEnd + 1300));
-    timeouts.push(setTimeout(() => setShowVendors(true), typingEnd + 1800));
+    timeouts.push(setTimeout(() => setShowVendors(true), vendorsAt));
+
+    if (showDetail) {
+      timeouts.push(setTimeout(() => setDetailStep('selected'), vendorsAt + SELECT_DELAY));
+      timeouts.push(setTimeout(() => setDetailStep('detail'), vendorsAt + SELECT_DELAY + DETAIL_DELAY));
+    }
 
     return () => timeouts.forEach(clearTimeout);
-  }, [demoIndex, loopCount, query, reducedMotion]);
+  }, [demoIndex, loopCount, query, reducedMotion, showDetail]);
 
   // Advances to the next scenario once vendors have been visible (or loops
-  // the same one if fixedIndex is set); pauses while hovered.
+  // the same one if fixedIndex is set); pauses while hovered. Waits longer
+  // when showDetail is on, to give the select+detail tail room to finish.
   useEffect(() => {
     if (!showVendors || isHovered || reducedMotion) return;
+    const delay = showDetail ? SELECT_DELAY + DETAIL_DELAY + DETAIL_HOLD : 4200;
     const id = setTimeout(() => {
       if (fixedIndex !== undefined) {
         setLoopCount(p => p + 1);
       } else {
         setDemoIndex(prev => (prev + 1) % DEMOS.length);
       }
-    }, 4200);
+    }, delay);
     return () => clearTimeout(id);
-  }, [showVendors, isHovered, reducedMotion, fixedIndex]);
+  }, [showVendors, isHovered, reducedMotion, fixedIndex, showDetail]);
 
   const handleTry = () => onTry?.(query);
   // Without onTry the demo is display-only: no tap affordance, no misleading hint
@@ -199,7 +255,11 @@ export default function AIDemoPreview({ cityName, onTry, fixedIndex }: AIDemoPre
                     {demo.vendors.map((v, i) => (
                       <div
                         key={i}
-                        className="flex-shrink-0 w-44 bg-white dark:bg-dark-bg border border-gray-200 dark:border-dark-border rounded-xl p-3"
+                        className={`flex-shrink-0 w-44 bg-white dark:bg-dark-bg border rounded-xl p-3 transition-colors duration-500 ${
+                          showDetail && detailStep !== 'none' && i === 0
+                            ? 'border-orange-400 dark:border-orange-500 ring-2 ring-orange-200 dark:ring-orange-900/40'
+                            : 'border-gray-200 dark:border-dark-border'
+                        }`}
                       >
                         <p className="text-xs font-semibold text-gray-900 dark:text-white truncate mb-0.5">{v.name}</p>
                         <p className="text-xs text-orange-500 mb-1.5 truncate">{v.handle}</p>
@@ -207,6 +267,29 @@ export default function AIDemoPreview({ cityName, onTry, fixedIndex }: AIDemoPre
                       </div>
                     ))}
                   </div>
+
+                  {/* Services + pricing for the selected business — only when
+                      showDetail is on; mounts at 'selected' (opacity 0) so it
+                      fades in smoothly once 'detail' hits instead of popping in */}
+                  {showDetail && detailStep !== 'none' && demo.vendors[0].services && (
+                    <div
+                      className="mt-3 bg-white dark:bg-dark-bg border border-orange-200 dark:border-orange-800 rounded-xl p-3 transition-opacity duration-500"
+                      style={{ opacity: detailStep === 'detail' ? 1 : 0 }}
+                    >
+                      <p className="text-xs font-semibold text-gray-900 dark:text-white mb-2">
+                        {demo.vendors[0].name}{' '}
+                        <span className="font-normal text-gray-400 dark:text-gray-500">· Services</span>
+                      </p>
+                      <div className="space-y-1.5">
+                        {demo.vendors[0].services.map((s, i) => (
+                          <div key={i} className="flex items-center justify-between text-xs">
+                            <span className="text-gray-600 dark:text-gray-300">{s.name}</span>
+                            <span className="font-medium text-gray-900 dark:text-white">{s.price}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

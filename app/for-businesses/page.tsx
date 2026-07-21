@@ -227,7 +227,7 @@ export default function ForBusinessesPage() {
                 <div className="relative">
                   <FloatingUseCases pills={DEMAND_PILLS} variant="orbit" />
                   <div className="bg-gray-50 dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-2xl p-5 shadow-sm min-w-0">
-                    <AIDemoPreview />
+                    <AIDemoPreview showDetail />
                   </div>
                 </div>
                 <p className="text-center text-sm text-gray-400 dark:text-gray-500 mt-7">
