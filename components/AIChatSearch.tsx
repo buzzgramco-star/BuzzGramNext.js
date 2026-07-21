@@ -1586,7 +1586,7 @@ export default function AIChatSearch({ initialCitySlug, compact, demo, onEngage,
 
           {/* ── Empty state ── */}
           {messages.length === 0 && demo && !demoDismissed && (
-            <AIDemoPreview cityName={selectedCity?.name ?? null} onTry={handleDemoTry} />
+            <AIDemoPreview cityName={selectedCity?.name ?? null} onTry={handleDemoTry} showDetail />
           )}
           {messages.length === 0 && (
             !selectedCity ? (
