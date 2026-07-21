@@ -42,6 +42,18 @@ const DEMOS: Demo[] = [
       { name: 'The Cake Lab', handle: '@thecakelab_', detail: 'Custom Cakes · From $90' },
     ],
   },
+  {
+    // Vendor-facing framing (used on the "get discovered" blog post): the
+    // scenario itself is the same customer-asks/AI-answers mechanic, just
+    // illustrating the discovery moment a business owner cares about.
+    buildQuery: () => 'photographer for a gender reveal',
+    response: "Here are some talented local photographers for your gender reveal.",
+    vendors: [
+      { name: 'Capture Moments', handle: '@capturemoments', detail: 'Event Photography · From $300' },
+      { name: 'Lens & Light Co.', handle: '@lensandlightco', detail: 'Photo & Video · From $450' },
+      { name: 'Golden Hour Studio', handle: '@goldenhourstudio_', detail: 'Full Event Coverage · From $500' },
+    ],
+  },
 ];
 
 type Phase = 'typing' | 'thinking' | 'responding';
@@ -51,10 +63,16 @@ interface AIDemoPreviewProps {
   cityName?: string | null;
   /** Called with the current demo query when the user taps the demo */
   onTry?: (query: string) => void;
+  /** Locks the demo to a single DEMOS entry (index) and loops it instead of
+   *  cycling through all scenarios — used to focus the demo on one category,
+   *  e.g. embedding just the nail-tech scenario in a nail-tech blog post.
+   *  Also hides the progress dots, since there's nothing to switch between. */
+  fixedIndex?: number;
 }
 
-export default function AIDemoPreview({ cityName, onTry }: AIDemoPreviewProps) {
-  const [demoIndex, setDemoIndex] = useState(0);
+export default function AIDemoPreview({ cityName, onTry, fixedIndex }: AIDemoPreviewProps) {
+  const [demoIndex, setDemoIndex] = useState(fixedIndex ?? 0);
+  const [loopCount, setLoopCount] = useState(0);
   const [phase, setPhase] = useState<Phase>('typing');
   const [typedChars, setTypedChars] = useState(0);
   const [showVendors, setShowVendors] = useState(false);
@@ -69,6 +87,8 @@ export default function AIDemoPreview({ cityName, onTry }: AIDemoPreviewProps) {
   const query = demo.buildQuery(cityName);
 
   // Plays one demo scenario: type the query, think, respond, reveal vendors.
+  // loopCount has no meaning of its own — it only exists to force this effect
+  // to re-run when fixedIndex keeps demoIndex unchanged between replays.
   useEffect(() => {
     if (reducedMotion) {
       setTypedChars(query.length);
@@ -93,14 +113,21 @@ export default function AIDemoPreview({ cityName, onTry }: AIDemoPreviewProps) {
     timeouts.push(setTimeout(() => setShowVendors(true), typingEnd + 1800));
 
     return () => timeouts.forEach(clearTimeout);
-  }, [demoIndex, query, reducedMotion]);
+  }, [demoIndex, loopCount, query, reducedMotion]);
 
-  // Advances to the next scenario once vendors have been visible; pauses while hovered.
+  // Advances to the next scenario once vendors have been visible (or loops
+  // the same one if fixedIndex is set); pauses while hovered.
   useEffect(() => {
     if (!showVendors || isHovered || reducedMotion) return;
-    const id = setTimeout(() => setDemoIndex(prev => (prev + 1) % DEMOS.length), 4200);
+    const id = setTimeout(() => {
+      if (fixedIndex !== undefined) {
+        setLoopCount(p => p + 1);
+      } else {
+        setDemoIndex(prev => (prev + 1) % DEMOS.length);
+      }
+    }, 4200);
     return () => clearTimeout(id);
-  }, [showVendors, isHovered, reducedMotion]);
+  }, [showVendors, isHovered, reducedMotion, fixedIndex]);
 
   const handleTry = () => onTry?.(query);
   // Without onTry the demo is display-only: no tap affordance, no misleading hint
@@ -117,7 +144,7 @@ export default function AIDemoPreview({ cityName, onTry }: AIDemoPreviewProps) {
       } : {})}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className={`group rounded-xl -m-1 p-1 focus:outline-none ${interactive ? 'cursor-pointer transition-colors hover:bg-white/60 dark:hover:bg-white/5 focus-visible:ring-2 focus-visible:ring-orange-500' : ''}`}
+      className={`group w-full min-w-0 rounded-xl -m-1 p-1 focus:outline-none ${interactive ? 'cursor-pointer transition-colors hover:bg-white/60 dark:hover:bg-white/5 focus-visible:ring-2 focus-visible:ring-orange-500' : ''}`}
     >
       {/* Label row */}
       <div className="flex items-center justify-between mb-3">
@@ -160,7 +187,7 @@ export default function AIDemoPreview({ cityName, onTry }: AIDemoPreviewProps) {
                   <span className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600 animate-bounce" style={{ animationDelay: '320ms' }} />
                 </div>
               ) : (
-                <div>
+                <div className="min-w-0">
                   <p className="text-sm text-gray-700 dark:text-gray-300 mb-3 leading-relaxed">{demo.response}</p>
 
                   {/* Vendor cards — max-w-full forces the scroll container to clip
@@ -187,17 +214,19 @@ export default function AIDemoPreview({ cityName, onTry }: AIDemoPreviewProps) {
         )}
       </div>
 
-      {/* Progress dots */}
-      <div className="flex justify-center gap-1.5 pt-3">
-        {DEMOS.map((_, i) => (
-          <div
-            key={i}
-            className={`h-1.5 rounded-full transition-all duration-500 ${
-              i === demoIndex ? 'w-6 bg-orange-600' : 'w-1.5 bg-gray-200 dark:bg-gray-700'
-            }`}
-          />
-        ))}
-      </div>
+      {/* Progress dots — only meaningful when cycling between scenarios */}
+      {fixedIndex === undefined && (
+        <div className="flex justify-center gap-1.5 pt-3">
+          {DEMOS.map((_, i) => (
+            <div
+              key={i}
+              className={`h-1.5 rounded-full transition-all duration-500 ${
+                i === demoIndex ? 'w-6 bg-orange-600' : 'w-1.5 bg-gray-200 dark:bg-gray-700'
+              }`}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
