@@ -9,28 +9,40 @@ interface FAQItem {
 
 const faqs: FAQItem[] = [
   {
-    question: 'What cities does BuzzGram serve?',
-    answer: 'BuzzGram operates in 10 major cities across the USA and Canada: Toronto, Vancouver, Montreal, Ottawa, and Calgary in Canada; and New York City, Chicago, Los Angeles, Miami, and Phoenix in the United States.',
-  },
-  {
     question: 'What is BuzzGram?',
-    answer: 'BuzzGram is the first platform designed to connect customers with home-based and Instagram businesses. We help you discover talented entrepreneurs offering beauty services (nails, lashes, makeup, hair), food services (bakery, catering, private chefs), and event services (decor, planning, photography) in your local area.',
+    answer: 'BuzzGram connects customers with home-based and Instagram-only businesses: nail techs, bakers, photographers, and event planners you won\'t find on Google.',
   },
   {
-    question: 'How does BuzzGram work?',
-    answer: 'Customers can browse businesses by city and category, view their Instagram profiles to see their work, and request quotes from multiple businesses at once. Business owners can list their services for free, get discovered by local customers, and receive quote requests from people ready to book.',
+    question: 'How does the AI search work?',
+    answer: 'Describe what you need, like texting a friend. For example, "nail tech under $60 this weekend." The AI matches you to real local businesses with pricing, right away.',
   },
   {
-    question: 'Is BuzzGram free to use?',
-    answer: 'Yes! BuzzGram is 100% free for customers to browse and request quotes. Business owners can also list their services completely free with no hidden fees or credit card required.',
+    question: 'Is BuzzGram free?',
+    answer: 'Yes, for everyone. Searching and browsing is free for customers. Listing your business is free too, no credit card, no hidden fees.',
   },
   {
-    question: 'How is BuzzGram different from other platforms?',
-    answer: 'BuzzGram focuses exclusively on home-based and Instagram businesses that traditional platforms often overlook. We provide direct connection with business owners without middlemen, showcase their Instagram portfolios, and allow customers to request quotes from multiple businesses with one simple form.',
+    question: 'I run my business from home or only on Instagram. Is that a problem?',
+    answer: "That's exactly who BuzzGram is for. No storefront needed.",
   },
   {
-    question: 'Can I request quotes from businesses in multiple cities?',
-    answer: 'Currently, quotes are city-specific to connect you with local businesses in your area. However, you can browse businesses across all 10 cities and reach out to them directly through their profiles.',
+    question: 'Do you take a cut of bookings or payments?',
+    answer: "No. Customers contact and pay you directly on Instagram. We don't process payments or bookings.",
+  },
+  {
+    question: 'Do I need a website to list my business?',
+    answer: 'No. Your BuzzGram profile is your web presence, linked straight to your Instagram.',
+  },
+  {
+    question: "My business isn't beauty, food, or events. Can I still list it?",
+    answer: 'Yes. Those are our biggest categories today, but we welcome home-based and Instagram businesses of all kinds.',
+  },
+  {
+    question: 'What cities does BuzzGram serve?',
+    answer: 'Toronto, Vancouver, Calgary, Montreal, Ottawa, New York, Los Angeles, Chicago, Miami, and Phoenix, with more coming.',
+  },
+  {
+    question: 'I already get clients from Instagram. Why list on BuzzGram?',
+    answer: 'Keep them, and gain the people who don\'t follow you yet. Your existing clients also get one place to check your current prices and services.',
   },
 ];
 
@@ -63,18 +75,8 @@ export default function FAQ() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
 
-      <div className="bg-white dark:bg-dark-bg py-16 sm:py-20">
+      <div className="bg-white dark:bg-dark-bg py-12 sm:py-16">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Section Header */}
-          <div className="text-center mb-12">
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-              Frequently Asked Questions
-            </h2>
-            <p className="text-lg text-gray-600 dark:text-gray-300">
-              Everything you need to know about BuzzGram
-            </p>
-          </div>
-
           {/* FAQ Items */}
           <div className="space-y-4">
             {faqs.map((faq, index) => (
