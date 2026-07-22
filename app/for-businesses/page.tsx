@@ -41,47 +41,6 @@ export const metadata: Metadata = {
   },
 };
 
-const FAQS = [
-  {
-    q: 'How much does it cost?',
-    a: 'Nothing. Listing your business on BuzzGram is free.',
-  },
-  {
-    q: 'I work from home. Is that a problem?',
-    a: "It's the point. BuzzGram exists for home-based and Instagram businesses. No storefront needed.",
-  },
-  {
-    q: 'Do I need a website?',
-    a: 'No. Your BuzzGram profile is your web presence, and it links straight to your Instagram.',
-  },
-  {
-    q: 'Do you take a cut of my bookings?',
-    a: "No. Customers contact and pay you directly on Instagram. We don't process payments or bookings.",
-  },
-  {
-    q: "My business isn't beauty, food, or events. Can I still join?",
-    a: "Yes. Beauty, food, and events are our biggest categories today, but we welcome home-based and Instagram businesses of all kinds. Submit yours and we'll fit you in as new categories open up.",
-  },
-  {
-    q: 'What cities are you in?',
-    a: 'Toronto, Vancouver, Calgary, Montreal, Ottawa, New York, Los Angeles, Chicago, Miami, and Phoenix. More coming.',
-  },
-  {
-    q: 'I already get clients from Instagram. Why bother?',
-    a: 'Keep them. BuzzGram works both ways: people who don\'t follow you yet can discover you, and your existing clients get one place to check your current services, prices, and deals. When something changes, they see it here first.',
-  },
-];
-
-const faqSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'FAQPage',
-  mainEntity: FAQS.map(({ q, a }) => ({
-    '@type': 'Question',
-    name: q,
-    acceptedAnswer: { '@type': 'Answer', text: a },
-  })),
-};
-
 const PROBLEMS = [
   {
     title: 'The algorithm decides who sees you',
@@ -112,69 +71,9 @@ const PROBLEMS = [
   },
 ];
 
-const FEATURES = [
-  {
-    title: 'A page that ranks on Google',
-    text: 'Your profile lives on pages built to rank for "[your service] in [your city]". SEO an Instagram bio can\'t do.',
-  },
-  {
-    title: 'AI recommendations',
-    text: 'Every conversation about your category in your city is a chance to be recommended by name.',
-  },
-  {
-    title: 'Quote requests, delivered',
-    text: 'Customer requests land straight in your dashboard. No more "how much?" DMs going nowhere.',
-  },
-  {
-    title: 'Your menu, your prices',
-    text: 'List services with real pricing. New customers arrive knowing what you charge; existing clients see your latest prices and deals.',
-  },
-  {
-    title: 'Reviews you can answer',
-    text: 'Collect reviews and reply as the owner. Your reputation, on the record.',
-  },
-  {
-    title: 'Straight to your DMs',
-    text: 'Customers connect with you directly on Instagram. No commission, no gatekeeping.',
-  },
-];
-
-const STEPS = [
-  {
-    step: '1',
-    title: 'Tell us about your business',
-    text: 'Name, city, what you do, your Instagram. Takes five minutes.',
-  },
-  {
-    step: '2',
-    title: 'We review and approve',
-    text: "Real humans check every listing. That's why customers trust what they find here.",
-  },
-  {
-    step: '3',
-    title: 'Get found',
-    text: 'You show up in search, in browsing, and in AI recommendations across your city.',
-  },
-];
-
-const CITY_LINKS = [
-  { name: 'Toronto', slug: 'toronto' },
-  { name: 'Vancouver', slug: 'vancouver' },
-  { name: 'Calgary', slug: 'calgary' },
-  { name: 'Montreal', slug: 'montreal' },
-  { name: 'Ottawa', slug: 'ottawa' },
-  { name: 'New York', slug: 'new-york-city' },
-  { name: 'Los Angeles', slug: 'los-angeles' },
-  { name: 'Chicago', slug: 'chicago' },
-  { name: 'Miami', slug: 'miami' },
-  { name: 'Phoenix', slug: 'phoenix' },
-];
-
 export default function ForBusinessesPage() {
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
-
       <Suspense fallback={<div className="h-16" />}>
         <Header />
       </Suspense>
@@ -265,113 +164,7 @@ export default function ForBusinessesPage() {
           </div>
         </div>
 
-        {/* 3. The claim, spelled out (demo lives in the hero now) */}
-        <div className="py-14 sm:py-20">
-          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <Reveal>
-            <p className="text-xs font-semibold tracking-widest uppercase text-orange-600 dark:text-orange-500 mb-3">
-              The BuzzGram difference
-            </p>
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-4 leading-tight">
-              When someone asks our AI for what you do, it says your name.
-            </h2>
-            <p className="text-base text-gray-500 dark:text-gray-400 leading-relaxed">
-              Someone types &quot;I need a lash tech under $80&quot; and the AI answers with real
-              vendors: names, prices, and a link straight to their Instagram. Launching soon.
-              Businesses listed now are in its answers from day one.
-            </p>
-            </Reveal>
-          </div>
-        </div>
-
-        {/* 4. What you get */}
-        <div className="bg-gray-50 dark:bg-dark-card py-16 sm:py-20 border-t border-gray-100 dark:border-dark-border">
-          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 className="text-center text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-12">
-              One profile. Working for you around the clock.
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
-              {FEATURES.map((f, i) => (
-                <Reveal key={i} delay={(i % 3) * 100}>
-                <div className="bg-white dark:bg-dark-bg border border-gray-200 dark:border-dark-border rounded-2xl p-6 h-full">
-                  <h3 className="text-base font-bold text-gray-900 dark:text-white mb-2">{f.title}</h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">{f.text}</p>
-                </div>
-                </Reveal>
-              ))}
-            </div>
-
-            {/* Direct-payment banner */}
-            <Reveal>
-            <div className="bg-gradient-to-r from-orange-600 to-orange-500 dark:from-orange-700 dark:to-orange-600 rounded-2xl px-8 py-8 text-center">
-              <p className="text-2xl sm:text-3xl font-extrabold text-white mb-1">Free to list. Customers pay you directly.</p>
-              <p className="text-sm text-orange-100">We don&apos;t process bookings or sit in the payment loop. Your clients, and your revenue, stay yours.</p>
-            </div>
-            </Reveal>
-          </div>
-        </div>
-
-        {/* 5. How it works */}
-        <div className="py-16 sm:py-20">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 className="text-center text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-12">
-              Live in your city in three steps
-            </h2>
-            <div className="grid sm:grid-cols-3 gap-8">
-              {STEPS.map(({ step, title, text }, i) => (
-                <Reveal key={step} delay={i * 120}>
-                <div className="text-center">
-                  <div className="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 text-base font-bold flex items-center justify-center mx-auto mb-4">
-                    {step}
-                  </div>
-                  <h3 className="text-base font-bold text-gray-900 dark:text-white mb-2">{title}</h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">{text}</p>
-                </div>
-                </Reveal>
-              ))}
-            </div>
-            <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-10">
-              Live across{' '}
-              {CITY_LINKS.map((c, i) => (
-                <span key={c.slug}>
-                  <Link href={`/city/${c.slug}`} prefetch={false} className="text-orange-600 dark:text-orange-400 hover:underline">
-                    {c.name}
-                  </Link>
-                  {i < CITY_LINKS.length - 1 ? ', ' : '.'}
-                </span>
-              ))}
-            </p>
-          </div>
-        </div>
-
-        {/* 6. FAQ */}
-        <div className="bg-gray-50 dark:bg-dark-card py-16 sm:py-20 border-t border-gray-100 dark:border-dark-border">
-          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 className="text-center text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-10">
-              Questions, answered
-            </h2>
-            <Reveal>
-            <div className="space-y-3">
-              {FAQS.map(({ q, a }, i) => (
-                <details
-                  key={i}
-                  className="group bg-white dark:bg-dark-bg border border-gray-200 dark:border-dark-border rounded-xl px-5 py-4"
-                >
-                  <summary className="flex items-center justify-between cursor-pointer list-none text-base font-semibold text-gray-900 dark:text-white">
-                    {q}
-                    <svg className="w-5 h-5 text-gray-400 flex-shrink-0 ml-4 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </summary>
-                  <p className="mt-3 text-sm text-gray-500 dark:text-gray-400 leading-relaxed">{a}</p>
-                </details>
-              ))}
-            </div>
-            </Reveal>
-          </div>
-        </div>
-
-        {/* 7. Final CTA */}
+        {/* 3. Final CTA */}
         <div className="bg-gradient-to-r from-orange-600 to-orange-700 dark:from-orange-700 dark:to-orange-800 py-16 sm:py-20">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4">
@@ -384,7 +177,7 @@ export default function ForBusinessesPage() {
               List my business free
             </Link>
             <p className="mt-3 text-sm text-orange-100">
-              Free. No credit card. You keep your Instagram, your clients, your prices.
+              No commission. Takes five minutes.
             </p>
           </div>
         </div>
