@@ -3,7 +3,6 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import HeroSection from '@/components/homepage/HeroSection';
 
-import WhyBuzzGram from '@/components/homepage/WhyBuzzGram';
 import QuickValueProps from '@/components/homepage/QuickValueProps';
 import BrowseCategories from '@/components/homepage/BrowseCategories';
 import FinalCTA from '@/components/homepage/FinalCTA';
@@ -59,19 +58,16 @@ export default async function HomePage() {
       </Suspense>
 
       <div className="min-h-screen bg-white dark:bg-dark-bg flex flex-col">
-        {/* 1. Hero — AI chat front and center */}
+        {/* 1. Hero — AI chat front and center: the problem and the solution, live */}
         <HeroSection />
 
-        {/* 2. Platform overview — what BuzzGram is */}
-        <WhyBuzzGram />
-
-        {/* 4. OneQuote slim banner */}
+        {/* 2. OneQuote slim banner */}
         <QuickValueProps />
 
-        {/* 5. Browse by category */}
+        {/* 3. Browse by category */}
         <BrowseCategories />
 
-        {/* 6. Final CTA */}
+        {/* 4. Final CTA */}
         <FinalCTA />
 
         <Footer />

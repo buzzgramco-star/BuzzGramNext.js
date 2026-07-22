@@ -10,27 +10,39 @@ interface FAQItem {
 const faqs: FAQItem[] = [
   {
     question: 'What is BuzzGram?',
-    answer: 'BuzzGram is the first platform built for home-based and Instagram-only businesses. Think nail techs, bakers, lash artists, photographers, and event planners who run their whole business through Instagram. You can only find them if someone tells you about them. BuzzGram AI changes that.',
+    answer: 'BuzzGram connects customers with home-based and Instagram-only businesses: nail techs, bakers, photographers, and event planners you won\'t find on Google.',
   },
   {
     question: 'How does the AI search work?',
-    answer: 'Just tell it what you want. "Nail set under $60 this weekend", "baker for a custom birthday cake", "help me plan a bridal shower for 20 people." BuzzGram AI figures out what you need and shows you the best local businesses right away. You can ask follow-up questions and keep going until you find the right one.',
+    answer: 'Describe what you need, like texting a friend. For example, "nail tech under $60 this weekend." The AI matches you to real local businesses with pricing, right away.',
   },
   {
-    question: 'How does BuzzGram work?',
-    answer: 'Use the AI chat to describe what you need and get matched right away, or browse by city and category if you prefer. You can view Instagram portfolios, check services and pricing, and send quote requests to multiple businesses at once. No middlemen, no booking fees.',
+    question: 'Is BuzzGram free?',
+    answer: 'Yes, for everyone. Searching and browsing is free for customers. Listing your business is free too, no credit card, no hidden fees.',
   },
   {
-    question: 'Is BuzzGram free to use?',
-    answer: 'Yes, completely free. Customers can search, browse, and request quotes at no cost. Business owners can list their services for free too, with no hidden fees or credit card required.',
+    question: 'I run my business from home or only on Instagram. Is that a problem?',
+    answer: "That's exactly who BuzzGram is for. No storefront needed.",
+  },
+  {
+    question: 'Do you take a cut of bookings or payments?',
+    answer: "No. Customers contact and pay you directly on Instagram. We don't process payments or bookings.",
+  },
+  {
+    question: 'Do I need a website to list my business?',
+    answer: 'No. Your BuzzGram profile is your web presence, linked straight to your Instagram.',
+  },
+  {
+    question: "My business isn't beauty, food, or events. Can I still list it?",
+    answer: 'Yes. Those are our biggest categories today, but we welcome home-based and Instagram businesses of all kinds.',
   },
   {
     question: 'What cities does BuzzGram serve?',
-    answer: 'BuzzGram is live in 10 major cities: Toronto, Vancouver, Calgary, Montreal, and Ottawa in Canada; and New York City, Chicago, Los Angeles, Miami, and Phoenix in the United States. More cities are coming soon.',
+    answer: 'Toronto, Vancouver, Calgary, Montreal, Ottawa, New York, Los Angeles, Chicago, Miami, and Phoenix, with more coming.',
   },
   {
-    question: 'How is BuzzGram different from Google or Yelp?',
-    answer: 'Google and Yelp are built for businesses with storefronts. BuzzGram is built for the ones they miss: home-based nail techs, private chefs, Instagram-only bakers, and event planners with no traditional listing. Instead of searching with keywords, you describe what you want and the AI finds the right match.',
+    question: 'I already get clients from Instagram. Why list on BuzzGram?',
+    answer: 'Keep them, and gain the people who don\'t follow you yet. Your existing clients also get one place to check your current prices and services.',
   },
 ];
 
