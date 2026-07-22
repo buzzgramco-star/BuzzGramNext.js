@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
-import type { City, Business, EventPlan } from '@/types';
+import type { City, Business, BusinessService, EventPlan } from '@/types';
 import {
   api, API_BASE_URL, getCities, getBusinesses, getSubcategories,
   getConversations, getConversationById, createConversation, updateConversation, deleteConversation,
@@ -233,6 +233,31 @@ function renderMarkdown(text: string): React.ReactNode[] {
   return parts;
 }
 
+// Top-level services with a display price, for the inline "selected vendor"
+// panel. The flat services list links variations to their parent via
+// parentServiceId; a parent with variations shows "From $<cheapest variation>"
+// since pricing usually lives on the variation, not the group name. Services
+// with no price data anywhere (own or variations) fall back to "DM for
+// pricing" rather than a blank row — some real listings just don't have one yet.
+function getServiceSummary(services: BusinessService[]) {
+  const topLevel = services.filter(s => s.parentServiceId === null);
+  return topLevel.map(parent => {
+    const children = services.filter(s => s.parentServiceId === parent.id);
+    let priceLabel = 'DM for pricing';
+    if (children.length > 0) {
+      const min = children.reduce((m: number | null, c) => (
+        typeof c.priceNumeric === 'number' && (m === null || c.priceNumeric < m) ? c.priceNumeric : m
+      ), null);
+      if (min !== null) priceLabel = `From $${min}`;
+    } else if (typeof parent.priceNumeric === 'number') {
+      priceLabel = `$${parent.priceNumeric}`;
+    } else if (parent.price) {
+      priceLabel = parent.price;
+    }
+    return { name: parent.serviceName, priceLabel };
+  });
+}
+
 function groupBusinesses(businesses: Business[]): BusinessGroup[] {
   const map: Record<string, BusinessGroup> = {};
   businesses.forEach(b => {
@@ -246,13 +271,19 @@ function groupBusinesses(businesses: Business[]): BusinessGroup[] {
 
 function MiniBusinessCard({
   business,
-  onSelect,
+  expanded,
+  onToggle,
+  onAskAI,
   events,
   onSaveVendor,
   savingVendor,
 }: {
   business: Business;
-  onSelect: (name: string, slug: string) => void;
+  expanded: boolean;
+  onToggle: () => void;
+  /** Sends "What can you tell me about X?" to the AI — now a deliberate
+   *  follow-up action inside the expanded panel, not the card's default tap. */
+  onAskAI: (name: string, slug: string) => void;
   events?: EventPlan[];
   onSaveVendor?: (business: Business) => void;
   savingVendor?: string | null;
@@ -280,9 +311,11 @@ function MiniBusinessCard({
     .filter(s => typeof s.priceNumeric === 'number')
     .reduce((min: number | null, s) => (min === null || s.priceNumeric! < min ? s.priceNumeric! : min), null);
 
+  const serviceSummary = expanded ? getServiceSummary(business.services || []) : [];
+
   return (
     <div
-      onClick={() => onSelect(business.name, business.slug)}
+      onClick={onToggle}
       className="cursor-pointer bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-xl p-3 hover:shadow-md hover:border-orange-300 dark:hover:border-orange-500 transition-all group flex flex-col relative h-full"
     >
       {showBookmark && (
@@ -343,6 +376,26 @@ function MiniBusinessCard({
           From ${startingPrice}
         </p>
       )}
+      {expanded && serviceSummary.length > 0 && (
+        <div className="mb-2 pt-2 border-t border-gray-100 dark:border-dark-border">
+          <p className="text-xs font-semibold text-gray-900 dark:text-white mb-1.5">Services</p>
+          <div className="space-y-1">
+            {serviceSummary.map((s, i) => (
+              <div key={i} className="flex items-start justify-between gap-2 text-xs">
+                <span className="text-gray-600 dark:text-gray-300">{s.name}</span>
+                <span className="font-medium text-gray-900 dark:text-white flex-shrink-0 whitespace-nowrap">{s.priceLabel}</span>
+              </div>
+            ))}
+          </div>
+          <button
+            type="button"
+            onClick={e => { e.stopPropagation(); onAskAI(business.name, business.slug); }}
+            className="mt-2.5 text-xs font-medium text-orange-500 dark:text-orange-400 hover:underline"
+          >
+            Ask AI more about this business →
+          </button>
+        </div>
+      )}
       {hasProfile ? (
         <Link
           href={`/business/${business.slug}`}
@@ -382,6 +435,9 @@ function CarouselRow({ group, onSelect, events, onSaveVendor, savingVendor }: {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canLeft, setCanLeft] = useState(false);
   const [canRight, setCanRight] = useState(false);
+  // Which card (by slug) has its services panel open — one at a time per row,
+  // tapping a different card collapses the previous one.
+  const [expandedSlug, setExpandedSlug] = useState<string | null>(null);
 
   const sync = () => {
     const el = scrollRef.current;
@@ -433,7 +489,9 @@ function CarouselRow({ group, onSelect, events, onSaveVendor, savingVendor }: {
             <div key={business.id} className="flex-shrink-0 w-48 snap-start">
               <MiniBusinessCard
                 business={business}
-                onSelect={onSelect}
+                expanded={expandedSlug === business.slug}
+                onToggle={() => setExpandedSlug(prev => prev === business.slug ? null : business.slug)}
+                onAskAI={onSelect}
                 events={events}
                 onSaveVendor={onSaveVendor}
                 savingVendor={savingVendor}
