@@ -30,7 +30,7 @@ const faqs: FAQItem[] = [
   },
   {
     question: 'How is BuzzGram different from Google or Yelp?',
-    answer: 'Google and Yelp are built for businesses with storefronts. BuzzGram is built for the ones they miss: home-based nail techs, private chefs, Instagram-only bakers, and event planners with no traditional listing. And instead of searching with keywords, you just describe what you want and the AI finds the right match. No commission, no booking fees, no middlemen.',
+    answer: 'Google and Yelp are built for businesses with storefronts. BuzzGram is built for the ones they miss: home-based nail techs, private chefs, Instagram-only bakers, and event planners with no traditional listing. Instead of searching with keywords, you describe what you want and the AI finds the right match.',
   },
 ];
 

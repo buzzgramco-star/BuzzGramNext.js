@@ -102,7 +102,7 @@ export default function HeroSection() {
             {
               step: '1',
               title: 'Say what you need',
-              text: '"Nail tech under $60" or "help me plan my wedding" — just type it like you\'d text a friend.',
+              text: '"Nail tech under $60" or "help me plan my wedding," just type it like you\'d text a friend.',
             },
             {
               step: '2',
@@ -112,7 +112,7 @@ export default function HeroSection() {
             {
               step: '3',
               title: 'Connect directly',
-              text: 'See their work, services and prices — then DM them on Instagram. No middleman.',
+              text: 'See their work, services and prices, then DM them on Instagram. No middleman.',
             },
           ].map(({ step, title, text }) => (
             <div key={step} className="flex sm:flex-col items-start gap-3 sm:gap-2 text-left">

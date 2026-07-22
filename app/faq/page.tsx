@@ -4,8 +4,8 @@ import Footer from '@/components/Footer';
 import FAQ from '@/components/homepage/FAQ';
 
 export const metadata = {
-  title: 'FAQ | BuzzGram — Frequently Asked Questions',
-  description: 'Everything you need to know about BuzzGram — the AI-powered platform for discovering home-based and Instagram businesses near you.',
+  title: 'FAQ | BuzzGram',
+  description: 'Everything you need to know about BuzzGram, the AI-powered platform for discovering home-based and Instagram businesses near you.',
 };
 
 export default function FAQPage() {
