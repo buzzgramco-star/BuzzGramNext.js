@@ -271,19 +271,18 @@ function groupBusinesses(businesses: Business[]): BusinessGroup[] {
 
 function MiniBusinessCard({
   business,
-  expanded,
+  selected,
   onToggle,
-  onAskAI,
   events,
   onSaveVendor,
   savingVendor,
 }: {
   business: Business;
-  expanded: boolean;
+  /** Highlights this card when its services panel is showing below the row.
+   *  The panel itself lives at the CarouselRow level, not inside the card —
+   *  so every card in the row keeps its normal height regardless of selection. */
+  selected: boolean;
   onToggle: () => void;
-  /** Sends "What can you tell me about X?" to the AI — now a deliberate
-   *  follow-up action inside the expanded panel, not the card's default tap. */
-  onAskAI: (name: string, slug: string) => void;
   events?: EventPlan[];
   onSaveVendor?: (business: Business) => void;
   savingVendor?: string | null;
@@ -311,12 +310,14 @@ function MiniBusinessCard({
     .filter(s => typeof s.priceNumeric === 'number')
     .reduce((min: number | null, s) => (min === null || s.priceNumeric! < min ? s.priceNumeric! : min), null);
 
-  const serviceSummary = expanded ? getServiceSummary(business.services || []) : [];
-
   return (
     <div
       onClick={onToggle}
-      className="cursor-pointer bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-xl p-3 hover:shadow-md hover:border-orange-300 dark:hover:border-orange-500 transition-all group flex flex-col relative h-full"
+      className={`cursor-pointer bg-white dark:bg-dark-card border rounded-xl p-3 hover:shadow-md transition-all group flex flex-col relative h-full ${
+        selected
+          ? 'border-orange-400 dark:border-orange-500 ring-2 ring-orange-200 dark:ring-orange-900/40'
+          : 'border-gray-200 dark:border-dark-border hover:border-orange-300 dark:hover:border-orange-500'
+      }`}
     >
       {showBookmark && (
         <button
@@ -375,26 +376,6 @@ function MiniBusinessCard({
         <p className="text-xs font-medium text-gray-600 dark:text-gray-300 mb-2">
           From ${startingPrice}
         </p>
-      )}
-      {expanded && serviceSummary.length > 0 && (
-        <div className="mb-2 pt-2 border-t border-gray-100 dark:border-dark-border">
-          <p className="text-xs font-semibold text-gray-900 dark:text-white mb-1.5">Services</p>
-          <div className="space-y-1">
-            {serviceSummary.map((s, i) => (
-              <div key={i} className="flex items-start justify-between gap-2 text-xs">
-                <span className="text-gray-600 dark:text-gray-300">{s.name}</span>
-                <span className="font-medium text-gray-900 dark:text-white flex-shrink-0 whitespace-nowrap">{s.priceLabel}</span>
-              </div>
-            ))}
-          </div>
-          <button
-            type="button"
-            onClick={e => { e.stopPropagation(); onAskAI(business.name, business.slug); }}
-            className="mt-2.5 text-xs font-medium text-orange-500 dark:text-orange-400 hover:underline"
-          >
-            Ask AI more about this business →
-          </button>
-        </div>
       )}
       {hasProfile ? (
         <Link
@@ -456,6 +437,9 @@ function CarouselRow({ group, onSelect, events, onSaveVendor, savingVendor }: {
     scrollRef.current?.scrollBy({ left: dir === 'left' ? -220 : 220, behavior: 'smooth' });
   };
 
+  const expandedBusiness = group.items.find(b => b.slug === expandedSlug) || null;
+  const serviceSummary = expandedBusiness ? getServiceSummary(expandedBusiness.services || []) : [];
+
   return (
     <div className="mb-5">
       <div className="flex items-center gap-2 mb-2.5">
@@ -489,9 +473,8 @@ function CarouselRow({ group, onSelect, events, onSaveVendor, savingVendor }: {
             <div key={business.id} className="flex-shrink-0 w-48 snap-start">
               <MiniBusinessCard
                 business={business}
-                expanded={expandedSlug === business.slug}
+                selected={expandedSlug === business.slug}
                 onToggle={() => setExpandedSlug(prev => prev === business.slug ? null : business.slug)}
-                onAskAI={onSelect}
                 events={events}
                 onSaveVendor={onSaveVendor}
                 savingVendor={savingVendor}
@@ -512,6 +495,37 @@ function CarouselRow({ group, onSelect, events, onSaveVendor, savingVendor }: {
           </button>
         )}
       </div>
+
+      {/* Selected vendor's services + pricing — one panel below the whole
+          row, not inside any single card, so the row's card heights never
+          change based on selection. Matches the homepage demo's layout. */}
+      {expandedBusiness && (
+        <div className="mt-3 bg-white dark:bg-dark-card border border-orange-200 dark:border-orange-800 rounded-xl p-3">
+          <p className="text-xs font-semibold text-gray-900 dark:text-white mb-2">
+            {expandedBusiness.name}{' '}
+            <span className="font-normal text-gray-400 dark:text-gray-500">· Services</span>
+          </p>
+          {serviceSummary.length > 0 ? (
+            <div className="space-y-1.5">
+              {serviceSummary.map((s, i) => (
+                <div key={i} className="flex items-start justify-between gap-2 text-xs">
+                  <span className="text-gray-600 dark:text-gray-300">{s.name}</span>
+                  <span className="font-medium text-gray-900 dark:text-white flex-shrink-0 whitespace-nowrap">{s.priceLabel}</span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-xs text-gray-500 dark:text-gray-400">No services listed yet. DM on Instagram for details.</p>
+          )}
+          <button
+            type="button"
+            onClick={() => onSelect(expandedBusiness.name, expandedBusiness.slug)}
+            className="mt-2.5 text-xs font-medium text-orange-500 dark:text-orange-400 hover:underline"
+          >
+            Ask AI more about this business →
+          </button>
+        </div>
+      )}
     </div>
   );
 }
