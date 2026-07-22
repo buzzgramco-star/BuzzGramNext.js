@@ -5,8 +5,38 @@ import Link from 'next/link';
 
 export const metadata = {
   title: 'How It Works | BuzzGram',
-  description: 'Learn how BuzzGram connects customers with home-based and Instagram businesses',
+  description: 'How BuzzGram connects you with home-based and Instagram businesses, powered by AI search.',
 };
+
+const CUSTOMER_STEPS = [
+  {
+    title: 'Ask or browse',
+    text: 'Describe what you need to our AI (launching soon), or browse by city and category today.',
+  },
+  {
+    title: 'See real work and pricing',
+    text: 'Every listing links straight to Instagram, with services and prices up front.',
+  },
+  {
+    title: 'Request quotes',
+    text: 'Send one request, get quotes from multiple businesses, and pick the best fit.',
+  },
+];
+
+const OWNER_STEPS = [
+  {
+    title: 'List free in minutes',
+    text: 'Add your services and Instagram link. No credit card, ever.',
+  },
+  {
+    title: 'Get discovered',
+    text: 'Show up in local search, and soon, in AI recommendations across your city.',
+  },
+  {
+    title: 'Win clients',
+    text: 'Quote requests land in your dashboard. Respond and turn them into bookings.',
+  },
+];
 
 export default function HowItWorksPage() {
   return (
@@ -17,65 +47,32 @@ export default function HowItWorksPage() {
 
       <div className="min-h-screen bg-white dark:bg-dark-bg">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
-          {/* Page Header */}
           <div className="text-center mb-12">
             <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 dark:text-white mb-4">
               How BuzzGram Works
             </h1>
             <p className="text-lg text-gray-600 dark:text-gray-300">
-              Connecting customers with home-based and Instagram businesses
+              Finding home-based and Instagram businesses, made simple.
             </p>
           </div>
 
-          {/* For Customers Section */}
           <div className="mb-16">
             <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">
               For Customers
             </h2>
             <div className="space-y-6">
-              <div className="flex gap-4">
-                <div className="flex-shrink-0 w-10 h-10 bg-orange-100 dark:bg-orange-900/20 rounded-full flex items-center justify-center text-orange-600 dark:text-orange-400 font-bold text-lg">
-                  1
+              {CUSTOMER_STEPS.map((s, i) => (
+                <div key={i} className="flex gap-4">
+                  <div className="flex-shrink-0 w-10 h-10 bg-orange-100 dark:bg-orange-900/20 rounded-full flex items-center justify-center text-orange-600 dark:text-orange-400 font-bold text-lg">
+                    {i + 1}
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900 dark:text-white mb-1 text-lg">{s.title}</h3>
+                    <p className="text-gray-600 dark:text-gray-300">{s.text}</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900 dark:text-white mb-2 text-lg">
-                    Browse businesses by city and category
-                  </h3>
-                  <p className="text-gray-600 dark:text-gray-300">
-                    Search through 998+ verified home-based and Instagram businesses across 10 major cities. Filter by beauty, food, or event services.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex gap-4">
-                <div className="flex-shrink-0 w-10 h-10 bg-orange-100 dark:bg-orange-900/20 rounded-full flex items-center justify-center text-orange-600 dark:text-orange-400 font-bold text-lg">
-                  2
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900 dark:text-white mb-2 text-lg">
-                    View profiles and read reviews
-                  </h3>
-                  <p className="text-gray-600 dark:text-gray-300">
-                    Every business profile includes their Instagram link so you can see their work, style, and customer results before contacting them.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex gap-4">
-                <div className="flex-shrink-0 w-10 h-10 bg-orange-100 dark:bg-orange-900/20 rounded-full flex items-center justify-center text-orange-600 dark:text-orange-400 font-bold text-lg">
-                  3
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900 dark:text-white mb-2 text-lg">
-                    Request quotes from multiple businesses
-                  </h3>
-                  <p className="text-gray-600 dark:text-gray-300">
-                    Submit one quote request and get responses from multiple businesses. Compare offers and choose the best fit for your needs.
-                  </p>
-                </div>
-              </div>
+              ))}
             </div>
-
             <div className="mt-8">
               <Link
                 href="/city/toronto"
@@ -86,55 +83,23 @@ export default function HowItWorksPage() {
             </div>
           </div>
 
-          {/* For Business Owners Section */}
           <div className="mb-16">
             <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">
               For Business Owners
             </h2>
             <div className="space-y-6">
-              <div className="flex gap-4">
-                <div className="flex-shrink-0 w-10 h-10 bg-orange-100 dark:bg-orange-900/20 rounded-full flex items-center justify-center text-orange-600 dark:text-orange-400 font-bold text-lg">
-                  1
+              {OWNER_STEPS.map((s, i) => (
+                <div key={i} className="flex gap-4">
+                  <div className="flex-shrink-0 w-10 h-10 bg-orange-100 dark:bg-orange-900/20 rounded-full flex items-center justify-center text-orange-600 dark:text-orange-400 font-bold text-lg">
+                    {i + 1}
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900 dark:text-white mb-1 text-lg">{s.title}</h3>
+                    <p className="text-gray-600 dark:text-gray-300">{s.text}</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900 dark:text-white mb-2 text-lg">
-                    List your business for FREE
-                  </h3>
-                  <p className="text-gray-600 dark:text-gray-300">
-                    Create your business profile in 5 minutes. Add your services, connect your Instagram, and start appearing in local searches. No credit card required, ever.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex gap-4">
-                <div className="flex-shrink-0 w-10 h-10 bg-orange-100 dark:bg-orange-900/20 rounded-full flex items-center justify-center text-orange-600 dark:text-orange-400 font-bold text-lg">
-                  2
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900 dark:text-white mb-2 text-lg">
-                    Get discovered by local customers
-                  </h3>
-                  <p className="text-gray-600 dark:text-gray-300">
-                    Appear in search results when customers in your area are looking for services you offer. Your Instagram profile helps showcase your work.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex gap-4">
-                <div className="flex-shrink-0 w-10 h-10 bg-orange-100 dark:bg-orange-900/20 rounded-full flex items-center justify-center text-orange-600 dark:text-orange-400 font-bold text-lg">
-                  3
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900 dark:text-white mb-2 text-lg">
-                    Receive quote requests and win clients
-                  </h3>
-                  <p className="text-gray-600 dark:text-gray-300">
-                    Get notified when customers submit quote requests. Respond with your best offer and turn leads into paying clients.
-                  </p>
-                </div>
-              </div>
+              ))}
             </div>
-
             <div className="mt-8">
               <Link
                 href="/business-signup"
@@ -142,61 +107,6 @@ export default function HowItWorksPage() {
               >
                 List Your Business FREE →
               </Link>
-            </div>
-          </div>
-
-          {/* Why BuzzGram Section */}
-          <div className="bg-gray-50 dark:bg-dark-card rounded-xl p-8 border border-gray-200 dark:border-dark-border">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 text-center">
-              Why Choose BuzzGram?
-            </h2>
-            <div className="grid md:grid-cols-2 gap-6">
-              <div>
-                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
-                  For Customers
-                </h3>
-                <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
-                  <li className="flex gap-2">
-                    <span className="text-green-600 dark:text-green-400">✓</span>
-                    Home-based & Instagram businesses all in one place
-                  </li>
-                  <li className="flex gap-2">
-                    <span className="text-green-600 dark:text-green-400">✓</span>
-                    View portfolios before booking
-                  </li>
-                  <li className="flex gap-2">
-                    <span className="text-green-600 dark:text-green-400">✓</span>
-                    Request quotes from multiple businesses at once
-                  </li>
-                  <li className="flex gap-2">
-                    <span className="text-green-600 dark:text-green-400">✓</span>
-                    100% free to use
-                  </li>
-                </ul>
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
-                  For Business Owners
-                </h3>
-                <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
-                  <li className="flex gap-2">
-                    <span className="text-green-600 dark:text-green-400">✓</span>
-                    100% FREE listing forever
-                  </li>
-                  <li className="flex gap-2">
-                    <span className="text-green-600 dark:text-green-400">✓</span>
-                    Perfect for side hustles and home-based businesses
-                  </li>
-                  <li className="flex gap-2">
-                    <span className="text-green-600 dark:text-green-400">✓</span>
-                    Turn Instagram followers into paying customers
-                  </li>
-                  <li className="flex gap-2">
-                    <span className="text-green-600 dark:text-green-400">✓</span>
-                    Receive quote requests from ready-to-buy customers
-                  </li>
-                </ul>
-              </div>
             </div>
           </div>
         </div>
