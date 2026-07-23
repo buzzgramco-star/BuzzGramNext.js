@@ -233,29 +233,46 @@ function renderMarkdown(text: string): React.ReactNode[] {
   return parts;
 }
 
-// Top-level services with a display price, for the inline "selected vendor"
-// panel. The flat services list links variations to their parent via
-// parentServiceId; a parent with variations shows "From $<cheapest variation>"
-// since pricing usually lives on the variation, not the group name. Services
-// with no price data anywhere (own or variations) fall back to "DM for
-// pricing" rather than a blank row — some real listings just don't have one yet.
+// Itemizes every priced service/variation individually for the inline
+// "selected vendor" panel — matching how the AI's own text answers describe
+// services (buildServiceContext on the backend walks the same hierarchy the
+// same way), rather than collapsing a parent's variations into one "From $X"
+// line. A variation's label includes its parent group (e.g. "Full Set —
+// Medium") since the flat list links them only via parentServiceId. Top-level
+// services with no price of their own and no priced variations fall back to
+// a single "DM for pricing" row rather than being silently omitted. Capped at
+// SERVICE_PANEL_CAP rows — "Ask AI more about this business" is the overflow
+// path for anything beyond that, not a longer panel.
+const SERVICE_PANEL_CAP = 10;
+
 function getServiceSummary(services: BusinessService[]) {
-  const topLevel = services.filter(s => s.parentServiceId === null);
-  return topLevel.map(parent => {
-    const children = services.filter(s => s.parentServiceId === parent.id);
-    let priceLabel = 'DM for pricing';
-    if (children.length > 0) {
-      const min = children.reduce((m: number | null, c) => (
-        typeof c.priceNumeric === 'number' && (m === null || c.priceNumeric < m) ? c.priceNumeric : m
-      ), null);
-      if (min !== null) priceLabel = `From $${min}`;
-    } else if (typeof parent.priceNumeric === 'number') {
-      priceLabel = `$${parent.priceNumeric}`;
-    } else if (parent.price) {
-      priceLabel = parent.price;
+  const map: Record<number, BusinessService> = {};
+  services.forEach(s => { map[s.id] = s; });
+
+  const getLabel = (s: BusinessService): string => {
+    const parts: string[] = [s.serviceName];
+    let current: BusinessService | undefined = s;
+    while (current?.parentServiceId != null && map[current.parentServiceId]) {
+      current = map[current.parentServiceId];
+      parts.unshift(current.serviceName);
     }
-    return { name: parent.serviceName, priceLabel };
-  });
+    return parts.join(' — ');
+  };
+
+  const priced = services
+    .filter(s => typeof s.priceNumeric === 'number')
+    .map(s => ({ name: getLabel(s), priceLabel: `$${s.priceNumeric}` }));
+
+  const unpriced = services
+    .filter(s => s.parentServiceId === null)
+    .filter(parent => {
+      const hasOwnPrice = typeof parent.priceNumeric === 'number';
+      const hasPricedChild = services.some(c => c.parentServiceId === parent.id && typeof c.priceNumeric === 'number');
+      return !hasOwnPrice && !hasPricedChild;
+    })
+    .map(s => ({ name: s.serviceName, priceLabel: 'DM for pricing' }));
+
+  return [...priced, ...unpriced].slice(0, SERVICE_PANEL_CAP);
 }
 
 function groupBusinesses(businesses: Business[]): BusinessGroup[] {
