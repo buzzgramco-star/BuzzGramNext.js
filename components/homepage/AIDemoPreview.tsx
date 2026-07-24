@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 interface DemoVendor {
   name: string;
@@ -124,9 +124,33 @@ export default function AIDemoPreview({ cityName, onTry, fixedIndex, showDetail 
   const [detailStep, setDetailStep] = useState<DetailStep>('none');
   const [isHovered, setIsHovered] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
+  const [started, setStarted] = useState(false);
+
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setReducedMotion(window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  }, []);
+
+  // Delays the whole scripted sequence until this scrolls into view at least
+  // once (same technique as Reveal.tsx), so it doesn't play out-of-sight
+  // before the user ever scrolls to it (matters most for the blog/for-
+  // businesses embeds, which aren't always right at the top). Fires once —
+  // it keeps looping/cycling normally afterward even if scrolled away and back.
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setStarted(true);
+          io.disconnect();
+        }
+      },
+      { threshold: 0.15, rootMargin: '0px 0px -40px 0px' }
+    );
+    io.observe(el);
+    return () => io.disconnect();
   }, []);
 
   const demo = DEMOS[demoIndex];
@@ -136,6 +160,8 @@ export default function AIDemoPreview({ cityName, onTry, fixedIndex, showDetail 
   // loopCount has no meaning of its own — it only exists to force this effect
   // to re-run when fixedIndex keeps demoIndex unchanged between replays.
   useEffect(() => {
+    if (!started) return;
+
     if (reducedMotion) {
       setTypedChars(query.length);
       setPhase('responding');
@@ -167,7 +193,7 @@ export default function AIDemoPreview({ cityName, onTry, fixedIndex, showDetail 
     }
 
     return () => timeouts.forEach(clearTimeout);
-  }, [demoIndex, loopCount, query, reducedMotion, showDetail]);
+  }, [demoIndex, loopCount, query, reducedMotion, showDetail, started]);
 
   // Advances to the next scenario once vendors have been visible (or loops
   // the same one if fixedIndex is set); pauses while hovered. Waits longer
@@ -191,6 +217,7 @@ export default function AIDemoPreview({ cityName, onTry, fixedIndex, showDetail 
 
   return (
     <div
+      ref={containerRef}
       {...(interactive ? {
         role: 'button',
         tabIndex: 0,

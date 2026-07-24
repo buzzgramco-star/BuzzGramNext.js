@@ -150,6 +150,8 @@ export default function AgentModePreview() {
   const STEP_SEND_CURSOR = STEP_DRAFT_SHOWN + 1;
   const STEP_SENT = STEP_SEND_CURSOR + 1;
 
+  const [started, setStarted] = useState(false);
+
   const containerRef = useRef<HTMLDivElement>(null);
   const messagesRef = useRef<HTMLDivElement>(null);
   const toggleRef = useRef<HTMLDivElement>(null);
@@ -158,6 +160,26 @@ export default function AgentModePreview() {
 
   useEffect(() => {
     setReducedMotion(window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  }, []);
+
+  // Delays the whole scripted sequence until this scrolls into view at least
+  // once (same technique as Reveal.tsx), so it doesn't play out-of-sight
+  // above/below the fold before the user ever scrolls to it. Fires once —
+  // it keeps looping normally afterward even if scrolled away and back.
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setStarted(true);
+          io.disconnect();
+        }
+      },
+      { threshold: 0.15, rootMargin: '0px 0px -40px 0px' }
+    );
+    io.observe(el);
+    return () => io.disconnect();
   }, []);
 
   // Keeps the newest message in view, matching the real chat's auto-scroll.
@@ -182,6 +204,8 @@ export default function AgentModePreview() {
   };
 
   useEffect(() => {
+    if (!started) return;
+
     if (reducedMotion) {
       setTypedChars(scenario.query1.length);
       setTimeSaved(scenario.timeSavedTarget);
@@ -264,7 +288,7 @@ export default function AgentModePreview() {
 
     return () => timeouts.forEach(clearTimeout);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [reducedMotion, loopCount]);
+  }, [reducedMotion, loopCount, started]);
 
   const toggleOn = step >= 2;
 
