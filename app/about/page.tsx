@@ -1,10 +1,7 @@
 import { Suspense } from 'react';
-import { headers } from 'next/headers';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import Link from 'next/link';
-
-export const dynamic = 'force-dynamic';
 
 export const metadata = {
   title: 'About Us | BuzzGram',
@@ -61,9 +58,7 @@ const COLOR_CLASSES: Record<string, string> = {
   purple: 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400',
 };
 
-export default async function AboutPage() {
-  const headersList = await headers();
-  const detectedCity = headersList.get('x-detected-city') || 'toronto';
+export default function AboutPage() {
   const aboutSchema = {
     '@context': 'https://schema.org',
     '@type': 'AboutPage',
@@ -175,10 +170,10 @@ export default async function AboutPage() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
-                href={`/city/${detectedCity}`}
+                href="/"
                 className="px-8 py-4 bg-white text-orange-600 font-semibold rounded-lg hover:bg-orange-50 transition-all shadow-xl hover:shadow-2xl hover:-translate-y-1"
               >
-                Find Businesses
+                Try BuzzGram AI
               </Link>
               <Link
                 href="/business-signup"

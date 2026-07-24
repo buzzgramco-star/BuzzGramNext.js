@@ -75,10 +75,10 @@ export default function HowItWorksPage() {
             </div>
             <div className="mt-8">
               <Link
-                href="/city/toronto"
+                href="/"
                 className="inline-flex items-center px-6 py-3 bg-orange-600 hover:bg-orange-700 text-white font-semibold rounded-lg transition-colors"
               >
-                Start Browsing Businesses →
+                Try BuzzGram AI →
               </Link>
             </div>
           </div>
