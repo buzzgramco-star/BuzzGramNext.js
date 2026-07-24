@@ -27,6 +27,7 @@ const REASONING_FACTORS = ['Budget ($12,000)', 'Wedding', 'Availability', 'Ratin
 const RESPONSE = "Here's who I'd start with:";
 const NEXT_STEPS_INTRO = "Here's what I can do next:";
 const AGENT_OPTIONS = ['Draft quote', 'Compare prices', 'Find cheaper alternatives', 'Save this plan'];
+const FOLLOW_UP_PROMPTS = ['lower the budget', 'show premium options', 'find weekend availability', 'replace a vendor'];
 const CHECKLIST = ['Planning', 'Photography', 'Florals', 'Hair & Makeup'];
 
 const VENDORS = [
@@ -117,8 +118,10 @@ export default function AgentModePreview() {
     timeouts.push(setTimeout(() => { setStep(1); moveCursorTo('toggle'); }, t)); // cursor appears at toggle
     t += 700;
     timeouts.push(setTimeout(() => { setStep(2); setCursorStyle(s => ({ ...s, pressed: true })); }, t)); // click + toggle on
-    t += 500;
-    timeouts.push(setTimeout(() => setCursorStyle(s => ({ ...s, visible: false, pressed: false })), t));
+    t += 180;
+    timeouts.push(setTimeout(() => setCursorStyle(s => ({ ...s, pressed: false })), t)); // release before fading
+    t += 320;
+    timeouts.push(setTimeout(() => setCursorStyle(s => ({ ...s, visible: false })), t));
 
     t += 400;
     timeouts.push(setTimeout(() => setStep(3), t)); // start typing query 1
@@ -155,15 +158,19 @@ export default function AgentModePreview() {
     timeouts.push(setTimeout(() => setStep(16), t));
     t += 700;
     timeouts.push(setTimeout(() => { setStep(17); setCursorStyle(s => ({ ...s, pressed: true })); }, t)); // click "Draft quote" + draft shown
-    t += 500;
-    timeouts.push(setTimeout(() => setCursorStyle(s => ({ ...s, visible: false, pressed: false })), t));
+    t += 180;
+    timeouts.push(setTimeout(() => setCursorStyle(s => ({ ...s, pressed: false })), t)); // release before fading
+    t += 320;
+    timeouts.push(setTimeout(() => setCursorStyle(s => ({ ...s, visible: false })), t));
     t += 1800;
     timeouts.push(setTimeout(() => moveCursorTo('send'), t));
     timeouts.push(setTimeout(() => setStep(18), t));
     t += 700;
     timeouts.push(setTimeout(() => { setStep(19); setCursorStyle(s => ({ ...s, pressed: true })); }, t)); // click Send + "Sent!"
-    t += 2000;
-    timeouts.push(setTimeout(() => setCursorStyle(s => ({ ...s, visible: false, pressed: false })), t));
+    t += 180;
+    timeouts.push(setTimeout(() => setCursorStyle(s => ({ ...s, pressed: false })), t)); // release before fading
+    t += 1820;
+    timeouts.push(setTimeout(() => setCursorStyle(s => ({ ...s, visible: false })), t));
     t += 1200;
     timeouts.push(setTimeout(() => setLoopCount(c => c + 1), t));
 
@@ -178,8 +185,13 @@ export default function AgentModePreview() {
       {/* Simulated cursor */}
       {cursorStyle.visible && (
         <div
-          className={`absolute z-10 pointer-events-none transition-all duration-700 ease-out ${cursorStyle.pressed ? 'scale-75' : 'scale-100'}`}
-          style={{ top: cursorStyle.top, left: cursorStyle.left }}
+          className="absolute z-10 pointer-events-none"
+          style={{
+            top: cursorStyle.top,
+            left: cursorStyle.left,
+            transform: `scale(${cursorStyle.pressed ? 0.75 : 1})`,
+            transition: 'top 450ms ease-out, left 450ms ease-out, transform 150ms ease-out',
+          }}
         >
           <svg width="20" height="20" viewBox="0 0 20 20" className="drop-shadow-md">
             <path d="M2 1l6 16 2.5-6L17 8.5 2 1z" fill="white" stroke="#1f2937" strokeWidth="1" strokeLinejoin="round" />
@@ -329,6 +341,10 @@ export default function AgentModePreview() {
                               </span>
                             ))}
                           </div>
+                          {/* Keeps the conversation open instead of ending at a static result set */}
+                          <p className="text-xs text-gray-400 dark:text-gray-500 mb-3">
+                            Or, want me to {FOLLOW_UP_PROMPTS.join(', ')}?
+                          </p>
                         </>
                       )}
 
