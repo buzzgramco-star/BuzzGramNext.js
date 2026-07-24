@@ -10,12 +10,9 @@ export default function QuickValueProps() {
       <div className="absolute -bottom-10 -left-10 w-48 h-48 bg-white/5 rounded-full blur-3xl pointer-events-none" />
 
       <div className="relative max-w-3xl mx-auto px-6 sm:px-8 py-10 sm:py-12 text-center">
-        <h2 className="text-2xl sm:text-3xl font-bold text-white leading-snug mb-2">
+        <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white leading-snug">
           Stop scrolling Instagram.<br className="hidden sm:block" /> Start asking BuzzGram.
         </h2>
-        <p className="text-sm sm:text-base text-orange-100 max-w-xl mx-auto">
-          The nail tech your friends swear by. The baker who sells out every week. The photographer everyone loves. They&apos;re all on BuzzGram and it&apos;s free.
-        </p>
       </div>
     </div>
   );
