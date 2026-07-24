@@ -5,7 +5,6 @@ import HeroSection from '@/components/homepage/HeroSection';
 
 import QuickValueProps from '@/components/homepage/QuickValueProps';
 import BrowseCategories from '@/components/homepage/BrowseCategories';
-import FinalCTA from '@/components/homepage/FinalCTA';
 import AgentModePreview from '@/components/homepage/AgentModePreview';
 
 // Internal-only concept preview (see AgentModePreview.tsx) — not a real
@@ -67,7 +66,8 @@ export default async function HomePage() {
         {/* 1. Hero — AI chat front and center: the problem and the solution, live */}
         <HeroSection />
 
-        {/* 2. OneQuote slim banner */}
+        {/* 2. AI value-prop banner (formerly the OneQuote banner — OneQuote
+            still lives at /quote and in the header, just not promoted here) */}
         <QuickValueProps />
 
         {/* 2b. Agent Mode — internal concept preview, not a real feature yet */}
@@ -92,9 +92,6 @@ export default async function HomePage() {
 
         {/* 3. Browse by category */}
         <BrowseCategories />
-
-        {/* 4. Final CTA */}
-        <FinalCTA />
 
         <Footer />
       </div>
