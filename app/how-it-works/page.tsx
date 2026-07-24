@@ -11,7 +11,7 @@ export const metadata = {
 const CUSTOMER_STEPS = [
   {
     title: 'Ask or browse',
-    text: 'Describe what you need to our AI (launching soon), or browse by city and category today.',
+    text: 'Describe what you need to our AI, or browse by city and category — whichever is faster for you.',
   },
   {
     title: 'See real work and pricing',
@@ -30,7 +30,7 @@ const OWNER_STEPS = [
   },
   {
     title: 'Get discovered',
-    text: 'Show up in local search, and soon, in AI recommendations across your city.',
+    text: 'Show up in local search and in AI recommendations across your city.',
   },
   {
     title: 'Win clients',

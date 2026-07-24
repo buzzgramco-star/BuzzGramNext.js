@@ -39,7 +39,7 @@ const DIFFERENTIATORS = [
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
       </svg>
     ),
-    title: 'AI search, launching soon',
+    title: 'AI-powered search',
     text: 'Describe what you need and get matched to real local businesses. No keyword guessing.',
   },
   {

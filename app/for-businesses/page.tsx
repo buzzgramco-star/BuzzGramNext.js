@@ -28,14 +28,14 @@ const DEMAND_PILLS = [
 export const metadata: Metadata = {
   title: 'The First AI That Recommends Your Business | BuzzGram for Businesses',
   description:
-    'BuzzGram AI is the first of its kind: an AI that recommends real local businesses by name. Launching soon. List your home-based or Instagram business free and be in its answers from day one.',
+    'BuzzGram AI is the first of its kind: an AI that recommends real local businesses by name. List your home-based or Instagram business free and be in its answers today.',
   alternates: {
     canonical: 'https://www.buzzgram.co/for-businesses',
   },
   openGraph: {
     title: 'The First AI That Sends Customers to Your Business | BuzzGram',
     description:
-      'When someone in your city tells BuzzGram AI what they need, it recommends real local businesses by name. Launching soon. List free and be in its answers from day one.',
+      'When someone in your city tells BuzzGram AI what they need, it recommends real local businesses by name. List free and be in its answers today.',
     url: 'https://www.buzzgram.co/for-businesses',
     type: 'website',
   },
@@ -94,7 +94,7 @@ export default function ForBusinessesPage() {
                 <div className="flex justify-center lg:justify-start mb-6">
                   <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 text-orange-700 dark:text-orange-400 text-xs font-semibold tracking-wide uppercase">
                     <span className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse" />
-                    BuzzGram AI is launching soon
+                    BuzzGram AI is live
                   </span>
                 </div>
 
