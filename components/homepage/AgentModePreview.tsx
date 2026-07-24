@@ -7,29 +7,38 @@ import { useState, useEffect, useRef } from 'react';
 // thread, same bordered input bar with city selector + controls at the
 // bottom), with Agent Mode as one more control slotted into that bar, not a
 // separately-branded demo card. The page section wrapping this already says
-// "Concept Preview" in its heading, so this component itself should read as
+// "Coming Soon" in its heading, so this component itself should read as
 // "the same chat, plus a toggle" rather than a new product.
 //
 // A simulated cursor clicks the toggle, then the AI proactively asks a
-// clarifying question, gets a quick reply, builds a live checklist across a
-// realistic wedding vendor spread (planner, photographer, florist, hair &
-// makeup), recommends vendors, offers to draft a quote request, and the same
-// cursor clicks "Send" on the draft before everything resets. Nothing here
-// is wired to a backend; every bubble, tick, and click is on a timer.
+// clarifying question, gets a quick reply, shows its reasoning, builds a
+// live checklist + budget summary across a realistic wedding vendor spread
+// (planner, photographer, florist, hair & makeup), then offers a small menu
+// of next actions (not just one) — the same cursor clicks "Draft quote" from
+// that menu, reveals the draft, and clicks "Send" before everything resets.
+// Nothing here is wired to a backend; every bubble, tick, and click is on a
+// timer.
 
 const QUERY_1 = "I'm getting married in September, need help finding vendors";
 const CLARIFYING = "Congrats! 🎉 Let's build your vendor list. What's your total budget, and which do you need: planner, photographer, florist, caterer, hair & makeup, or DJ?";
 const QUERY_2 = 'Budget around $12,000 total. Need a planner, photographer, florist, and hair & makeup for now.';
-const RESPONSE = "Great, here's who I'd start with in Toronto:";
-const OFFER = 'Want me to draft a quote request to send to a few vendors like these?';
+const REASONING_INTRO = 'I found 24 matching vendors in Toronto. Based on:';
+const REASONING_FACTORS = ['Budget ($12,000)', 'Wedding', 'Availability', 'Ratings'];
+const RESPONSE = "Here's who I'd start with:";
+const NEXT_STEPS_INTRO = "Here's what I can do next:";
+const AGENT_OPTIONS = ['Draft quote', 'Compare prices', 'Find cheaper alternatives', 'Save this plan'];
 const CHECKLIST = ['Planning', 'Photography', 'Florals', 'Hair & Makeup'];
 
 const VENDORS = [
-  { name: 'Events by Leila', handle: '@eventsbyleila', detail: 'Full Planning · From $1,200' },
-  { name: 'Capture Moments', handle: '@capturemoments', detail: 'Photography · From $800' },
-  { name: 'Bloom & Co.', handle: '@bloomandco_', detail: 'Florals & Decor · From $400' },
-  { name: 'Glam Squad Toronto', handle: '@glamsquadto', detail: 'Hair & Makeup · From $350' },
+  { name: 'Events by Leila', handle: '@eventsbyleila', detail: 'Full Planning · From $1,200', price: 1200 },
+  { name: 'Capture Moments', handle: '@capturemoments', detail: 'Photography · From $800', price: 800 },
+  { name: 'Bloom & Co.', handle: '@bloomandco_', detail: 'Florals & Decor · From $400', price: 400 },
+  { name: 'Glam Squad Toronto', handle: '@glamsquadto', detail: 'Hair & Makeup · From $350', price: 350 },
 ];
+
+const TOTAL_BUDGET = 12000;
+const ESTIMATED_SPEND = VENDORS.reduce((sum, v) => sum + v.price, 0);
+const REMAINING_BUDGET = TOTAL_BUDGET - ESTIMATED_SPEND;
 
 const QUOTE_DRAFT = {
   categories: ['Planning', 'Photography', 'Florals', 'Hair & Makeup'],
@@ -46,9 +55,10 @@ const TIME_SAVED_TARGET = 5.5;
 // Step timeline — see the scheduling effect below for exact offsets.
 // 0 idle · 1 cursor at toggle · 2 click + toggle on · 3 typing query 1
 // 4 thinking 1 · 5 clarifying shown · 6 quick reply shown · 7 thinking 2
-// 8 response shown · 9-12 checklist ticks 1-4 · 13 vendors + time-saved counter
-// 14 offer shown · 15 quote draft shown · 16 cursor -> send · 17 click + "Sent!"
-// 18 hold, then loop
+// 8 reasoning shown · 9 response shown · 10-13 checklist ticks 1-4
+// 14 vendors + wedding plan budget + time-saved counter
+// 15 next-steps menu shown · 16 cursor -> "Draft quote" · 17 click + quote draft shown
+// 18 cursor -> send · 19 click + "Sent!" · 20 hold, then loop
 
 export default function AgentModePreview() {
   const [step, setStep] = useState(0);
@@ -61,6 +71,7 @@ export default function AgentModePreview() {
   const containerRef = useRef<HTMLDivElement>(null);
   const messagesRef = useRef<HTMLDivElement>(null);
   const toggleRef = useRef<HTMLDivElement>(null);
+  const draftChipRef = useRef<HTMLSpanElement>(null);
   const sendBtnRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -74,9 +85,9 @@ export default function AgentModePreview() {
     }
   }, [step, typedChars]);
 
-  const moveCursorTo = (target: 'toggle' | 'send', pressed = false) => {
+  const moveCursorTo = (target: 'toggle' | 'draftChip' | 'send', pressed = false) => {
     const container = containerRef.current;
-    const el = target === 'toggle' ? toggleRef.current : sendBtnRef.current;
+    const el = target === 'toggle' ? toggleRef.current : target === 'draftChip' ? draftChipRef.current : sendBtnRef.current;
     if (!container || !el) return;
     const cRect = container.getBoundingClientRect();
     const eRect = el.getBoundingClientRect();
@@ -92,7 +103,7 @@ export default function AgentModePreview() {
     if (reducedMotion) {
       setTypedChars(QUERY_1.length);
       setTimeSaved(TIME_SAVED_TARGET);
-      setStep(15);
+      setStep(17);
       return;
     }
 
@@ -123,27 +134,34 @@ export default function AgentModePreview() {
     t += 900;
     timeouts.push(setTimeout(() => setStep(7), t)); // thinking 2
     t += THINK_MS;
-    timeouts.push(setTimeout(() => setStep(8), t)); // response shown
+    timeouts.push(setTimeout(() => setStep(8), t)); // reasoning shown
+    t += 2000;
+    timeouts.push(setTimeout(() => setStep(9), t)); // response shown
     t += 600;
     for (let i = 0; i < CHECKLIST.length; i++) {
       t += 420;
-      timeouts.push(setTimeout(() => setStep(9 + i), t)); // checklist ticks, one at a time
+      timeouts.push(setTimeout(() => setStep(10 + i), t)); // checklist ticks, one at a time
     }
     t += 500;
-    timeouts.push(setTimeout(() => setStep(13), t)); // vendors + counter start
+    timeouts.push(setTimeout(() => setStep(14), t)); // vendors + wedding plan + counter start
     const COUNTER_STEPS = 9;
     for (let i = 1; i <= COUNTER_STEPS; i++) {
       timeouts.push(setTimeout(() => setTimeSaved(Number(((TIME_SAVED_TARGET * i) / COUNTER_STEPS).toFixed(1))), t + i * 100));
     }
-    t += 1900;
-    timeouts.push(setTimeout(() => setStep(14), t)); // offer shown
-    t += 1500;
-    timeouts.push(setTimeout(() => setStep(15), t)); // quote draft shown
+    t += 2100;
+    timeouts.push(setTimeout(() => setStep(15), t)); // next-steps menu shown
+    t += 1600;
+    timeouts.push(setTimeout(() => moveCursorTo('draftChip'), t));
+    timeouts.push(setTimeout(() => setStep(16), t));
+    t += 700;
+    timeouts.push(setTimeout(() => { setStep(17); setCursorStyle(s => ({ ...s, pressed: true })); }, t)); // click "Draft quote" + draft shown
+    t += 500;
+    timeouts.push(setTimeout(() => setCursorStyle(s => ({ ...s, visible: false, pressed: false })), t));
     t += 1800;
     timeouts.push(setTimeout(() => moveCursorTo('send'), t));
-    timeouts.push(setTimeout(() => setStep(16), t));
-    t += 750;
-    timeouts.push(setTimeout(() => { setStep(17); setCursorStyle(s => ({ ...s, pressed: true })); }, t)); // click + Sent!
+    timeouts.push(setTimeout(() => setStep(18), t));
+    t += 700;
+    timeouts.push(setTimeout(() => { setStep(19); setCursorStyle(s => ({ ...s, pressed: true })); }, t)); // click Send + "Sent!"
     t += 2000;
     timeouts.push(setTimeout(() => setCursorStyle(s => ({ ...s, visible: false, pressed: false })), t));
     t += 1200;
@@ -170,7 +188,7 @@ export default function AgentModePreview() {
       )}
 
       {/* Message thread — fixed height + internal scroll, same as the real chat's compact mode */}
-      <div ref={messagesRef} className="max-h-[360px] overflow-y-auto pr-1 mb-3 space-y-4">
+      <div ref={messagesRef} className="max-h-[380px] overflow-y-auto pr-1 mb-3 space-y-4">
         {step < 3 ? (
           <p className="text-xs text-gray-400 dark:text-gray-500 text-center py-10">
             {step < 2 ? 'Turning on Agent Mode…' : 'Agent Mode on — planning ahead automatically.'}
@@ -231,27 +249,37 @@ export default function AgentModePreview() {
                     </div>
                   ) : (
                     <div>
-                      <p className="text-sm text-gray-700 dark:text-gray-300 mb-2 leading-relaxed">{RESPONSE}</p>
+                      {/* Reasoning — shown before recommendations, builds trust */}
+                      <p className="text-sm text-gray-700 dark:text-gray-300 mb-1.5 leading-relaxed">{REASONING_INTRO}</p>
+                      <ul className="text-xs text-gray-500 dark:text-gray-400 mb-3 space-y-0.5 list-disc list-inside">
+                        {REASONING_FACTORS.map(f => <li key={f}>{f}</li>)}
+                      </ul>
 
-                      {/* Live checklist — ticks in one category at a time */}
-                      <div className="flex flex-wrap gap-1.5 mb-3">
-                        {CHECKLIST.map((c, i) => (
-                          <span
-                            key={c}
-                            className={`inline-flex items-center gap-1 text-[11px] font-medium px-2 py-1 rounded-full transition-all duration-300 ${
-                              step >= 9 + i
-                                ? 'bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-400 opacity-100'
-                                : 'bg-gray-50 dark:bg-gray-800 text-gray-400 dark:text-gray-500 opacity-60'
-                            }`}
-                          >
-                            {step >= 9 + i ? '✓' : '·'} {c}
-                          </span>
-                        ))}
-                      </div>
-
-                      {step >= 13 && (
+                      {step >= 9 && (
                         <>
-                          <div className="flex gap-3 overflow-x-auto pb-1 max-w-full mb-2">
+                          <p className="text-sm text-gray-700 dark:text-gray-300 mb-2 leading-relaxed">{RESPONSE}</p>
+
+                          {/* Live checklist — ticks in one category at a time */}
+                          <div className="flex flex-wrap gap-1.5 mb-3">
+                            {CHECKLIST.map((c, i) => (
+                              <span
+                                key={c}
+                                className={`inline-flex items-center gap-1 text-[11px] font-medium px-2 py-1 rounded-full transition-all duration-300 ${
+                                  step >= 10 + i
+                                    ? 'bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-400 opacity-100'
+                                    : 'bg-gray-50 dark:bg-gray-800 text-gray-400 dark:text-gray-500 opacity-60'
+                                }`}
+                              >
+                                {step >= 10 + i ? '✓' : '·'} {c}
+                              </span>
+                            ))}
+                          </div>
+                        </>
+                      )}
+
+                      {step >= 14 && (
+                        <>
+                          <div className="flex gap-3 overflow-x-auto pb-1 max-w-full mb-3">
                             {VENDORS.map((v, i) => (
                               <div key={i} className="flex-shrink-0 w-44 bg-white dark:bg-dark-bg border border-gray-200 dark:border-dark-border rounded-xl p-3">
                                 <p className="text-xs font-semibold text-gray-900 dark:text-white truncate mb-0.5">{v.name}</p>
@@ -261,19 +289,50 @@ export default function AgentModePreview() {
                             ))}
                           </div>
 
+                          {/* Wedding Plan — named plan with a running budget, not just a card list */}
+                          <div className="bg-gray-50 dark:bg-dark-bg border border-gray-200 dark:border-dark-border rounded-xl p-3 mb-2">
+                            <p className="text-xs font-semibold text-gray-900 dark:text-white mb-2">Wedding Plan</p>
+                            <div className="flex justify-between text-xs mb-1">
+                              <span className="text-gray-500 dark:text-gray-400">Estimated Budget</span>
+                              <span className="font-medium text-gray-900 dark:text-white">${ESTIMATED_SPEND.toLocaleString()}</span>
+                            </div>
+                            <div className="flex justify-between text-xs">
+                              <span className="text-gray-500 dark:text-gray-400">Remaining Budget</span>
+                              <span className="font-medium text-orange-600 dark:text-orange-400">${REMAINING_BUDGET.toLocaleString()}</span>
+                            </div>
+                          </div>
+
                           <div className="inline-flex items-center gap-1.5 text-[11px] font-medium text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20 px-2 py-1 rounded-full mb-3">
                             ⏱ Est. time saved: {timeSaved.toFixed(1)} hrs
                           </div>
                         </>
                       )}
 
-                      {step >= 14 && (
-                        <p className="text-sm text-gray-700 dark:text-gray-300 mb-3 leading-relaxed">
-                          {OFFER}
-                        </p>
+                      {step >= 15 && (
+                        <>
+                          <p className="text-sm text-gray-700 dark:text-gray-300 mb-2 leading-relaxed">
+                            {NEXT_STEPS_INTRO}
+                          </p>
+                          {/* Agent's menu of next actions — signals more than one capability */}
+                          <div className="flex flex-wrap gap-2 mb-3">
+                            {AGENT_OPTIONS.map(opt => (
+                              <span
+                                key={opt}
+                                ref={opt === 'Draft quote' ? draftChipRef : undefined}
+                                className={`text-xs font-medium px-3 py-1.5 rounded-full border transition-all duration-300 ${
+                                  opt === 'Draft quote' && step >= 16
+                                    ? 'bg-orange-600 text-white border-orange-600'
+                                    : 'bg-white dark:bg-dark-bg border-gray-200 dark:border-dark-border text-gray-600 dark:text-gray-300'
+                                }`}
+                              >
+                                {opt}
+                              </span>
+                            ))}
+                          </div>
+                        </>
                       )}
 
-                      {step >= 15 && (
+                      {step >= 17 && (
                         <div className="bg-white dark:bg-dark-bg border border-orange-200 dark:border-orange-800 rounded-xl p-3">
                           <p className="text-xs font-semibold text-gray-900 dark:text-white mb-2">
                             Quote Request <span className="font-normal text-gray-400 dark:text-gray-500">· review before sending</span>
@@ -301,7 +360,7 @@ export default function AgentModePreview() {
                           </div>
                           <p className="text-xs text-gray-600 dark:text-gray-300 mb-3 leading-relaxed">{QUOTE_DRAFT.message}</p>
                           <div className="flex gap-2">
-                            {step >= 17 ? (
+                            {step >= 19 ? (
                               <div className="flex-1 text-center text-xs font-semibold text-white bg-orange-600 rounded-lg py-1.5 flex items-center justify-center gap-1">
                                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
@@ -315,7 +374,7 @@ export default function AgentModePreview() {
                                 </span>
                                 <span
                                   ref={sendBtnRef}
-                                  className={`flex-1 text-center text-xs font-semibold text-white bg-orange-600 rounded-lg py-1.5 transition-transform ${cursorStyle.pressed && step === 17 ? 'scale-95' : ''}`}
+                                  className={`flex-1 text-center text-xs font-semibold text-white bg-orange-600 rounded-lg py-1.5 transition-transform ${cursorStyle.pressed && step === 19 ? 'scale-95' : ''}`}
                                 >
                                   Send Request
                                 </span>
