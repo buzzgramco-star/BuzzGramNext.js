@@ -83,7 +83,7 @@ export default async function HomePage() {
               <p className="text-base text-gray-500 dark:text-gray-400 mb-10 leading-relaxed">
                 An early look at where we're headed: an AI that asks the right questions, plans your event, and drafts vendor quotes for your approval.
               </p>
-              <div className="bg-white dark:bg-dark-bg border border-gray-200 dark:border-dark-border rounded-2xl p-5 shadow-sm text-left">
+              <div className="text-left">
                 <AgentModePreview />
               </div>
             </div>
