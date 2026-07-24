@@ -200,9 +200,34 @@ function formatDate(dateStr: string): string {
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
+// While a message is still streaming, an in-flight chunk can end mid-token
+// (e.g. "...the **Kay" before the closing "**" has arrived, or "[@handle](htt"
+// before the closing ")"), which would otherwise flash literal asterisks or
+// brackets on screen for a moment. Trims any such trailing incomplete token so
+// only fully-arrived markdown is ever rendered. Safe to run unconditionally:
+// once streaming finishes, the message's content is replaced wholesale by the
+// backend's final text (see the `data.message` assignments in sendMessage/
+// retryMessage), so this never permanently hides real content — it only
+// smooths the live-typing visual.
+function hideIncompleteMarkdownTail(text: string): string {
+  let result = text;
+
+  const boldCount = (result.match(/\*\*/g) || []).length;
+  if (boldCount % 2 === 1) {
+    result = result.slice(0, result.lastIndexOf('**'));
+  }
+
+  const lastBracket = result.lastIndexOf('[');
+  if (lastBracket !== -1 && !/^\[[^\]]*\]\(https?:\/\/[^)]*\)/.test(result.slice(lastBracket))) {
+    result = result.slice(0, lastBracket);
+  }
+
+  return result;
+}
+
 function renderMarkdown(text: string): React.ReactNode[] {
   // Strip markdown heading markers (###, ##, #) — AI sometimes outputs them despite instructions
-  const cleaned = text.replace(/^#{1,6}\s*/gm, '');
+  const cleaned = hideIncompleteMarkdownTail(text).replace(/^#{1,6}\s*/gm, '');
   const parts: React.ReactNode[] = [];
   const re = /\*\*(.*?)\*\*|\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g;
   let last = 0;
@@ -293,6 +318,7 @@ function MiniBusinessCard({
   events,
   onSaveVendor,
   savingVendor,
+  onOutboundClick,
 }: {
   business: Business;
   /** Highlights this card when its services panel is showing below the row.
@@ -303,6 +329,11 @@ function MiniBusinessCard({
   events?: EventPlan[];
   onSaveVendor?: (business: Business) => void;
   savingVendor?: string | null;
+  /** Fired when the user actually leaves BuzzGram for Instagram (handle link
+   *  or "View Instagram" button) — this is the traffic-to-vendors signal, not
+   *  business_click (which just opens the AI's detail panel/message, no
+   *  outbound navigation happens there). */
+  onOutboundClick?: (business: Business) => void;
 }) {
   const activeEvents = (events || []).filter(e => e.status === 'active');
   const showBookmark = activeEvents.length > 0 && !!onSaveVendor;
@@ -370,7 +401,7 @@ function MiniBusinessCard({
             href={business.instagramUrl}
             target="_blank"
             rel="noopener noreferrer"
-            onClick={e => e.stopPropagation()}
+            onClick={e => { e.stopPropagation(); onOutboundClick?.(business); }}
             className="text-xs text-orange-500 dark:text-orange-400 hover:underline truncate mb-1.5 block"
           >
             {business.instagramHandle}
@@ -410,7 +441,7 @@ function MiniBusinessCard({
           href={business.instagramUrl}
           target="_blank"
           rel="noopener noreferrer"
-          onClick={e => e.stopPropagation()}
+          onClick={e => { e.stopPropagation(); onOutboundClick?.(business); }}
           className="mt-auto text-xs text-orange-500 dark:text-orange-400 hover:underline flex items-center gap-0.5"
         >
           View Instagram
@@ -423,12 +454,13 @@ function MiniBusinessCard({
   );
 }
 
-function CarouselRow({ group, onSelect, events, onSaveVendor, savingVendor }: {
+function CarouselRow({ group, onSelect, events, onSaveVendor, savingVendor, onOutboundClick }: {
   group: BusinessGroup;
   onSelect: (name: string, slug: string) => void;
   events?: EventPlan[];
   onSaveVendor?: (business: Business) => void;
   savingVendor?: string | null;
+  onOutboundClick?: (business: Business) => void;
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canLeft, setCanLeft] = useState(false);
@@ -495,6 +527,7 @@ function CarouselRow({ group, onSelect, events, onSaveVendor, savingVendor }: {
                 events={events}
                 onSaveVendor={onSaveVendor}
                 savingVendor={savingVendor}
+                onOutboundClick={onOutboundClick}
               />
             </div>
           ))}
@@ -1608,6 +1641,7 @@ export default function AIChatSearch({ initialCitySlug, compact, demo, onEngage,
                                 events={events}
                                 onSaveVendor={handleSaveVendorToEvent}
                                 savingVendor={savingVendor}
+                                onOutboundClick={business => trackEvent('instagram_click', { businessSlug: business.slug })}
                               />
                             ))}
                           </div>
