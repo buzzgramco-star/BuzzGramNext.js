@@ -193,16 +193,23 @@ export default function AgentModePreview() {
     setTypedChars(0);
     setTimeSaved(0);
     setCursorStyle(s => ({ ...s, visible: false, pressed: false }));
-    setStep(0);
+
+    // The toggle-click intro only plays once — after that, Agent Mode is
+    // already on, so later scenarios start straight from the query instead
+    // of replaying the activation.
+    const isFirstLoop = loopCount === 0;
+    setStep(isFirstLoop ? 0 : 2);
 
     let t = 500;
-    timeouts.push(setTimeout(() => { setStep(1); moveCursorTo('toggle'); }, t)); // cursor appears at toggle
-    t += 700;
-    timeouts.push(setTimeout(() => { setStep(2); setCursorStyle(s => ({ ...s, pressed: true })); }, t)); // click + toggle on
-    t += 180;
-    timeouts.push(setTimeout(() => setCursorStyle(s => ({ ...s, pressed: false })), t)); // release before fading
-    t += 320;
-    timeouts.push(setTimeout(() => setCursorStyle(s => ({ ...s, visible: false })), t));
+    if (isFirstLoop) {
+      timeouts.push(setTimeout(() => { setStep(1); moveCursorTo('toggle'); }, t)); // cursor appears at toggle
+      t += 700;
+      timeouts.push(setTimeout(() => { setStep(2); setCursorStyle(s => ({ ...s, pressed: true })); }, t)); // click + toggle on
+      t += 180;
+      timeouts.push(setTimeout(() => setCursorStyle(s => ({ ...s, pressed: false })), t)); // release before fading
+      t += 320;
+      timeouts.push(setTimeout(() => setCursorStyle(s => ({ ...s, visible: false })), t));
+    }
 
     t += 400;
     timeouts.push(setTimeout(() => setStep(3), t)); // start typing query 1
@@ -280,12 +287,15 @@ export default function AgentModePreview() {
         </div>
       )}
 
-      {/* Message thread — fixed height + internal scroll, same as the real chat's compact mode */}
-      <div ref={messagesRef} className="max-h-[380px] overflow-y-auto pr-1 mb-3 space-y-4">
+      {/* Message thread — fixed height + internal scroll, same as the real chat's compact mode.
+          Height is fixed (not max-height) so the box never grows/shrinks as content is added. */}
+      <div ref={messagesRef} className="h-[380px] overflow-y-auto pr-1 mb-3 space-y-4">
         {step < 3 ? (
-          <p className="text-xs text-gray-400 dark:text-gray-500 text-center py-10">
-            {step < 2 ? 'Turning on Agent Mode…' : 'Agent Mode on — planning ahead automatically.'}
-          </p>
+          <div className="h-full flex items-center justify-center">
+            <p className="text-xs text-gray-400 dark:text-gray-500 text-center">
+              {step < 2 ? 'Turning on Agent Mode…' : 'Agent Mode on — planning ahead automatically.'}
+            </p>
+          </div>
         ) : (
           <>
             <div className="flex justify-end">
