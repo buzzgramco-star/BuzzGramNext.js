@@ -30,10 +30,10 @@ const AGENT_OPTIONS = ['Draft quote', 'Compare prices', 'Find cheaper alternativ
 const CHECKLIST = ['Planning', 'Photography', 'Florals', 'Hair & Makeup'];
 
 const VENDORS = [
-  { name: 'Events by Leila', handle: '@eventsbyleila', detail: 'Full Planning · From $1,200', price: 1200 },
-  { name: 'Capture Moments', handle: '@capturemoments', detail: 'Photography · From $800', price: 800 },
-  { name: 'Bloom & Co.', handle: '@bloomandco_', detail: 'Florals & Decor · From $400', price: 400 },
-  { name: 'Glam Squad Toronto', handle: '@glamsquadto', detail: 'Hair & Makeup · From $350', price: 350 },
+  { name: 'Events by Leila', handle: '@eventsbyleila', detail: 'Full Planning · From $2,800', price: 2800 },
+  { name: 'Capture Moments', handle: '@capturemoments', detail: 'Photography · From $3,200', price: 3200 },
+  { name: 'Bloom & Co.', handle: '@bloomandco_', detail: 'Florals & Decor · From $2,200', price: 2200 },
+  { name: 'Glam Squad Toronto', handle: '@glamsquadto', detail: 'Hair & Makeup · From $600', price: 600 },
 ];
 
 const TOTAL_BUDGET = 12000;
